@@ -1,4 +1,4 @@
-package ginbuilder
+package api
 
 import (
 	"bytes"
@@ -29,13 +29,6 @@ func NewApiParser(projectPath string) *ApiParser {
 		ProjectPath: projectPath,
 		ApiDir:      fmt.Sprintf("%s/api", projectPath),
 	}
-}
-
-type ApiItem struct {
-	HttpMethod     string `validate:"required" json:"http_method" yaml:"http_method"`
-	RelativePath   string `validate:"required" json:"relative_path" yaml:"relative_path"`
-	ApiHandlerFunc string `validate:"required" json:"api_handler_func" yaml:"api_handler_func"`
-	SourceFile     string `validate:"required" json:"source_file" yaml:"source_file"`
 }
 
 func (m *ApiParser) ScanApi() (apis []*ApiItem, err error) {
@@ -96,7 +89,8 @@ func (m *ApiParser) ScanApi() (apis []*ApiItem, err error) {
 
 			apiItem := new(ApiItem)
 			apiItem.SourceFile = strings.Replace(fileName, m.ProjectPath, "", 1)
-			apiItem.ApiHandlerFunc = fmt.Sprintf("%s.%s", packageName, objName)
+			apiItem.ApiHandlerFunc = objName
+			apiItem.ApiHandlerPackage = packageName
 
 			for _, value := range valueSpec.Values {
 				compositeLit, ok := value.(*ast.CompositeLit)
@@ -160,7 +154,7 @@ func (m *ApiParser) MapApi() (err error) {
 
 	newRoutersFileMiddle := bytes.NewBuffer(nil)
 	for _, apiItem := range apis {
-		str := fmt.Sprintf("    engine.Handle(\"%s\", \"%s\", %s.HandlerFunc)\n", apiItem.HttpMethod, apiItem.RelativePath, apiItem.ApiHandlerFunc)
+		str := fmt.Sprintf("    engine.Handle(\"%s\", \"%s\", %s.%s.HandlerFunc)\n", apiItem.HttpMethod, apiItem.RelativePath, apiItem.ApiHandlerPackage, apiItem.ApiHandlerFunc)
 		newRoutersFileMiddle.Write([]byte(str))
 	}
 

@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"bytes"
 	"os/exec"
 	"syscall"
 
@@ -9,15 +8,20 @@ import (
 )
 
 // 运行命令
-func RunCommand(name string, args ...string) (exit int, output *bytes.Buffer, err error) {
+func RunCommand(name string, args ...string) (exit int, err error) {
 	execCommand := exec.Command(name, args...)
-	output = bytes.NewBuffer(nil)
-	execCommand.Stdout = output
-	err = execCommand.Run()
+	output, err := execCommand.Output()
+	strOutput := string(output)
+	if strOutput != "" {
+		logrus.Info(strOutput)
+	}
+
 	if nil != err {
 		logrus.Errorf("run `%s %s`failed.", name, args)
 		exitError, ok := err.(*exec.ExitError)
 		if ok {
+			err = exitError
+			logrus.Error(string(exitError.Stderr))
 			waitStatus := exitError.Sys().(syscall.WaitStatus)
 			exit = waitStatus.ExitStatus()
 		}

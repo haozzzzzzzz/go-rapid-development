@@ -13,8 +13,7 @@ func CreateApiSource(apiItem *ApiItem) (err error) {
 		apiItem.ApiHandlerPackage,
 		apiItem.ApiHandlerFunc,
 		apiItem.HttpMethod,
-		apiItem.RelativePath,
-		apiItem.SourceFile)
+		apiItem.RelativePath)
 
 	err = ioutil.WriteFile(apiItem.SourceFile, []byte(newApiText), os.ModePerm)
 	if nil != err {
@@ -38,6 +37,8 @@ var %s ginbuilder.HandleFunc = ginbuilder.HandleFunc{
 	HttpMethod:   "%s",
 	RelativePath: "%s",
 	HandlerFunc: func(ginContext *gin.Context) {
-		fmt.Println("%s")
+		ginContext.JSON(200, gin.H{
+			"message": "hello, lambda api with gin style.",
+		})
 	},
 }`

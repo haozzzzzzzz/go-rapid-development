@@ -36,9 +36,11 @@ import (
 var %s ginbuilder.HandleFunc = ginbuilder.HandleFunc{
 	HttpMethod:   "%s",
 	RelativePath: "%s",
-	HandlerFunc: func(ginContext *gin.Context) {
-		ginContext.JSON(200, gin.H{
-			"message": "hello, lambda api with gin style.",
-		})
+	Handle: func(ctx *ginbuilder.Context) (resp interface{}, err error) {
+		resp = &ginbuilder.ResponseBase{
+			ReturnCode: 0,
+			Message: "normal",
+		}
+		return
 	},
 }`

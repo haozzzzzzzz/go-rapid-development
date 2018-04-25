@@ -154,7 +154,7 @@ func (m *ApiParser) MapApi() (err error) {
 
 	newRoutersFileMiddle := bytes.NewBuffer(nil)
 	for _, apiItem := range apis {
-		str := fmt.Sprintf("    engine.Handle(\"%s\", \"%s\", %s.%s.HandlerFunc)\n", apiItem.HttpMethod, apiItem.RelativePath, apiItem.ApiHandlerPackage, apiItem.ApiHandlerFunc)
+		str := fmt.Sprintf("    engine.Handle(\"%s\", \"%s\", %s.%s.GinHandler)\n", apiItem.HttpMethod, apiItem.RelativePath, apiItem.ApiHandlerPackage, apiItem.ApiHandlerFunc)
 		newRoutersFileMiddle.Write([]byte(str))
 	}
 

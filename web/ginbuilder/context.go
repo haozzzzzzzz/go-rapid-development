@@ -10,13 +10,15 @@ import (
 
 type Context struct {
 	GinContext *gin.Context
-	Logger     *logrus.Logger
+	Logger     *logrus.Entry
 	Session    *Session
 }
 
 func NewContext(ginContext *gin.Context) (ctx *Context) {
 	ctx = &Context{
 		GinContext: ginContext,
+		Logger:     logrus.WithFields(logrus.Fields{}),
+		Session:    &Session{},
 	}
 	return
 }

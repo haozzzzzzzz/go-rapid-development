@@ -36,11 +36,10 @@ import (
 var %s ginbuilder.HandleFunc = ginbuilder.HandleFunc{
 	HttpMethod:   "%s",
 	RelativePath: "%s",
-	Handle: func(ctx *ginbuilder.Context) (resp interface{}, err error) {
-		resp = &ginbuilder.ResponseBase{
-			ReturnCode: 0,
-			Message: "normal",
-		}
+	Handle: func(ctx *ginbuilder.Context) (err error) {
+		ctx.Success(map[string]interface{}{
+			"info": "hello, world",
+		})
 		return
 	},
 }`

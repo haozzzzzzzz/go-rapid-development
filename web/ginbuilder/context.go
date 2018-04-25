@@ -1,6 +1,8 @@
 package ginbuilder
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/sirupsen/logrus"
@@ -43,4 +45,25 @@ func (m *Context) BindPathData(pathData interface{}) (err error) {
 	}
 
 	return
+}
+
+func (m *Context) Send(code *ReturnCode, obj interface{}) {
+	response := NewReponse(code, obj)
+	m.GinContext.JSON(http.StatusOK, response)
+	return
+}
+
+func (m *Context) Success(obj interface{}) {
+	m.Send(CodeSuccess, obj)
+	return
+}
+
+func (m *Context) Error(code *ReturnCode, logArgs ...interface{}) {
+	m.Send(code, nil)
+	m.Logger.Error(logArgs...)
+}
+
+func (m *Context) Errorf(code *ReturnCode, logFormat string, logArgs ...interface{}) {
+	m.Send(code, nil)
+	m.Logger.Errorf(logFormat, logArgs...)
 }

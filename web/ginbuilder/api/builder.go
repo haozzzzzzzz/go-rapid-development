@@ -37,7 +37,7 @@ var %s ginbuilder.HandleFunc = ginbuilder.HandleFunc{
 	HttpMethod:   "%s",
 	RelativePath: "%s",
 	Handle: func(ctx *ginbuilder.Context) (err error) {
-		ctx.Success(map[string]interface{}{
+		ctx.SuccessReturn(map[string]interface{}{
 			"info": "hello, world",
 		})
 		return

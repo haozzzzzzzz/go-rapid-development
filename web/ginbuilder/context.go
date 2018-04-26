@@ -55,9 +55,12 @@ func (m *Context) Send(code *ReturnCode, obj interface{}) {
 	return
 }
 
-func (m *Context) Success(obj interface{}) {
+func (m *Context) Success() {
+	m.Send(CodeSuccess, nil)
+}
+
+func (m *Context) SuccessReturn(obj interface{}) {
 	m.Send(CodeSuccess, obj)
-	return
 }
 
 func (m *Context) Error(code *ReturnCode, logArgs ...interface{}) {

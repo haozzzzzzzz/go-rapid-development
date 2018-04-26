@@ -1,11 +1,13 @@
 package ginbuilder
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/sirupsen/logrus"
+	"gopkg.in/go-playground/validator.v8"
 )
 
 type Context struct {
@@ -23,17 +25,49 @@ func NewContext(ginContext *gin.Context) (ctx *Context) {
 	return
 }
 
-func (m *Context) BindQueryData(queryData interface{}) (err error) {
+func (m *Context) BindQueryData(queryData interface{}) (code *ReturnCode, err error) {
 	err = m.GinContext.ShouldBindQuery(queryData)
+	if err != nil {
+		code = CodeErrorQueryParams.Clone()
+		validateErrors, ok := err.(validator.ValidationErrors)
+		if ok {
+			for _, fieldError := range validateErrors {
+				code.Message = fmt.Sprintf("%s. %q:%s", code.Message, fieldError.Name, fieldError.Tag)
+				break
+			}
+		}
+	}
 	return
 }
 
-func (m *Context) BindPostData(postData interface{}) (err error) {
+func (m *Context) BindPostData(postData interface{}) (code *ReturnCode, err error) {
 	err = m.GinContext.MustBindWith(postData, binding.JSON)
+	if err != nil {
+		code = CodeErrorPostParams.Clone()
+		validateErrors, ok := err.(validator.ValidationErrors)
+		if ok {
+			for _, fieldError := range validateErrors {
+				code.Message = fmt.Sprintf("%s. %q:%s", code.Message, fieldError.Name, fieldError.Tag)
+				break
+			}
+		}
+	}
 	return
 }
 
-func (m *Context) BindPathData(pathData interface{}) (err error) {
+func (m *Context) BindPathData(pathData interface{}) (code *ReturnCode, err error) {
+	defer func() {
+		if err != nil {
+			code = CodeErrorPathParams.Clone()
+			validateErrors, ok := err.(validator.ValidationErrors)
+			if ok {
+				for _, fieldError := range validateErrors {
+					code.Message = fmt.Sprintf("%s. %q:%s", code.Message, fieldError.Name, fieldError.Tag)
+					break
+				}
+			}
+		}
+	}()
 	err = bindParams(m.GinContext.Params, pathData)
 	if nil != err {
 		logrus.Errorf("bind path data failed. \n%s.", err)
@@ -56,11 +90,11 @@ func (m *Context) Send(code *ReturnCode, obj interface{}) {
 }
 
 func (m *Context) Success() {
-	m.Send(CodeSuccess, nil)
+	m.Send(CodeSuccess.Clone(), nil)
 }
 
 func (m *Context) SuccessReturn(obj interface{}) {
-	m.Send(CodeSuccess, obj)
+	m.Send(CodeSuccess.Clone(), obj)
 }
 
 func (m *Context) Error(code *ReturnCode, logArgs ...interface{}) {

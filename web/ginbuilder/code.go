@@ -6,6 +6,13 @@ type ReturnCode struct {
 	Message string
 }
 
+func (m *ReturnCode) Clone() *ReturnCode {
+	return &ReturnCode{
+		Code:    m.Code,
+		Message: m.Message,
+	}
+}
+
 func (m ReturnCode) String() string {
 	return m.Message
 }

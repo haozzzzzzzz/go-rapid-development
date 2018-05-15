@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"go/ast"
 	"go/parser"
@@ -117,7 +118,23 @@ func (m *ApiParser) ScanApi() (apis []*ApiItem, err error) {
 					value := strings.Replace(valueLit.Value, "\"", "", -1)
 					switch keyIdent.Name {
 					case "HttpMethod":
+						switch value {
+						case "GET":
+						case "POST":
+						case "PUT":
+						case "PATCH":
+						case "HEAD":
+						case "OPTIONS":
+						case "DELETE":
+						case "CONNECT":
+						case "TRACE":
+						default:
+							err = errors.New(fmt.Sprintf("unsupported http method : %s", value))
+							logrus.Errorf("mapping unsupported api failed. %s.", err)
+							return
+						}
 						apiItem.HttpMethod = value
+
 					case "RelativePath":
 						apiItem.RelativePath = value
 					}

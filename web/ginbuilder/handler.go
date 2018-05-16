@@ -14,6 +14,6 @@ func (m *HandleFunc) GinHandler(ginCtx *gin.Context) {
 	ctx := NewContext(ginCtx)
 	err := m.Handle(ctx)
 	if nil != err {
-		ctx.Logger.Errorf("handler %q failed. \n%s.", ginCtx.Request.RequestURI, err)
+		ctx.Logger.Errorf("handler %q failed. %s.", ginCtx.Request.RequestURI, err)
 	}
 }

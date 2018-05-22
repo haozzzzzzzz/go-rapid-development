@@ -1,11 +1,11 @@
-package db
+package cache
 
 import (
 	"context"
-	"database/sql"
 
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/jmoiron/sqlx"
+	"time"
+
+	"github.com/go-redis/redis"
 	"github.com/sirupsen/logrus"
 )
 
@@ -14,13 +14,13 @@ type ConnectionChecker interface {
 	After(err error)
 }
 
-type ConnectionCheckerMaker interface {
-	NewChecker() ConnectionChecker
+type CommandChecker interface {
+	Before(client *Client, cmd redis.Cmder)
+	After(err error)
 }
 
-type CommandChecker interface {
-	Before(client *Client, strSql string, args ...interface{})
-	After(err error)
+type ConnectionCheckerMaker interface {
+	NewChecker() ConnectionChecker
 }
 
 type CommandCheckerMaker interface {
@@ -28,7 +28,7 @@ type CommandCheckerMaker interface {
 }
 
 type Client struct {
-	DB                     *sqlx.DB
+	RedisClient            *redis.Client
 	Ctx                    context.Context
 	ConnectionCheckerMaker ConnectionCheckerMaker
 	CommandCheckerMaker    CommandCheckerMaker
@@ -38,6 +38,7 @@ func (m *Client) ConnectionChecker() ConnectionChecker {
 	if m.ConnectionCheckerMaker == nil {
 		return nil
 	}
+
 	return m.ConnectionCheckerMaker.NewChecker()
 }
 
@@ -49,10 +50,10 @@ func (m *Client) CommandChecker() CommandChecker {
 	return m.CommandCheckerMaker.NewChecker()
 }
 
-func NewClient(ctx context.Context, sqlxDB *sqlx.DB, connCheckerMaker ConnectionCheckerMaker, commCheckerMaker CommandCheckerMaker) (client *Client, err error) {
+func NewClient(ctx context.Context, redisClient *redis.Client, connCheckerMaker ConnectionCheckerMaker, commCheckerMaker CommandCheckerMaker) (client *Client, err error) {
 	client = &Client{
-		DB:  sqlxDB,
-		Ctx: ctx,
+		RedisClient: redisClient,
+		Ctx:         ctx,
 		ConnectionCheckerMaker: connCheckerMaker,
 		CommandCheckerMaker:    commCheckerMaker,
 	}
@@ -76,105 +77,116 @@ func (m *Client) Ping() (err error) {
 		}()
 	}
 
-	err = m.DB.PingContext(m.Ctx)
+	_, err = m.RedisClient.Ping().Result()
 	if nil != err {
-		logrus.Errorf("ping db failed. %s", err)
+		logrus.Errorf("redis client ping failed. %s.", err)
 		return
 	}
 
 	return
 }
 
-func (m *Client) QueryRowx(query string, args ...interface{}) (row *sqlx.Row, err error) {
-	// checker
+func (m *Client) TTL(key string) (result time.Duration, err error) {
+	cmder := m.RedisClient.TTL(key)
+
 	checker := m.CommandChecker()
 	if checker != nil {
-		checker.Before(m, query, args...)
+		checker.Before(m, cmder)
 		defer func() {
 			checker.After(err)
 		}()
 	}
 
-	row = m.DB.QueryRowxContext(m.Ctx, query, args...)
+	result, err = cmder.Result()
 	return
 }
 
-func (m *Client) Get(dest interface{}, query string, args ...interface{}) (err error) {
-	// checker
+func (m *Client) Expire(key string, expiration time.Duration) (result bool, err error) {
+	cmder := m.RedisClient.Expire(key, expiration)
+
 	checker := m.CommandChecker()
 	if checker != nil {
-		checker.Before(m, query, args...)
+		checker.Before(m, cmder)
 		defer func() {
 			checker.After(err)
 		}()
 	}
 
-	err = m.DB.GetContext(m.Ctx, dest, query, args...)
+	result, err = cmder.Result()
 	return
 }
 
-func (m *Client) NamedQuery(query string, arg interface{}) (rows *sqlx.Rows, err error) {
-	// checker
+func (m *Client) Get(key string) (result string, err error) {
+	cmder := m.RedisClient.Get(key)
+
 	checker := m.CommandChecker()
 	if checker != nil {
-		checker.Before(m, query, arg)
+		checker.Before(m, cmder)
 		defer func() {
 			checker.After(err)
 		}()
 	}
-	rows, err = m.DB.NamedQueryContext(m.Ctx, query, arg)
+
+	result, err = cmder.Result()
 	return
 }
 
-func (m *Client) Query(query string, args ...interface{}) (rows *sqlx.Rows, err error) {
-	// checker
+func (m *Client) Set(key string, value interface{}, expiration time.Duration) (result string, err error) {
+	cmder := m.RedisClient.Set(key, value, expiration)
+
 	checker := m.CommandChecker()
 	if checker != nil {
-		checker.Before(m, query, args...)
+		checker.Before(m, cmder)
 		defer func() {
 			checker.After(err)
 		}()
 	}
 
-	rows, err = m.DB.QueryxContext(m.Ctx, query, args...)
+	result, err = cmder.Result()
 	return
 }
 
-func (m *Client) Exec(query string, args ...interface{}) (result sql.Result, err error) {
-	// checker
+func (m *Client) Del(keys ...string) (result int64, err error) {
+	cmder := m.RedisClient.Del(keys...)
+
 	checker := m.CommandChecker()
 	if checker != nil {
-		checker.Before(m, query, args...)
+		checker.Before(m, cmder)
 		defer func() {
 			checker.After(err)
 		}()
 	}
-	result, err = m.DB.ExecContext(m.Ctx, query, args...)
+
+	result, err = cmder.Result()
 	return
 }
 
-func (m *Client) NamedExec(query string, arg interface{}) (result sql.Result, err error) {
-	// checker
+func (m *Client) HGet(key string, field string) (result string, err error) {
+	cmder := m.RedisClient.HGet(key, field)
+
 	checker := m.CommandChecker()
 	if checker != nil {
-		checker.Before(m, query, arg)
+		checker.Before(m, cmder)
 		defer func() {
 			checker.After(err)
 		}()
 	}
-	result, err = m.DB.NamedExecContext(m.Ctx, query, arg)
+
+	result, err = cmder.Result()
 	return
 }
 
-func (m *Client) Select(slice interface{}, query string, args ...interface{}) (err error) {
-	// checker
+func (m *Client) HSet(key string, field string, value interface{}) (result bool, err error) {
+	cmder := m.RedisClient.HSet(key, field, value)
+
 	checker := m.CommandChecker()
 	if checker != nil {
-		checker.Before(m, query, args...)
+		checker.Before(m, cmder)
 		defer func() {
 			checker.After(err)
 		}()
 	}
-	err = m.DB.SelectContext(m.Ctx, slice, query, args...)
+
+	result, err = cmder.Result()
 	return
 }

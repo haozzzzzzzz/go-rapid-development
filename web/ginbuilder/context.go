@@ -10,18 +10,32 @@ import (
 	"gopkg.in/go-playground/validator.v8"
 )
 
+var sessionBuilder SessionBuilderFunc
+
+func BindSessionBuilder(sesBuilder SessionBuilderFunc) {
+	sessionBuilder = sesBuilder
+}
+
 type Context struct {
 	GinContext *gin.Context
 	Logger     *logrus.Entry
-	Session    *Session
+	Session    Session
 }
 
-func NewContext(ginContext *gin.Context) (ctx *Context) {
+func NewContext(ginContext *gin.Context) (ctx *Context, err error) {
 	ctx = &Context{
 		GinContext: ginContext,
 		Logger:     logrus.WithFields(logrus.Fields{}),
-		Session:    &Session{},
 	}
+
+	if sessionBuilder != nil {
+		err = sessionBuilder(ctx)
+		if nil != err {
+			logrus.Errorf("session builder error. %s.", err)
+			return
+		}
+	}
+
 	return
 }
 
@@ -102,7 +116,17 @@ func (m *Context) Error(code *ReturnCode, logArgs ...interface{}) {
 	m.Logger.Error(logArgs...)
 }
 
+func (m *Context) Warn(code *ReturnCode, logArgs ...interface{}) {
+	m.Send(code, nil)
+	m.Logger.Warn(logArgs...)
+}
+
 func (m *Context) Errorf(code *ReturnCode, logFormat string, logArgs ...interface{}) {
 	m.Send(code, nil)
 	m.Logger.Errorf(logFormat, logArgs...)
+}
+
+func (m *Context) Warnf(code *ReturnCode, logFormat string, logArgs ...interface{}) {
+	m.Send(code, nil)
+	m.Logger.Warnf(logFormat, logArgs...)
 }

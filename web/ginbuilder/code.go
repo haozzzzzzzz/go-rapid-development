@@ -1,56 +1,28 @@
 package ginbuilder
 
+import (
+	"github.com/haozzzzzzzz/go-rapid-development/api/code"
+)
+
 // 返回状态码
-type ReturnCode struct {
-	Code    uint32
-	Message string
-}
-
-func (m *ReturnCode) Clone() *ReturnCode {
-	return &ReturnCode{
-		Code:    m.Code,
-		Message: m.Message,
-	}
-}
-
-func (m ReturnCode) String() string {
-	return m.Message
-}
+type ReturnCode = code.ApiCode
 
 var (
 	// 成功
-	CodeSuccess = &ReturnCode{
-		Code:    0,
-		Message: "success",
-	}
+	CodeSuccess = code.CodeSuccess
 
 	// 服务器错误
-	CodeErrorServer = &ReturnCode{
-		Code:    1000,
-		Message: "server error",
-	}
+	CodeErrorServer = code.CodeErrorServer
 
 	// 请求失败
-	CodeErrorFailed = &ReturnCode{
-		Code:    1001,
-		Message: "request failed",
-	}
+	CodeErrorRequestFailed = code.CodeErrorRequestFailed
 
 	// 校验query参数失败
-	CodeErrorQueryParams = &ReturnCode{
-		Code:    1002,
-		Message: "verify query params failed",
-	}
+	CodeErrorQueryParams = code.CodeErrorQueryParams
 
 	// 校验path参数失败
-	CodeErrorPathParams = &ReturnCode{
-		Code:    1003,
-		Message: "verify path params failed",
-	}
+	CodeErrorPathParams = code.CodeErrorPathParams
 
 	// 校验post参数失败
-	CodeErrorPostParams = &ReturnCode{
-		Code:    1004,
-		Message: "verify post params failed",
-	}
+	CodeErrorPostParams = code.CodeErrorPostParams
 )

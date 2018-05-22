@@ -1,6 +1,9 @@
 package ginbuilder
 
-// 会话数据
-type Session struct {
-	RequestId string `json:"request_id"`
+type SessionBuilderFunc func(ctx *Context) error
+
+type Session interface {
+	BeforeHandle(ctx *Context)
+	AfterHandle(err error)
+	Panic(err interface{})
 }

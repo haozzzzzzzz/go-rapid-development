@@ -9,15 +9,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type ConnectionChecker interface {
-	Before(client *Client)
-	After(err error)
-}
-
-type ConnectionCheckerMaker interface {
-	NewChecker() ConnectionChecker
-}
-
 type CommandChecker interface {
 	Before(client *Client, strSql string, args ...interface{})
 	After(err error)
@@ -28,17 +19,9 @@ type CommandCheckerMaker interface {
 }
 
 type Client struct {
-	DB                     *sqlx.DB
-	Ctx                    context.Context
-	ConnectionCheckerMaker ConnectionCheckerMaker
-	CommandCheckerMaker    CommandCheckerMaker
-}
-
-func (m *Client) ConnectionChecker() ConnectionChecker {
-	if m.ConnectionCheckerMaker == nil {
-		return nil
-	}
-	return m.ConnectionCheckerMaker.NewChecker()
+	DB                  *sqlx.DB
+	Ctx                 context.Context
+	CommandCheckerMaker CommandCheckerMaker
 }
 
 func (m *Client) CommandChecker() CommandChecker {
@@ -49,33 +32,17 @@ func (m *Client) CommandChecker() CommandChecker {
 	return m.CommandCheckerMaker.NewChecker()
 }
 
-func NewClient(ctx context.Context, sqlxDB *sqlx.DB, connCheckerMaker ConnectionCheckerMaker, commCheckerMaker CommandCheckerMaker) (client *Client, err error) {
+func NewClient(ctx context.Context, sqlxDB *sqlx.DB, commCheckerMaker CommandCheckerMaker) (client *Client, err error) {
 	client = &Client{
-		DB:  sqlxDB,
-		Ctx: ctx,
-		ConnectionCheckerMaker: connCheckerMaker,
-		CommandCheckerMaker:    commCheckerMaker,
-	}
-
-	err = client.Ping()
-	if nil != err {
-		logrus.Errorf("ping client failed. %s.", err)
-		return
+		DB:                  sqlxDB,
+		Ctx:                 ctx,
+		CommandCheckerMaker: commCheckerMaker,
 	}
 
 	return
 }
 
 func (m *Client) Ping() (err error) {
-	// checker
-	checker := m.ConnectionChecker()
-	if checker != nil {
-		checker.Before(m)
-		defer func() {
-			checker.After(err)
-		}()
-	}
-
 	err = m.DB.PingContext(m.Ctx)
 	if nil != err {
 		logrus.Errorf("ping db failed. %s", err)

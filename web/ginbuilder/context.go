@@ -100,6 +100,9 @@ func (m *Context) BindPathData(pathData interface{}) (code *ReturnCode, err erro
 func (m *Context) Send(code *ReturnCode, obj interface{}) {
 	response := NewReponse(code, obj)
 	m.GinContext.JSON(http.StatusOK, response)
+	if m.Session != nil {
+		m.Session.SetReturnCode(code)
+	}
 	return
 }
 

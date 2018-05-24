@@ -9,18 +9,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type ConnectionChecker interface {
-	Before(client *Client)
-	After(err error)
-}
-
 type CommandChecker interface {
 	Before(client *Client, cmd redis.Cmder)
 	After(err error)
-}
-
-type ConnectionCheckerMaker interface {
-	NewChecker() ConnectionChecker
 }
 
 type CommandCheckerMaker interface {
@@ -28,18 +19,9 @@ type CommandCheckerMaker interface {
 }
 
 type Client struct {
-	RedisClient            *redis.Client
-	Ctx                    context.Context
-	ConnectionCheckerMaker ConnectionCheckerMaker
-	CommandCheckerMaker    CommandCheckerMaker
-}
-
-func (m *Client) ConnectionChecker() ConnectionChecker {
-	if m.ConnectionCheckerMaker == nil {
-		return nil
-	}
-
-	return m.ConnectionCheckerMaker.NewChecker()
+	RedisClient         *redis.Client
+	Ctx                 context.Context
+	CommandCheckerMaker CommandCheckerMaker
 }
 
 func (m *Client) CommandChecker() CommandChecker {
@@ -50,12 +32,11 @@ func (m *Client) CommandChecker() CommandChecker {
 	return m.CommandCheckerMaker.NewChecker()
 }
 
-func NewClient(ctx context.Context, redisClient *redis.Client, connCheckerMaker ConnectionCheckerMaker, commCheckerMaker CommandCheckerMaker) (client *Client, err error) {
+func NewClient(ctx context.Context, redisClient *redis.Client, commCheckerMaker CommandCheckerMaker) (client *Client, err error) {
 	client = &Client{
-		RedisClient: redisClient,
-		Ctx:         ctx,
-		ConnectionCheckerMaker: connCheckerMaker,
-		CommandCheckerMaker:    commCheckerMaker,
+		RedisClient:         redisClient,
+		Ctx:                 ctx,
+		CommandCheckerMaker: commCheckerMaker,
 	}
 
 	err = client.Ping()
@@ -68,15 +49,6 @@ func NewClient(ctx context.Context, redisClient *redis.Client, connCheckerMaker 
 }
 
 func (m *Client) Ping() (err error) {
-	// checker
-	checker := m.ConnectionChecker()
-	if checker != nil {
-		checker.Before(m)
-		defer func() {
-			checker.After(err)
-		}()
-	}
-
 	_, err = m.RedisClient.Ping().Result()
 	if nil != err {
 		logrus.Errorf("redis client ping failed. %s.", err)

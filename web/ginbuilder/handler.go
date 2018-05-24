@@ -19,15 +19,17 @@ func (m *HandleFunc) GinHandler(ginCtx *gin.Context) {
 	}
 
 	if ctx.Session != nil {
-		ctx.Session.BeforeHandle(ctx)
+		ctx.Session.BeforeHandle(ctx, m.HttpMethod, m.RelativePath)
 		defer func() {
-			if errPanic := recover(); errPanic != nil {
+			var errPanic interface{}
+			if errPanic = recover(); errPanic != nil {
 				ctx.Session.Panic(errPanic)
 			}
-		}()
-		defer func() {
+
 			ctx.Session.AfterHandle(err)
+
 		}()
+
 	}
 
 	err = m.Handle(ctx)

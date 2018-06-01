@@ -39,6 +39,7 @@ func NewGuage(
 	gauge = prometheus.NewGauge(prometheus.GaugeOpts{
 		Namespace: namespace,
 		Subsystem: subsystem,
+		Name:      name,
 		Help:      help,
 	})
 

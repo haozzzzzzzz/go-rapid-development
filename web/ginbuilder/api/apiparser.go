@@ -162,6 +162,23 @@ func (m *ApiParser) MapApi() (err error) {
 		return
 	}
 
+	// sort api
+	apiUris := make([]string, 0)
+	mapApi := make(map[string]*ApiItem)
+	for _, oneApi := range apis {
+		uri := oneApi.RelativePath
+		apiUris = append(apiUris, uri)
+		mapApi[uri] = oneApi
+	}
+
+	sort.Strings(apiUris)
+
+	// new order apis
+	apis = make([]*ApiItem, 0)
+	for _, apiUri := range apiUris {
+		apis = append(apis, mapApi[apiUri])
+	}
+
 	logrus.Info("Mapping apis ...")
 	defer func() {
 		if err == nil {

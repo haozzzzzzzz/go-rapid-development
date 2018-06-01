@@ -13,5 +13,8 @@ func CommandApiInit() *cobra.Command {
 
 		},
 	}
+
+	flags := cmd.Flags()
+
 	return cmd
 }

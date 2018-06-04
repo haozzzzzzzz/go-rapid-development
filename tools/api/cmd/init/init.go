@@ -1,6 +1,8 @@
 package init
 
 import (
+	"path/filepath"
+
 	"github.com/go-playground/validator"
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/common/proj"
 	"github.com/sirupsen/logrus"
@@ -19,6 +21,13 @@ func CommandApiInit() *cobra.Command {
 				logrus.Errorf("validate init config failed. %s.", err)
 				return
 			}
+
+			absProjectDir, err := filepath.Abs(config.ProjectDir)
+			if nil != err {
+				logrus.Errorf("get absolute file path %q failed. %s.", absProjectDir, err)
+				return
+			}
+			config.ProjectDir = absProjectDir
 
 			project := &proj.Project{
 				Config: &config,

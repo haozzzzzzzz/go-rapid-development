@@ -37,8 +37,8 @@ func (m *Project) Load(projectDir string) (err error) {
 	return
 }
 
-// 保存配置
-func (m *Project) Save() (err error) {
+// 初始化
+func (m *Project) Init() (err error) {
 	if m.Config == nil {
 		err = errors.New("empty config")
 		return

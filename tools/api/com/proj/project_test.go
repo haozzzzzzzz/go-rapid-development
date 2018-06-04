@@ -15,7 +15,7 @@ func TestProject_Save(t *testing.T) {
 		Config: config,
 	}
 
-	err := project.Save()
+	err := project.Init()
 	if nil != err {
 		t.Error(err)
 		return

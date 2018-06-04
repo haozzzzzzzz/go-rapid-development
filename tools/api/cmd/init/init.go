@@ -4,7 +4,9 @@ import (
 	"path/filepath"
 
 	"github.com/go-playground/validator"
-	"github.com/haozzzzzzzz/go-rapid-development/tools/api/common/proj"
+	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/proj"
+	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/source"
+	"github.com/haozzzzzzzz/go-rapid-development/tools/goimports"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -32,11 +34,23 @@ func CommandApiInit() *cobra.Command {
 			project := &proj.Project{
 				Config: &config,
 			}
-			err = project.Save()
+			err = project.Init()
 			if nil != err {
 				logrus.Errorf("save project config failed. %s.", err)
 				return
 			}
+
+			// init api project files
+			apiProjectSource := source.NewApiProjectSource(project)
+			err = apiProjectSource.Generate()
+			if nil != err {
+				logrus.Errorf("generate api project source failed. %s.", err)
+				return
+			}
+
+			// do go imports
+			goimports.DoGoImports([]string{config.ProjectDir}, true)
+
 		},
 	}
 

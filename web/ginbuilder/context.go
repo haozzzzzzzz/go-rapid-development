@@ -13,6 +13,11 @@ import (
 var sessionBuilder SessionBuilderFunc
 
 func BindSessionBuilder(sesBuilder SessionBuilderFunc) {
+	if sessionBuilder != nil {
+		logrus.Fatalf("session builder was bound")
+		return
+	}
+
 	sessionBuilder = sesBuilder
 }
 

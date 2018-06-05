@@ -288,20 +288,20 @@ func (m *ApiParser) MapApi() (err error) {
 	}
 
 	// sort api
-	apiUris := make([]string, 0)
+	apiUriKeys := make([]string, 0)
 	mapApi := make(map[string]*ApiItem)
 	for _, oneApi := range apis {
-		uri := oneApi.RelativePath
-		apiUris = append(apiUris, uri)
-		mapApi[uri] = oneApi
+		uriKey := fmt.Sprintf("%s_%s", oneApi.RelativePath, oneApi.HttpMethod)
+		apiUriKeys = append(apiUriKeys, uriKey)
+		mapApi[uriKey] = oneApi
 	}
 
-	sort.Strings(apiUris)
+	sort.Strings(apiUriKeys)
 
 	// new order apis
 	apis = make([]*ApiItem, 0)
-	for _, apiUri := range apiUris {
-		apis = append(apis, mapApi[apiUri])
+	for _, apiUriKey := range apiUriKeys {
+		apis = append(apis, mapApi[apiUriKey])
 	}
 
 	logrus.Info("Mapping apis ...")

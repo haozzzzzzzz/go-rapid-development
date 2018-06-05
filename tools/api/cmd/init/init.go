@@ -14,6 +14,7 @@ import (
 // 初始化API项目
 func CommandApiInit() *cobra.Command {
 	var config proj.ProjectConfigFormat
+	var params source.GenerateParams
 	var cmd = &cobra.Command{
 		Use:   "init",
 		Short: "api project initialization",
@@ -42,7 +43,7 @@ func CommandApiInit() *cobra.Command {
 
 			// init api project files
 			apiProjectSource := source.NewApiProjectSource(project)
-			err = apiProjectSource.Generate()
+			err = apiProjectSource.Generate(&params)
 			if nil != err {
 				logrus.Errorf("generate api project source failed. %s.", err)
 				return
@@ -58,6 +59,8 @@ func CommandApiInit() *cobra.Command {
 	flags.StringVarP(&config.Name, "name", "n", "", "api project name")
 	flags.StringVarP(&config.ProjectDir, "path", "p", "./", "api project directory path")
 	flags.StringVarP(&config.Description, "description", "d", "api", "api project description")
+	flags.StringVarP(&params.Host, "host", "H", "", "api serve host")
+	flags.StringVarP(&params.Port, "port", "P", "18100", "api serve port")
 
 	return cmd
 }

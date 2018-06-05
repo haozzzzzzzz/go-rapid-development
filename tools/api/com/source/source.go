@@ -18,7 +18,12 @@ func NewApiProjectSource(project *proj.Project) *ApiProjectSource {
 	}
 }
 
-func (m *ApiProjectSource) Generate() (err error) {
+type GenerateParams struct {
+	Host string `json:"host"`
+	Port string `json:"port"`
+}
+
+func (m *ApiProjectSource) Generate(params *GenerateParams) (err error) {
 
 	// generate constant
 	err = m.generateConstant()
@@ -49,7 +54,7 @@ func (m *ApiProjectSource) Generate() (err error) {
 	}
 
 	// main
-	err = m.generateMain()
+	err = m.generateMain(params)
 	if nil != err {
 		logrus.Errorf("generate main failed. %s.", err)
 		return

@@ -25,6 +25,17 @@ type Project struct {
 	Config *ProjectConfigFormat
 }
 
+func LoadProject(projectDir string) (project *Project, err error) {
+	project = &Project{}
+	err = project.Load(projectDir)
+	if nil != err {
+		logrus.Errorf("project load config failed. %s.", err)
+		return
+	}
+
+	return
+}
+
 // 加载配置
 func (m *Project) Load(projectDir string) (err error) {
 	m.Config = &ProjectConfigFormat{}

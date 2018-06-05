@@ -3,17 +3,20 @@ package source
 import (
 	"fmt"
 	"io/ioutil"
+	"strings"
 
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/proj"
 	"github.com/sirupsen/logrus"
 )
 
-func (m *ApiProjectSource) generateMain() (err error) {
+func (m *ApiProjectSource) generateMain(params *GenerateParams) (err error) {
 	projDir := m.ProjectDir
 
 	// generate main file
 	mainFilePath := fmt.Sprintf("%s/main.go", projDir)
-	err = ioutil.WriteFile(mainFilePath, []byte(mainFileText), proj.ProjectFileMode)
+	newMainFileText := strings.Replace(mainFileText, "$HOST$", params.Host, -1)
+	newMainFileText = strings.Replace(newMainFileText, "$PORT$", params.Port, -1)
+	err = ioutil.WriteFile(mainFilePath, []byte(newMainFileText), proj.ProjectFileMode)
 	if nil != err {
 		logrus.Errorf("new project main file failed. %s.", err)
 		return
@@ -54,8 +57,8 @@ func main() {
 	}
 
 	flags := mainCmd.Flags()
-	flags.StringVarP(&runParams.Host, "ip", "i", "", "serve host ip")
-	flags.StringVarP(&runParams.Port, "port", "p", "18100", "serve port")
+	flags.StringVarP(&runParams.Host, "ip", "i", "$HOST$", "serve host ip")
+	flags.StringVarP(&runParams.Port, "port", "p", "$PORT$", "serve port")
 	flags.StringVarP(&runParams.Stage, "stage", "s", "test", "deploy stage. dev、test、pre、prod")
 
 	if err := mainCmd.Execute(); err != nil {

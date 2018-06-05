@@ -61,8 +61,18 @@ func (m *Project) Init() (err error) {
 		return
 	}
 
+	// detect project dir
+	projectDir := m.Config.ProjectDir
+	if !file.PathExists(projectDir) {
+		err = os.MkdirAll(projectDir, ProjectDirMode)
+		if nil != err {
+			logrus.Errorf("make project directory %q failed. %s.", projectDir, err)
+			return
+		}
+	}
+
 	// create project config dir
-	projConfDir := fmt.Sprintf("%s/.proj", m.Config.ProjectDir)
+	projConfDir := fmt.Sprintf("%s/.proj", projectDir)
 	if !file.PathExists(projConfDir) {
 		err = os.MkdirAll(projConfDir, ProjectDirMode)
 		if nil != err {

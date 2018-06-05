@@ -50,7 +50,7 @@ func main() {
 
 	runParams := &RunParams{}
 	mainCmd := &cobra.Command{
-		Long: "video buddy event report api service",
+		Long: fmt.Sprintf("%s service", constant.ServiceName),
 		Run: func(cmd *cobra.Command, args []string) {
 			Run(runParams)
 		},

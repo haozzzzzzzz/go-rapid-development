@@ -64,6 +64,7 @@ func (m *ApiParser) ScanApi() (apis []*ApiItem, err error) {
 			return
 		}
 
+		// package name
 		packageName := astFile.Name.Name
 
 		for objName, obj := range astFile.Scope.Objects {
@@ -99,45 +100,98 @@ func (m *ApiParser) ScanApi() (apis []*ApiItem, err error) {
 					continue
 				}
 
+				// compositeLit.Elts
+				//&ast.KeyValueExpr{Key:(*ast.Ident)(0xc42026e5c0), Colon:167, Value:(*ast.BasicLit)(0xc42026e5e0)}
+				//&ast.KeyValueExpr{Key:(*ast.Ident)(0xc42026e600), Colon:192, Value:(*ast.BasicLit)(0xc42026e620)}
+				//&ast.KeyValueExpr{Key:(*ast.Ident)(0xc42026e660), Colon:231, Value:(*ast.FuncLit)(0xc4202196e0)}
 				for _, elt := range compositeLit.Elts {
 					keyValueExpr, ok := elt.(*ast.KeyValueExpr)
 					if !ok {
 						continue
 					}
 
+					//&ast.Ident{NamePos:157, Name:"HttpMethod", Obj:(*ast.Object)(nil)}
+					//&ast.Ident{NamePos:180, Name:"RelativePath", Obj:(*ast.Object)(nil)}
+					//&ast.Ident{NamePos:225, Name:"Handle", Obj:(*ast.Object)(nil)}
+
 					keyIdent, ok := keyValueExpr.Key.(*ast.Ident)
 					if !ok {
 						continue
 					}
 
+					// property
 					valueLit, ok := keyValueExpr.Value.(*ast.BasicLit)
-					if !ok {
-						continue
-					}
+					if ok {
+						value := strings.Replace(valueLit.Value, "\"", "", -1)
+						switch keyIdent.Name {
+						case "HttpMethod":
+							switch value {
+							case "GET":
+							case "POST":
+							case "PUT":
+							case "PATCH":
+							case "HEAD":
+							case "OPTIONS":
+							case "DELETE":
+							case "CONNECT":
+							case "TRACE":
+							default:
+								err = errors.New(fmt.Sprintf("unsupported http method : %s", value))
+								logrus.Errorf("mapping unsupported api failed. %s.", err)
+								return
+							}
+							apiItem.HttpMethod = value
 
-					value := strings.Replace(valueLit.Value, "\"", "", -1)
-					switch keyIdent.Name {
-					case "HttpMethod":
-						switch value {
-						case "GET":
-						case "POST":
-						case "PUT":
-						case "PATCH":
-						case "HEAD":
-						case "OPTIONS":
-						case "DELETE":
-						case "CONNECT":
-						case "TRACE":
-						default:
-							err = errors.New(fmt.Sprintf("unsupported http method : %s", value))
-							logrus.Errorf("mapping unsupported api failed. %s.", err)
-							return
+						case "RelativePath":
+							apiItem.RelativePath = value
+
 						}
-						apiItem.HttpMethod = value
-
-					case "RelativePath":
-						apiItem.RelativePath = value
 					}
+
+					// handle func
+					funcLit, ok := keyValueExpr.Value.(*ast.FuncLit)
+					if ok {
+						switch keyIdent.Name {
+						case "Handle":
+							funcBody := funcLit.Body
+							for _, funcStmt := range funcBody.List {
+								switch funcStmt.(type) {
+								case *ast.AssignStmt:
+									assignStmt := funcStmt.(*ast.AssignStmt)
+									lhs := assignStmt.Lhs
+									rhs := assignStmt.Rhs
+
+									_ = lhs
+									_ = rhs
+
+									for _, expr := range lhs {
+										ident, ok := expr.(*ast.Ident)
+										if !ok {
+											continue
+										}
+
+										switch ident.Name {
+										case "pathData":
+											apiItem.PathData = m.parseApiStructData(ident)
+										case "queryData":
+											apiItem.QueryData = m.parseApiStructData(ident)
+										case "postData":
+											apiItem.PostData = m.parseApiStructData(ident)
+										case "respData":
+											apiItem.RespData = m.parseApiStructData(ident)
+										}
+									}
+
+								case *ast.IfStmt:
+								case *ast.ExprStmt:
+								case *ast.ReturnStmt:
+
+								}
+
+							}
+						}
+					}
+
 				}
 			}
 
@@ -152,6 +206,62 @@ func (m *ApiParser) ScanApi() (apis []*ApiItem, err error) {
 
 	}
 
+	return
+}
+
+func (m *ApiParser) parseApiStructData(ident *ast.Ident) (structData *StructData) {
+	structData = &StructData{
+		Name: ident.Name,
+	}
+
+	decl := ident.Obj.Decl
+	declStmt, ok := decl.(*ast.AssignStmt)
+	if !ok {
+		return
+	}
+
+	for _, expr := range declStmt.Rhs {
+		// 指针
+		var compositeLit *ast.CompositeLit
+		pointerExpr, ok := expr.(*ast.UnaryExpr)
+		if ok {
+			expr = pointerExpr.X
+		}
+
+		// 非指针
+		compositeLit, ok = expr.(*ast.CompositeLit)
+		if !ok {
+			continue
+		}
+
+		structType, ok := compositeLit.Type.(*ast.StructType)
+		if !ok {
+			continue
+		}
+
+		// &ast.Field{Doc:(*ast.CommentGroup)(nil), Names:[]*ast.Ident{(*ast.Ident)(0xc42027a7e0)}, Type:(*ast.Ident)(0xc42027a800), Tag:(*ast.BasicLit)(0xc42027a820), Comment:(*ast.CommentGroup)(nil)}
+		for _, field := range structType.Fields.List {
+			fieldDoc := field.Doc
+			fieldNames := field.Names
+			fieldType := field.Type
+			fieldTag := field.Tag
+			fieldComment := field.Comment
+
+			_ = fieldDoc
+			_ = fieldNames
+			_ = fieldType
+			_ = fieldTag
+			_ = fieldComment
+
+			name := fieldNames[0].Name
+			typeName := fieldType.(*ast.Ident).Name
+
+			structData.Fields = append(structData.Fields, &StructDataField{
+				Name: name,
+				Type: typeName,
+			})
+		}
+	}
 	return
 }
 

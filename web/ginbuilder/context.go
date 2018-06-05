@@ -138,3 +138,11 @@ func (m *Context) Warnf(code *ReturnCode, logFormat string, logArgs ...interface
 	m.Send(code, nil)
 	m.Logger.Warnf(logFormat, logArgs...)
 }
+
+func (m *Context) TemporaryRedirect(location string) {
+	m.GinContext.Redirect(http.StatusTemporaryRedirect, location)
+}
+
+func (m *Context) PermanentRedirect(location string) {
+	m.GinContext.Redirect(http.StatusPermanentRedirect, location)
+}

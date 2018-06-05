@@ -1,8 +1,9 @@
 package api
 
 type StructDataField struct {
-	Name string
-	Type string
+	Name          string
+	Type          string
+	SubStructData *StructData // 允许多重嵌套
 }
 
 type StructData struct {

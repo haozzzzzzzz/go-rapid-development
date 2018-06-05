@@ -16,6 +16,7 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/haozzzzzzzz/go-rapid-development/tools/goimports"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/file"
+	"github.com/haozzzzzzzz/go-rapid-development/utils/printutil"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
@@ -254,12 +255,26 @@ func (m *ApiParser) parseApiStructData(ident *ast.Ident) (structData *StructData
 			_ = fieldComment
 
 			name := fieldNames[0].Name
-			typeName := fieldType.(*ast.Ident).Name
-
-			structData.Fields = append(structData.Fields, &StructDataField{
+			structDataField := &StructDataField{
 				Name: name,
-				Type: typeName,
-			})
+			}
+			structData.Fields = append(structData.Fields, structDataField)
+
+			switch fieldType.(type) {
+			case *ast.Ident:
+				ident := fieldType.(*ast.Ident)
+				structDataField.Type = ident.Name
+				if ident.Obj != nil {
+					printutil.PrintObject(ident.Obj.Decl)
+				}
+
+			case *ast.StarExpr:
+			case *ast.ArrayType:
+			case *ast.MapType:
+			case *ast.StructType:
+
+			}
+
 		}
 	}
 	return

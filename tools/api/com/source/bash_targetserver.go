@@ -67,7 +67,7 @@ echo "${logPath} {
 
 
 # 设置awslogs配置
-awsLogsConf=/etc/awslogs/config/event_report.conf
+awsLogsConf=/etc/awslogs/config/${serviceName}.conf
 echo "[${logPath}]
 
 datetime_format = %Y-%m-%d %H:%M:%S

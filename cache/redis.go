@@ -22,6 +22,7 @@ type Client struct {
 	RedisClient         *redis.Client
 	Ctx                 context.Context
 	CommandCheckerMaker CommandCheckerMaker
+	Config              *RedisConfigFormat
 }
 
 func (m *Client) CommandChecker() CommandChecker {
@@ -30,22 +31,6 @@ func (m *Client) CommandChecker() CommandChecker {
 	}
 
 	return m.CommandCheckerMaker.NewChecker()
-}
-
-func NewClient(ctx context.Context, redisClient *redis.Client, commCheckerMaker CommandCheckerMaker) (client *Client, err error) {
-	client = &Client{
-		RedisClient:         redisClient,
-		Ctx:                 ctx,
-		CommandCheckerMaker: commCheckerMaker,
-	}
-
-	err = client.Ping()
-	if nil != err {
-		logrus.Errorf("ping client failed. %s.", err)
-		return
-	}
-
-	return
 }
 
 func (m *Client) Ping() (err error) {
@@ -105,6 +90,21 @@ func (m *Client) Get(key string) (result string, err error) {
 
 func (m *Client) Set(key string, value interface{}, expiration time.Duration) (result string, err error) {
 	cmder := m.RedisClient.Set(key, value, expiration)
+
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+	return
+}
+
+func (m *Client) SetNX(key string, value interface{}, expiration time.Duration) (result bool, err error) {
+	cmder := m.RedisClient.SetNX(key, value, expiration)
 
 	checker := m.CommandChecker()
 	if checker != nil {

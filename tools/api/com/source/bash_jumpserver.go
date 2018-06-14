@@ -10,7 +10,7 @@ import (
 
 func (m *ApiProjectSource) generateBashJumpServer(shDir string) (err error) {
 	bashJumpServerFilePath := fmt.Sprintf("%s/jump_server.sh", shDir)
-	err = ioutil.WriteFile(bashJumpServerFilePath, []byte(bashDeployFileText), os.ModePerm)
+	err = ioutil.WriteFile(bashJumpServerFilePath, []byte(bashJumpServerFileText), os.ModePerm)
 	if nil != err {
 		logrus.Errorf("write bash jump server file %q failed. %s.", bashJumpServerFilePath, err)
 		return

@@ -22,6 +22,7 @@ type Client struct {
 	DB                  *sqlx.DB
 	Ctx                 context.Context
 	CommandCheckerMaker CommandCheckerMaker
+	Config              *ClientConfigFormat
 }
 
 func (m *Client) CommandChecker() CommandChecker {
@@ -30,16 +31,6 @@ func (m *Client) CommandChecker() CommandChecker {
 	}
 
 	return m.CommandCheckerMaker.NewChecker()
-}
-
-func NewClient(ctx context.Context, sqlxDB *sqlx.DB, commCheckerMaker CommandCheckerMaker) (client *Client, err error) {
-	client = &Client{
-		DB:                  sqlxDB,
-		Ctx:                 ctx,
-		CommandCheckerMaker: commCheckerMaker,
-	}
-
-	return
 }
 
 func (m *Client) Ping() (err error) {

@@ -1,5 +1,9 @@
 package code
 
+import (
+	"fmt"
+)
+
 type ApiCode struct {
 	Code    uint32
 	Message string
@@ -13,7 +17,7 @@ func (m *ApiCode) Clone() *ApiCode {
 }
 
 func (m ApiCode) String() string {
-	return m.Message
+	return fmt.Sprintf("Code: %d; Message: %s", m.Code, m.Message)
 }
 
 var (
@@ -57,6 +61,11 @@ var (
 	CodeErrorHeaderParams = &ApiCode{
 		Code:    1005,
 		Message: "verify header params failed",
+	}
+
+	CodeErrorProxyRequestFailed = &ApiCode{
+		Code:    1050,
+		Message: "request porxy failed",
 	}
 
 	// 数据库错误

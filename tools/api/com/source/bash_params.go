@@ -10,7 +10,8 @@ import (
 
 func (m *ApiProjectSource) generateBashParams(shDir string) (err error) {
 	bashParamsFilePath := fmt.Sprintf("%s/params.sh", shDir)
-	err = ioutil.WriteFile(bashParamsFilePath, []byte(bashParamsFileText), proj.ProjectFileMode)
+	newBashParamsFileText := fmt.Sprintf(bashParamsFileText, m.Project.Config.Name)
+	err = ioutil.WriteFile(bashParamsFilePath, []byte(newBashParamsFileText), proj.ProjectFileMode)
 	if nil != err {
 		logrus.Errorf("write params bash %q failed. %s.", bashParamsFilePath, err)
 		return
@@ -26,7 +27,7 @@ then
 fi
 
 # 服务名
-serviceName=
+serviceName=%s
 goRoot=/usr/local/go
 goPath=
 

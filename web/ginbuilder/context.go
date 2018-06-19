@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"context"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/sirupsen/logrus"
@@ -23,6 +25,7 @@ func BindSessionBuilder(sesBuilder SessionBuilderFunc) {
 
 type Context struct {
 	GinContext *gin.Context
+	RequestCtx context.Context
 	Logger     *logrus.Entry
 	Session    Session
 }
@@ -30,6 +33,7 @@ type Context struct {
 func NewContext(ginContext *gin.Context) (ctx *Context, err error) {
 	ctx = &Context{
 		GinContext: ginContext,
+		RequestCtx: ginContext.Request.Context(),
 		Logger:     logrus.WithFields(logrus.Fields{}),
 	}
 

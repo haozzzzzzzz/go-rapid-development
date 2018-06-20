@@ -98,6 +98,12 @@ var (
 		Message: "db delete failed",
 	}
 
+	// 没有符合条件的记录
+	CodeErrorDBQueryNoRecords = &ApiCode{
+		Code:    2005,
+		Message: "db query no records",
+	}
+
 	// redis错误
 	CodeErrorRedis = &ApiCode{
 		Code:    2100,

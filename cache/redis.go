@@ -5,6 +5,8 @@ import (
 
 	"time"
 
+	"encoding/json"
+
 	"github.com/go-redis/redis"
 	"github.com/sirupsen/logrus"
 )
@@ -160,5 +162,66 @@ func (m *Client) HSet(key string, field string, value interface{}) (result bool,
 	}
 
 	result, err = cmder.Result()
+	return
+}
+
+func (m *Client) HDel(key string, fields ...string) (result int64, err error) {
+	cmder := m.RedisClient.HDel(key, fields...)
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+
+	return
+}
+
+func (m *Client) HKeys(key string) (result []string, err error) {
+	cmder := m.RedisClient.HKeys(key)
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+
+	return
+}
+
+func (m *Client) SetJSON(key string, value interface{}, expiration time.Duration) (result string, err error) {
+	byteValue, err := json.Marshal(value)
+	if nil != err {
+		logrus.Errorf("json marshal failed. %s.", err)
+		return
+	}
+
+	result, err = m.Set(key, string(byteValue), expiration)
+	if nil != err {
+		logrus.Errorf("redis set failed. %s.", err)
+		return
+	}
+
+	return
+}
+
+func (m *Client) HSetJSON(key string, field string, value interface{}) (result bool, err error) {
+	byteValue, err := json.Marshal(value)
+	if nil != err {
+		logrus.Errorf("json marshal failed. %s.", err)
+		return
+	}
+
+	result, err = m.HSet(key, field, string(byteValue))
+	if nil != err {
+		logrus.Errorf("redis hset failed. %s.", err)
+		return
+	}
 	return
 }

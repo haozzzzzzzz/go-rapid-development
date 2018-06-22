@@ -2,6 +2,7 @@ package ginbuilder
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 type HandleFunc struct {
@@ -23,6 +24,7 @@ func (m *HandleFunc) GinHandler(ginCtx *gin.Context) {
 		defer func() {
 			var errPanic interface{}
 			if errPanic = recover(); errPanic != nil {
+				logrus.Panic(errPanic)
 				ctx.Session.Panic(errPanic)
 			}
 

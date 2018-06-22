@@ -143,6 +143,11 @@ func (m *Context) Warnf(code *ReturnCode, logFormat string, logArgs ...interface
 	m.Logger.Warnf(logFormat, logArgs...)
 }
 
+func (m *Context) WarnfReturn(code *ReturnCode, obj interface{}, logFormat string, logArgs ...interface{}) {
+	m.Send(code, obj)
+	m.Logger.Warnf(logFormat, logArgs...)
+}
+
 func (m *Context) TemporaryRedirect(location string) {
 	m.GinContext.Redirect(http.StatusTemporaryRedirect, location)
 }

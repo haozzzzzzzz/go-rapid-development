@@ -90,6 +90,7 @@ func FormMapStruct(form map[string][]string, ptr interface{}) (err error) {
 		// slice
 		if structFieldKind == reflect.Slice {
 			// TODO
+
 		} else {
 
 		}

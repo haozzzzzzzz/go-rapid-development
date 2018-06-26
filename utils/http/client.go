@@ -4,11 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
-	"strings"
 	"time"
 
 	json2 "github.com/haozzzzzzzz/go-rapid-development/utils/json"
@@ -36,48 +34,53 @@ var (
 )
 
 type Request struct {
-	url    string
-	query  map[string]string
+	Url    *Url
 	codecs string
 	Ctx    context.Context
 	Client *http.Client
 }
 
-func NewRequest(url string, ctx context.Context, client *http.Client) *Request {
+func NewRequest(strUrl string, ctx context.Context, client *http.Client) (req *Request, err error) {
 	if client == nil {
 		client = ClientRequest
 	}
 
-	return &Request{
-		url:    url,
+	url, err := NewUrlByStrUrl(strUrl)
+	if nil != err {
+		logrus.Errorf("new url failed. %s.", err)
+		return
+	}
+
+	if client == nil {
+		client = ClientRequest
+	}
+
+	req = &Request{
+		Url:    url,
 		codecs: "json",
-		query:  make(map[string]string),
 		Ctx:    ctx,
 		Client: client,
 	}
+
+	return
+}
+
+func NewRequestByUrl(reqUrl *Url, ctx context.Context, client *http.Client) (req *Request) {
+	if client == nil {
+		client = ClientRequest
+	}
+
+	req = &Request{
+		Url:    reqUrl,
+		codecs: "json",
+		Ctx:    ctx,
+		Client: client,
+	}
+	return
 }
 
 func (m *Request) URL() string {
-
-	if len(m.query) == 0 {
-		return m.url
-	} else {
-		values := make([]string, 0)
-
-		for key, value := range m.query {
-			values = append(values, fmt.Sprintf("%s=%s", key, value))
-		}
-
-		return fmt.Sprintf(
-			"%s?%s",
-			m.url,
-			strings.Join(values, "&"),
-		)
-	}
-}
-
-func (m *Request) Query(name string, value interface{}) {
-	m.query[name] = fmt.Sprintf("%v", value)
+	return m.Url.String()
 }
 
 func (m *Request) Get() (resp *http.Response, err error) {
@@ -104,28 +107,35 @@ func (m *Request) Get() (resp *http.Response, err error) {
 func (m *Request) GetJSON(v interface{}) (err error) {
 	ack, err := m.Get()
 	if err != nil {
+		logrus.Errorf("request failed. %s.", err)
 		return
 	}
 
 	err = json2.UnmarshalJsonFromReader(ack.Body, v)
+	if nil != err {
+		logrus.Errorf("unmarshal body json failed. %s.", err)
+		return
+	}
 	return
 }
 
 func (m *Request) GetText() (text string, err error) {
 	resp, err := m.Get()
 	if err != nil {
+		logrus.Errorf("get api failed. %s.", err)
 		return
 	}
 
 	bytesBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		logrus.Errorf("read body failed. %s.", err)
 		return
 	}
 	text = string(bytesBody)
 	return
 }
 
-func (m *Request) PostJson(body interface{}) (respBody []byte, err error) {
+func (m *Request) PostJson(body interface{}, resp interface{}) (err error) {
 	bytesBody, err := json.Marshal(body)
 	if err != nil {
 		logrus.Warnf("marshal post body failed. %s", err)
@@ -147,9 +157,9 @@ func (m *Request) PostJson(body interface{}) (respBody []byte, err error) {
 		return
 	}
 
-	respBody, err = ioutil.ReadAll(response.Body)
-	if err != nil {
-		logrus.Warnf("read response body failed. %s", err)
+	err = json2.UnmarshalJsonFromReader(response.Body, resp)
+	if nil != err {
+		logrus.Errorf("unmarshal body json failed. %s.", err)
 		return
 	}
 

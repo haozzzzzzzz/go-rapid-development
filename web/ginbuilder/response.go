@@ -7,7 +7,7 @@ type Response struct {
 	Data       interface{} `json:"data"`
 }
 
-func NewReponse(code *ReturnCode, data interface{}) *Response {
+func NewResponse(code *ReturnCode, data interface{}) *Response {
 	if data == nil {
 		data = make(map[string]interface{})
 	}

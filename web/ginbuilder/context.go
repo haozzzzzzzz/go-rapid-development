@@ -91,7 +91,7 @@ func (m *Context) BindPathData(pathData interface{}) (code *ReturnCode, err erro
 			}
 		}
 	}()
-	err = bindParams(m.GinContext.Params, pathData)
+	err = BindParams(m.GinContext.Params, pathData)
 	if nil != err {
 		logrus.Errorf("bind path data failed. \n%s.", err)
 		return
@@ -107,7 +107,7 @@ func (m *Context) BindPathData(pathData interface{}) (code *ReturnCode, err erro
 }
 
 func (m *Context) Send(code *ReturnCode, obj interface{}) {
-	response := NewReponse(code, obj)
+	response := NewResponse(code, obj)
 	m.GinContext.JSON(http.StatusOK, response)
 	if m.Session != nil {
 		m.Session.SetReturnCode(code)

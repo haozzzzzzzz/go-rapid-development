@@ -2,9 +2,12 @@ package request
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"strconv"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 // transform form into struct
@@ -62,42 +65,6 @@ func StructMapForm(ptr interface{}, form map[string][]string) error {
 		}
 	}
 	return nil
-}
-
-// transform struct into form
-func FormMapStruct(form map[string][]string, ptr interface{}) (err error) {
-	typ := reflect.TypeOf(ptr).Elem()
-	val := reflect.ValueOf(ptr).Elem()
-	for i := 0; i < typ.NumField(); i++ {
-		typeField := typ.Field(i)
-		structField := val.Field(i)
-		structFieldKind := structField.Kind()
-		outputFiledName := typeField.Tag.Get("form")
-
-		if outputFiledName == "" {
-			outputFiledName = typeField.Name
-			if structFieldKind == reflect.Struct {
-				continue
-			}
-		}
-
-		outputValues, exists := form[outputFiledName]
-		if !exists {
-			outputValues = make([]string, 0)
-			form[outputFiledName] = outputValues
-		}
-
-		// slice
-		if structFieldKind == reflect.Slice {
-			// TODO
-
-		} else {
-
-		}
-
-	}
-
-	return
 }
 
 func setWithProperType(valueKind reflect.Kind, val string, structField reflect.Value) error {
@@ -211,4 +178,104 @@ func setTimeField(val string, structField reflect.StructField, value reflect.Val
 
 	value.Set(reflect.ValueOf(t))
 	return nil
+}
+
+// transform struct into form
+func FormMapStruct(form map[string][]string, ptr interface{}) (err error) {
+	typ := reflect.TypeOf(ptr).Elem()
+	val := reflect.ValueOf(ptr).Elem()
+	for i := 0; i < typ.NumField(); i++ {
+		typeField := typ.Field(i)
+		structField := val.Field(i)
+		structFieldKind := structField.Kind()
+		outputFiledName := typeField.Tag.Get("form")
+
+		if outputFiledName == "" {
+			outputFiledName = typeField.Name
+			if structFieldKind == reflect.Struct { // not support struct
+				err = errors.New("do not support map struct to form")
+				return
+			}
+		}
+
+		outputValues, exists := form[outputFiledName]
+		if !exists {
+			outputValues = make([]string, 0)
+		}
+
+		// slice
+		if structFieldKind == reflect.Slice {
+			sliceElemKind := structField.Type().Elem().Kind()
+			if sliceElemKind == reflect.Struct { // not support struct
+				err = errors.New("do not support map struct to form")
+			}
+
+			len := structField.Len()
+			for i := 0; i < len; i++ {
+				sliceElem := structField.Index(i)
+				strSliceElem, errGet := getWithProperType(sliceElemKind, sliceElem)
+				err = errGet
+				if nil != err {
+					logrus.Errorf("get string value with proper type failed. %s.", err)
+					return
+				}
+				outputValues = append(outputValues, strSliceElem)
+			}
+
+		} else {
+			strFieldValue, errGet := getWithProperType(structFieldKind, structField)
+			err = errGet
+			if nil != err {
+				logrus.Errorf("get string value with proper type failed. %s.", err)
+				return
+			}
+			outputValues = append(outputValues, strFieldValue)
+
+		}
+
+		form[outputFiledName] = outputValues
+
+	}
+
+	return
+}
+
+func getWithProperType(valueKind reflect.Kind, val reflect.Value) (ret string, err error) {
+	switch valueKind {
+	case reflect.Int:
+		fallthrough
+	case reflect.Int8:
+		fallthrough
+	case reflect.Int16:
+		fallthrough
+	case reflect.Int32:
+		fallthrough
+	case reflect.Int64:
+		ret = fmt.Sprintf("%d", val.Int())
+
+	case reflect.Uint:
+		fallthrough
+	case reflect.Uint8:
+		fallthrough
+	case reflect.Uint16:
+		fallthrough
+	case reflect.Uint32:
+		fallthrough
+	case reflect.Uint64:
+		ret = fmt.Sprintf("%d", val.Uint())
+
+	case reflect.Bool:
+		ret = fmt.Sprintf("%t", val.Bool())
+	case reflect.Float32:
+		fallthrough
+	case reflect.Float64:
+		ret = fmt.Sprintf("%f", val.Float())
+	case reflect.String:
+		ret = val.String()
+
+	default:
+		err = errors.New("Unknown type")
+	}
+
+	return
 }

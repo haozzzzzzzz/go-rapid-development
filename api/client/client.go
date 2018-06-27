@@ -32,20 +32,18 @@ func (m *Client) Get(
 	}
 
 	pathData := make(map[string][]string)
-	err = request.StructMapForm(iPathData, pathData)
+	err = request.FormMapStruct(pathData, iPathData)
 	if nil != err {
 		logrus.Errorf("map path data failed. %s.", err)
 		return
 	}
 
 	queryData := make(map[string][]string)
-	err = request.StructMapForm(iQueryData, queryData)
+	err = request.FormMapStruct(queryData, iQueryData)
 	if nil != err {
 		logrus.Errorf("map query data failed. %s.", err)
 		return
 	}
-
-	fmt.Println(queryData)
 
 	reqUrl.SetPathData(pathData)
 	reqUrl.SetQueryData(queryData)
@@ -76,14 +74,14 @@ func (m *Client) Post(
 	}
 
 	pathData := make(map[string][]string)
-	err = request.StructMapForm(iPathData, pathData)
+	err = request.FormMapStruct(pathData, iPathData)
 	if nil != err {
 		logrus.Errorf("map path data failed. %s.", err)
 		return
 	}
 
 	queryData := make(map[string][]string)
-	err = request.StructMapForm(iQueryData, queryData)
+	err = request.FormMapStruct(queryData, iQueryData)
 	if nil != err {
 		logrus.Errorf("map query data failed. %s.", err)
 		return

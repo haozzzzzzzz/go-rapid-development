@@ -48,7 +48,9 @@ func (m *Url) SetPathData(pathData url.Values) {
 		if len(values) == 0 {
 			continue
 		}
-		m.Path = strings.Replace(m.Path, fmt.Sprintf(":%s", key), values[0], 0)
+		fmt.Println(m.Path, key, values[0])
+		m.Path = strings.Replace(m.Path, fmt.Sprintf(":%s", key), values[0], -1)
+		fmt.Println(m.Path)
 		m.RawPath = m.EscapedPath()
 	}
 	return

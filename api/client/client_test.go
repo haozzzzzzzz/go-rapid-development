@@ -9,11 +9,10 @@ import (
 
 func TestClient_Get(t *testing.T) {
 	client := Client{
-		Ctx:        context.Background(),
-		HttpClient: nil,
+		Ctx:       context.Background(),
+		UrlPrefix: "http://127.0.0.1:18105",
 	}
 
-	urlPrefix := "http://127.0.0.1:18105"
 	urlPath := "/config_manage/v1/condition_group/attachment/filter_list/:config_type"
 	iRespData := &struct {
 		ReturnCode uint32      `json:"ret"`
@@ -45,7 +44,7 @@ func TestClient_Get(t *testing.T) {
 		Username:        "luohao",
 	}
 
-	err := client.Get(urlPrefix, urlPath, iRespData, iPathData, iQueryData)
+	err := client.Get(urlPath, iRespData, iPathData, iQueryData)
 	if nil != err {
 		t.Error(err)
 		return

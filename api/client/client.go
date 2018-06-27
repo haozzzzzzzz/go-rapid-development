@@ -15,16 +15,16 @@ import (
 type Client struct {
 	Ctx        context.Context
 	HttpClient *http2.Client
+	UrlPrefix  string
 }
 
 func (m *Client) Get(
-	urlPrefix string,
 	urlPath string,
 	iRespData interface{},
 	iPathData interface{},
 	iQueryData interface{},
 ) (err error) {
-	apiUrl := fmt.Sprintf("%s%s", urlPrefix, urlPath)
+	apiUrl := fmt.Sprintf("%s%s", m.UrlPrefix, urlPath)
 	reqUrl, err := http.NewUrlByStrUrl(apiUrl)
 	if nil != err {
 		logrus.Errorf("new url by string url failed. %s.", err)
@@ -59,14 +59,13 @@ func (m *Client) Get(
 }
 
 func (m *Client) Post(
-	urlPrefix string,
 	urlPath string,
 	iRespData interface{},
 	iPathData interface{},
 	iQueryData interface{},
 	iPostData interface{},
 ) (err error) {
-	apiUrl := fmt.Sprintf("%s%s", urlPrefix, urlPath)
+	apiUrl := fmt.Sprintf("%s%s", m.UrlPrefix, urlPath)
 	reqUrl, err := http.NewUrlByStrUrl(apiUrl)
 	if nil != err {
 		logrus.Errorf("new url by string url failed. %s.", err)

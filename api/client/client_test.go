@@ -9,7 +9,7 @@ import (
 
 func TestClient_Get(t *testing.T) {
 	client := Client{
-		ctx:        context.Background(),
+		Ctx:        context.Background(),
 		HttpClient: nil,
 	}
 

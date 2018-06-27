@@ -13,7 +13,7 @@ import (
 )
 
 type Client struct {
-	ctx        context.Context
+	Ctx        context.Context
 	HttpClient *http2.Client
 }
 
@@ -48,7 +48,7 @@ func (m *Client) Get(
 	reqUrl.SetPathData(pathData)
 	reqUrl.SetQueryData(queryData)
 
-	req := http.NewRequestByUrl(reqUrl, m.ctx, m.HttpClient)
+	req := http.NewRequestByUrl(reqUrl, m.Ctx, m.HttpClient)
 	err = req.GetJSON(iRespData)
 	if nil != err {
 		logrus.Errorf("request api json failed. %s.", err)
@@ -90,7 +90,7 @@ func (m *Client) Post(
 	reqUrl.SetPathData(pathData)
 	reqUrl.SetQueryData(queryData)
 
-	req := http.NewRequestByUrl(reqUrl, m.ctx, m.HttpClient)
+	req := http.NewRequestByUrl(reqUrl, m.Ctx, m.HttpClient)
 	err = req.PostJson(iPostData, iRespData)
 	if nil != err {
 		logrus.Errorf("request api json failed. %s.", err)

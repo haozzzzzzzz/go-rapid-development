@@ -13,6 +13,7 @@ import (
 
 type StringSlice []string
 
+// 转成db存储值
 func (m StringSlice) Value() (value driver.Value, err error) {
 	byteStringSlice, err := json.Marshal(m)
 	if nil != err {
@@ -24,6 +25,7 @@ func (m StringSlice) Value() (value driver.Value, err error) {
 	return
 }
 
+// 从db存储值中转
 func (m *StringSlice) Scan(src interface{}) (err error) {
 	var source string
 	switch src.(type) {

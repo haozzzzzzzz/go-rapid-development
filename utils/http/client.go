@@ -9,7 +9,10 @@ import (
 	"net/http"
 	"time"
 
+	"fmt"
+
 	json2 "github.com/haozzzzzzzz/go-rapid-development/utils/json"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context/ctxhttp"
 )
@@ -97,6 +100,7 @@ func (m *Request) Get() (resp *http.Response, err error) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
+		err = errors.New(fmt.Sprintf("http status: %s", resp.Status))
 		logrus.Errorf("response error. %s.", err)
 		return
 	}

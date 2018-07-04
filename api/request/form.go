@@ -182,6 +182,10 @@ func setTimeField(val string, structField reflect.StructField, value reflect.Val
 
 // transform struct into form
 func FormMapStruct(form map[string][]string, ptr interface{}) (err error) {
+	if ptr == nil {
+		return
+	}
+
 	typ := reflect.TypeOf(ptr).Elem()
 	val := reflect.ValueOf(ptr).Elem()
 	for i := 0; i < typ.NumField(); i++ {

@@ -140,10 +140,13 @@ func (m *Request) GetText() (text string, err error) {
 }
 
 func (m *Request) PostJson(body interface{}, resp interface{}) (err error) {
-	bytesBody, err := json.Marshal(body)
-	if err != nil {
-		logrus.Warnf("marshal post body failed. %s", err)
-		return
+	var bytesBody []byte
+	if body != nil {
+		bytesBody, err = json.Marshal(body)
+		if err != nil {
+			logrus.Warnf("marshal post body failed. %s", err)
+			return
+		}
 	}
 
 	strUrl := m.URL()

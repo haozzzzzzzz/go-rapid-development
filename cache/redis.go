@@ -225,3 +225,33 @@ func (m *Client) HSetJSON(key string, field string, value interface{}) (result b
 	}
 	return
 }
+
+// sorted set
+func (m *Client) ZRevRange(key string, start int64, stop int64) (result []string, err error) {
+	cmder := m.RedisClient.ZRevRange(key, start, stop)
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+	return
+}
+
+func (m *Client) ZUnionStore(dest string, store redis.ZStore, keys ...string) (result int64, err error) {
+	cmder := m.RedisClient.ZUnionStore(dest, store, keys...)
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+
+	return
+}

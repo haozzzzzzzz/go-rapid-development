@@ -227,6 +227,36 @@ func (m *Client) HSetJSON(key string, field string, value interface{}) (result b
 }
 
 // sorted set
+func (m *Client) ZAdd(key string, members ...redis.Z) (result int64, err error) {
+	cmder := m.RedisClient.ZAdd(key, members...)
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+
+	return
+}
+
+func (m *Client) ZRem(key string, members ...interface{}) (result int64, err error) {
+	cmder := m.RedisClient.ZRem(key, members...)
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+
+	return
+}
+
 func (m *Client) ZRevRange(key string, start int64, stop int64) (result []string, err error) {
 	cmder := m.RedisClient.ZRevRange(key, start, stop)
 	checker := m.CommandChecker()

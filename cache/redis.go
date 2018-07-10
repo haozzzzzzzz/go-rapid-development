@@ -90,6 +90,22 @@ func (m *Client) Get(key string) (result string, err error) {
 	return
 }
 
+func (m *Client) GetJson(key string, obj interface{}) (err error) {
+	result, err := m.Get(key)
+	if nil != err {
+		logrus.Errorf("redis get %s failed. %s.", key, err)
+		return
+	}
+
+	err = json.Unmarshal([]byte(result), obj)
+	if nil != err {
+		logrus.Errorf("json unmarshal redis value to obj failed. %s.", err)
+		return
+	}
+
+	return
+}
+
 func (m *Client) Set(key string, value interface{}, expiration time.Duration) (result string, err error) {
 	cmder := m.RedisClient.Set(key, value, expiration)
 

@@ -46,3 +46,37 @@ func (m *StringSlice) Scan(src interface{}) (err error) {
 
 	return
 }
+
+type Uint32Map map[string]uint32
+
+// 转成db存储值
+func (m Uint32Map) Value() (value driver.Value, err error) {
+	byteValue, err := json.Marshal(m)
+	if nil != err {
+		logrus.Errorf("marshal string map failed. %s.", err)
+		return
+	}
+
+	value = string(byteValue)
+	return
+}
+
+func (m *Uint32Map) Scan(src interface{}) (err error) {
+	var source string
+	switch src.(type) {
+	case string:
+		source = src.(string)
+	case []byte:
+		source = string(src.([]byte))
+	default:
+		return errors.New(fmt.Sprintf("Incompatible type %q for Uint32Map", reflect.TypeOf(src)))
+	}
+
+	err = json.Unmarshal([]byte(source), m)
+	if nil != err {
+		logrus.Errorf("unmarshal string slice failed. %s.", err)
+		return
+	}
+
+	return
+}

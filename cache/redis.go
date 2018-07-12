@@ -90,6 +90,39 @@ func (m *Client) Get(key string) (result string, err error) {
 	return
 }
 
+func (m *Client) MGet(key string) (result []interface{}, err error) {
+	cmder := m.RedisClient.MGet(key)
+
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+
+	return
+}
+
+// empty string for nil value
+func (m *Client) MGetString(key string) (result []string, err error) {
+	iResults, err := m.MGet(key)
+
+	for _, iResult := range iResults {
+		var strResult string
+
+		if iResult != nil {
+			strResult = iResult.(string)
+		}
+
+		result = append(result, strResult)
+	}
+
+	return
+}
+
 func (m *Client) GetJson(key string, obj interface{}) (err error) {
 	result, err := m.Get(key)
 	if nil != err {

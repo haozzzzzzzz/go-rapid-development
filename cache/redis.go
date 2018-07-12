@@ -276,6 +276,22 @@ func (m *Client) HSetJSON(key string, field string, value interface{}) (result b
 }
 
 // sorted set
+func (m *Client) ZCard(key string) (result int64, err error) {
+	cmder := m.RedisClient.ZCard(key)
+
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+
+	return
+}
+
 func (m *Client) ZAdd(key string, members ...redis.Z) (result int64, err error) {
 	cmder := m.RedisClient.ZAdd(key, members...)
 	checker := m.CommandChecker()

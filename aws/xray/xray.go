@@ -3,6 +3,10 @@ package xray
 import (
 	"net/http"
 
+	"context"
+
+	"fmt"
+
 	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/gin-gonic/gin"
 )
@@ -14,4 +18,9 @@ func XRayGinMiddleware(strSegmentNamer string) func(*gin.Context) {
 			context.Next()
 		})).ServeHTTP(context.Writer, context.Request)
 	}
+}
+
+func NewBackgroundContext(name string) (ctx context.Context, seg *xray.Segment) {
+	ctx, seg = xray.BeginSegment(context.Background(), fmt.Sprintf("background_%s", name))
+	return
 }

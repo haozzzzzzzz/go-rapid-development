@@ -126,7 +126,9 @@ func (m *Client) MGetString(key string) (result []string, err error) {
 func (m *Client) GetJson(key string, obj interface{}) (err error) {
 	result, err := m.Get(key)
 	if nil != err {
-		logrus.Errorf("redis get %s failed. %s.", key, err)
+		if err != redis.Nil {
+			logrus.Errorf("redis get %s failed. %s.", key, err)
+		}
 		return
 	}
 

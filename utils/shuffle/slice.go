@@ -12,7 +12,7 @@ func ShuffleSlice(rawSlice []interface{}) {
 	}
 
 	for i := 0; i < lenSlice-1; i++ {
-		changeIndex := num.RandInt(i+1, lenSlice)
+		changeIndex := num.RandInt(i, lenSlice)
 		temp := rawSlice[i]
 		rawSlice[i] = rawSlice[changeIndex]
 		rawSlice[changeIndex] = temp

@@ -277,6 +277,40 @@ func (m *Client) HSetJSON(key string, field string, value interface{}) (result b
 	return
 }
 
+// set
+func (m *Client) SAdd(key string, members ...interface{}) (result int64, err error) {
+	cmder := m.RedisClient.SAdd(key, members...)
+
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+
+	return
+}
+
+// key不存在，不会返回redis.Nil
+func (m *Client) SRandMemberN(key string, count int64) (result []string, err error) {
+	cmder := m.RedisClient.SRandMemberN(key, count)
+
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+
+	return
+}
+
 // sorted set
 func (m *Client) ZCard(key string) (result int64, err error) {
 	cmder := m.RedisClient.ZCard(key)

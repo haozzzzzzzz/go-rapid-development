@@ -20,6 +20,7 @@ func XRayGinMiddleware(strSegmentNamer string) func(*gin.Context) {
 	}
 }
 
+// seg 需要在调用后close
 func NewBackgroundContext(name string) (ctx context.Context, seg *xray.Segment) {
 	ctx, seg = xray.BeginSegment(context.Background(), fmt.Sprintf("background_%s", name))
 	return

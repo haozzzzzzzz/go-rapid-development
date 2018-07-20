@@ -49,7 +49,7 @@ func NewContext(ginContext *gin.Context) (ctx *Context, err error) {
 	return
 }
 
-func (m *Context) BindQueryData(queryData interface{}) (code *ReturnCode, err error) {
+func (m *Context) BindQueryData(queryData interface{}) (code *code.ApiCode, err error) {
 	err = m.GinContext.ShouldBindQuery(queryData)
 	if err != nil {
 		code = code.CodeErrorQueryParams.Clone()
@@ -64,7 +64,7 @@ func (m *Context) BindQueryData(queryData interface{}) (code *ReturnCode, err er
 	return
 }
 
-func (m *Context) BindPostData(postData interface{}) (code *ReturnCode, err error) {
+func (m *Context) BindPostData(postData interface{}) (code *code.ApiCode, err error) {
 	err = m.GinContext.MustBindWith(postData, binding.JSON)
 	if err != nil {
 		code = code.CodeErrorPostParams.Clone()
@@ -79,7 +79,7 @@ func (m *Context) BindPostData(postData interface{}) (code *ReturnCode, err erro
 	return
 }
 
-func (m *Context) BindPathData(pathData interface{}) (code *ReturnCode, err error) {
+func (m *Context) BindPathData(pathData interface{}) (code *code.ApiCode, err error) {
 	defer func() {
 		if err != nil {
 			code = code.CodeErrorPathParams.Clone()
@@ -107,7 +107,7 @@ func (m *Context) BindPathData(pathData interface{}) (code *ReturnCode, err erro
 	return
 }
 
-func (m *Context) Send(code *ReturnCode, obj interface{}) {
+func (m *Context) Send(code *code.ApiCode, obj interface{}) {
 	response := NewResponse(code, obj)
 	m.GinContext.JSON(http.StatusOK, response)
 	if m.Session != nil {
@@ -124,27 +124,27 @@ func (m *Context) SuccessReturn(obj interface{}) {
 	m.Send(code.CodeSuccess.Clone(), obj)
 }
 
-func (m *Context) Error(code *ReturnCode, logArgs ...interface{}) {
+func (m *Context) Error(code *code.ApiCode, logArgs ...interface{}) {
 	m.Send(code, nil)
 	m.Logger.Error(logArgs...)
 }
 
-func (m *Context) Warn(code *ReturnCode, logArgs ...interface{}) {
+func (m *Context) Warn(code *code.ApiCode, logArgs ...interface{}) {
 	m.Send(code, nil)
 	m.Logger.Warn(logArgs...)
 }
 
-func (m *Context) Errorf(code *ReturnCode, logFormat string, logArgs ...interface{}) {
+func (m *Context) Errorf(code *code.ApiCode, logFormat string, logArgs ...interface{}) {
 	m.Send(code, nil)
 	m.Logger.Errorf(logFormat, logArgs...)
 }
 
-func (m *Context) Warnf(code *ReturnCode, logFormat string, logArgs ...interface{}) {
+func (m *Context) Warnf(code *code.ApiCode, logFormat string, logArgs ...interface{}) {
 	m.Send(code, nil)
 	m.Logger.Warnf(logFormat, logArgs...)
 }
 
-func (m *Context) WarnfReturn(code *ReturnCode, obj interface{}, logFormat string, logArgs ...interface{}) {
+func (m *Context) WarnfReturn(code *code.ApiCode, obj interface{}, logFormat string, logArgs ...interface{}) {
 	m.Send(code, obj)
 	m.Logger.Warnf(logFormat, logArgs...)
 }

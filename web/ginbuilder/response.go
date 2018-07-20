@@ -1,5 +1,9 @@
 package ginbuilder
 
+import (
+	"github.com/haozzzzzzzz/go-rapid-development/api/code"
+)
+
 // 请求返回基类
 type Response struct {
 	ReturnCode uint32      `json:"ret"`
@@ -7,7 +11,7 @@ type Response struct {
 	Data       interface{} `json:"data"`
 }
 
-func NewResponse(code *ReturnCode, data interface{}) *Response {
+func NewResponse(code *code.ApiCode, data interface{}) *Response {
 	if data == nil {
 		data = make(map[string]interface{})
 	}

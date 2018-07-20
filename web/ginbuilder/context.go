@@ -8,9 +8,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"github.com/haozzzzzzzz/go-rapid-development/api/code"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/go-playground/validator.v8"
-	"github.com/haozzzzzzzz/go-rapid-development/api/code"
 )
 
 var sessionBuilder SessionBuilderFunc
@@ -49,14 +49,14 @@ func NewContext(ginContext *gin.Context) (ctx *Context, err error) {
 	return
 }
 
-func (m *Context) BindQueryData(queryData interface{}) (code *code.ApiCode, err error) {
+func (m *Context) BindQueryData(queryData interface{}) (retCode *code.ApiCode, err error) {
 	err = m.GinContext.ShouldBindQuery(queryData)
 	if err != nil {
-		code = code.CodeErrorQueryParams.Clone()
+		retCode = code.CodeErrorQueryParams.Clone()
 		validateErrors, ok := err.(validator.ValidationErrors)
 		if ok {
 			for _, fieldError := range validateErrors {
-				code.Message = fmt.Sprintf("%s. %q:%s", code.Message, fieldError.Name, fieldError.Tag)
+				retCode.Message = fmt.Sprintf("%s. %q:%s", retCode.Message, fieldError.Name, fieldError.Tag)
 				break
 			}
 		}
@@ -64,14 +64,14 @@ func (m *Context) BindQueryData(queryData interface{}) (code *code.ApiCode, err 
 	return
 }
 
-func (m *Context) BindPostData(postData interface{}) (code *code.ApiCode, err error) {
+func (m *Context) BindPostData(postData interface{}) (retCode *code.ApiCode, err error) {
 	err = m.GinContext.MustBindWith(postData, binding.JSON)
 	if err != nil {
-		code = code.CodeErrorPostParams.Clone()
+		retCode = code.CodeErrorPostParams.Clone()
 		validateErrors, ok := err.(validator.ValidationErrors)
 		if ok {
 			for _, fieldError := range validateErrors {
-				code.Message = fmt.Sprintf("%s. %q:%s", code.Message, fieldError.Name, fieldError.Tag)
+				retCode.Message = fmt.Sprintf("%s. %q:%s", retCode.Message, fieldError.Name, fieldError.Tag)
 				break
 			}
 		}
@@ -79,14 +79,14 @@ func (m *Context) BindPostData(postData interface{}) (code *code.ApiCode, err er
 	return
 }
 
-func (m *Context) BindPathData(pathData interface{}) (code *code.ApiCode, err error) {
+func (m *Context) BindPathData(pathData interface{}) (retCode *code.ApiCode, err error) {
 	defer func() {
 		if err != nil {
-			code = code.CodeErrorPathParams.Clone()
+			retCode = code.CodeErrorPathParams.Clone()
 			validateErrors, ok := err.(validator.ValidationErrors)
 			if ok {
 				for _, fieldError := range validateErrors {
-					code.Message = fmt.Sprintf("%s. %q:%s", code.Message, fieldError.Name, fieldError.Tag)
+					retCode.Message = fmt.Sprintf("%s. %q:%s", retCode.Message, fieldError.Name, fieldError.Tag)
 					break
 				}
 			}

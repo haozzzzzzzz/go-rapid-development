@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/go-playground/validator.v8"
+	"github.com/haozzzzzzzz/go-rapid-development/api/code"
 )
 
 var sessionBuilder SessionBuilderFunc
@@ -51,7 +52,7 @@ func NewContext(ginContext *gin.Context) (ctx *Context, err error) {
 func (m *Context) BindQueryData(queryData interface{}) (code *ReturnCode, err error) {
 	err = m.GinContext.ShouldBindQuery(queryData)
 	if err != nil {
-		code = CodeErrorQueryParams.Clone()
+		code = code.CodeErrorQueryParams.Clone()
 		validateErrors, ok := err.(validator.ValidationErrors)
 		if ok {
 			for _, fieldError := range validateErrors {
@@ -66,7 +67,7 @@ func (m *Context) BindQueryData(queryData interface{}) (code *ReturnCode, err er
 func (m *Context) BindPostData(postData interface{}) (code *ReturnCode, err error) {
 	err = m.GinContext.MustBindWith(postData, binding.JSON)
 	if err != nil {
-		code = CodeErrorPostParams.Clone()
+		code = code.CodeErrorPostParams.Clone()
 		validateErrors, ok := err.(validator.ValidationErrors)
 		if ok {
 			for _, fieldError := range validateErrors {
@@ -81,7 +82,7 @@ func (m *Context) BindPostData(postData interface{}) (code *ReturnCode, err erro
 func (m *Context) BindPathData(pathData interface{}) (code *ReturnCode, err error) {
 	defer func() {
 		if err != nil {
-			code = CodeErrorPathParams.Clone()
+			code = code.CodeErrorPathParams.Clone()
 			validateErrors, ok := err.(validator.ValidationErrors)
 			if ok {
 				for _, fieldError := range validateErrors {
@@ -116,11 +117,11 @@ func (m *Context) Send(code *ReturnCode, obj interface{}) {
 }
 
 func (m *Context) Success() {
-	m.Send(CodeSuccess.Clone(), nil)
+	m.Send(code.CodeSuccess.Clone(), nil)
 }
 
 func (m *Context) SuccessReturn(obj interface{}) {
-	m.Send(CodeSuccess.Clone(), obj)
+	m.Send(code.CodeSuccess.Clone(), obj)
 }
 
 func (m *Context) Error(code *ReturnCode, logArgs ...interface{}) {

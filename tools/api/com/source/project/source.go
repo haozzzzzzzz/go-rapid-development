@@ -46,7 +46,7 @@ func (m *ProjectSource) Generate() (err error) {
 
 	// generate manage service root dir
 	manageDir := fmt.Sprintf("%s/manage", projectDir)
-	err = os.MkdirAll(manageDir, project.ProjectFileMode)
+	err = os.MkdirAll(manageDir, project.ProjectDirMode)
 	if nil != err {
 		logrus.Errorf("make project service dir %s failed. %s.", manageDir, err)
 		return

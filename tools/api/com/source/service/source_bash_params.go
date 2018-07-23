@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/proj"
 	"github.com/sirupsen/logrus"
+	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
 )
 
 func (m *ServiceSource) generateBashParams(shDir string) (err error) {

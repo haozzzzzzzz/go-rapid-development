@@ -4,10 +4,10 @@ import (
 	"path/filepath"
 
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/parser"
-	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/proj"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/haozzzzzzzz/go-rapid-development/tools/goimports"
+	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
 )
 
 func CommandApiCompile() *cobra.Command {

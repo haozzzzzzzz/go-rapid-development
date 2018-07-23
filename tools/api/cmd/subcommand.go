@@ -7,7 +7,8 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(_init.CommandApiInitService())
+	rootCmd.AddCommand(_init.CommandApiInit())
+	rootCmd.AddCommand(_init.CommandApiAddService())
 	rootCmd.AddCommand(compile.CommandApiCompile())
 	rootCmd.AddCommand(doc.CommandApiDoc())
 }

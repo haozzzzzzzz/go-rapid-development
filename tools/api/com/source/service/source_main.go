@@ -5,8 +5,8 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/proj"
 	"github.com/sirupsen/logrus"
+	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
 )
 
 func (m *ServiceSource) generateMain(params *GenerateParams) (err error) {

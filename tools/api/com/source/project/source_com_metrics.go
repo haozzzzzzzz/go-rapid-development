@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/proj"
 	"github.com/sirupsen/logrus"
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
 )

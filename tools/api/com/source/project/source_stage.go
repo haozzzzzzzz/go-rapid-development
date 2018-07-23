@@ -5,11 +5,9 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/proj"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
-	"github.comozzzzzzzz/go-rapid-development/tools/api/com/project"
 	project2 "github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
 )
 
@@ -46,7 +44,7 @@ func (m *ProjectSource) generateStageFiles(stageDir string, stage project2.Stage
 	envConfigFilePath := fmt.Sprintf("%s/env.yaml", stageConfigDir)
 	envConfig := &struct {
 		Debug bool          `json:"debug" yaml:"debug"`
-		Stage project.Stage `json:"stage" yaml:"stage"`
+		Stage project2.Stage `json:"stage" yaml:"stage"`
 	}{
 		Stage: stage,
 	}

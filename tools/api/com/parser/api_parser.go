@@ -1,9 +1,9 @@
 package parser
 
 import (
-	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/proj"
 	"github.com/haozzzzzzzz/go-rapid-development/web/ginbuilder/api"
 	"github.com/sirupsen/logrus"
+	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
 )
 
 type ApiParser struct {

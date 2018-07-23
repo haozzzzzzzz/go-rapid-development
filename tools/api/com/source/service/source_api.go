@@ -6,7 +6,7 @@ import (
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
 	"github.com/sirupsen/logrus"
 	"io/ioutil"
-	"errors"
+	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
 )
 
 func (m *ServiceSource) generateApi() (err error) {
@@ -39,13 +39,14 @@ func (m *ServiceSource) generateApi() (err error) {
 	sessionFilePath := fmt.Sprintf("%s/session.go", sessionDir)
 
 	var sessionFileText string
-	switch m.Service.Config.Type {
+	serviceType := project.ServiceType(m.Service.Config.Type)
+	switch serviceType {
 	case project.ServiceTypeApp:
 		sessionFileText = appSessionFileText
 	case project.ServiceTypeManage:
 		sessionFileText = manageSessionFileText
 	default:
-		err = errors.New("unknown service type")
+		err =uerrors.Newf("unknown service type %s", serviceType)
 		return
 	}
 

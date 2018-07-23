@@ -7,6 +7,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
+	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
 )
 
 func (m *ServiceSource) generateMain(params *GenerateParams) (err error) {
@@ -14,7 +15,22 @@ func (m *ServiceSource) generateMain(params *GenerateParams) (err error) {
 
 	// generate main file
 	mainFilePath := fmt.Sprintf("%s/main.go", serviceDir)
-	newMainFileText := strings.Replace(mainFileText, "$HOST$", params.Host, -1)
+
+	var metricPanicCounter string
+	serviceType := project.ServiceType(m.Service.Config.Type)
+
+	switch serviceType {
+	case project.ServiceTypeApp:
+		metricPanicCounter = "SERVICE_TIMES_COUNTER_APP_PANIC"
+	case project.ServiceTypeManage:
+		metricPanicCounter = "SERVICE_TIMES_COUNTER_MANAGE_PANIC"
+	default:
+		err = uerrors.Newf("unknown service type. %s", serviceType)
+		return
+	}
+
+	newMainFileText := strings.Replace(mainFileText, "$METRIC_PANIC_COUNTER$", metricPanicCounter, -1)
+	newMainFileText = strings.Replace(newMainFileText, "$HOST$", params.Host, -1)
 	newMainFileText = strings.Replace(newMainFileText, "$PORT$", params.Port, -1)
 	err = ioutil.WriteFile(mainFilePath, []byte(newMainFileText), project.ProjectFileMode)
 	if nil != err {
@@ -46,7 +62,7 @@ func main() {
 	// metric
 	defer func() {
 		if err := recover(); err != nil {
-			metrics.SERVICE_TIMES_COUNTER_PANIC.Inc()
+			metrics.$METRIC_PANIC_COUNTER$.Inc()
 		}
 	}()
 

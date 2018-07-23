@@ -20,7 +20,7 @@ type ServiceConfigFormat struct {
 	Name        string `json:"name" yaml:"name" validate:"required"`
 	ServiceDir  string `json:"service_dir" yaml:"service_dir" validate:"required"`
 	Description string `json:"description" yaml:"description"`
-	Type ServiceType `json:"type" yaml:"type" validate:"required"`
+	Type string `json:"type" yaml:"type" validate:"required"`
 }
 
 type Service struct {

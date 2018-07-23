@@ -10,7 +10,7 @@ import (
 )
 
 func (m *ProjectSource) generateCommonComConfig(comDir string) (err error) {
-	configDir := fmt.Sprintf("%s/common/config", comDir)
+	configDir := fmt.Sprintf("%s/config", comDir)
 	err = os.MkdirAll(configDir, project.ProjectDirMode)
 	if nil != err {
 		logrus.Errorf("make com config dir %q failed. %s.", configDir, err)

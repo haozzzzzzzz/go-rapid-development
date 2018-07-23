@@ -6,6 +6,7 @@ import (
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
 	"github.com/sirupsen/logrus"
 	"io/ioutil"
+	"errors"
 )
 
 func (m *ServiceSource) generateApi() (err error) {
@@ -36,6 +37,18 @@ func (m *ServiceSource) generateApi() (err error) {
 	}
 
 	sessionFilePath := fmt.Sprintf("%s/session.go", sessionDir)
+
+	var sessionFileText string
+	switch m.Service.Config.Type {
+	case project.ServiceTypeApp:
+		sessionFileText = appSessionFileText
+	case project.ServiceTypeManage:
+		sessionFileText = manageSessionFileText
+	default:
+		err = errors.New("unknown service type")
+		return
+	}
+
 	err = ioutil.WriteFile(sessionFilePath, []byte(sessionFileText), project.ProjectFileMode)
 	if nil != err {
 		logrus.Errorf("write session file %q failed. %s.", sessionFilePath, err)
@@ -58,81 +71,86 @@ func BindRouters(engine *gin.Engine) (err error) {
 }
 `
 
-var sessionFileText = `package session
+var appSessionFileText = `package session
 
 import (
+	"strconv"
 	"time"
 
 	"fmt"
 
+
 	"strings"
 
 	"github.com/haozzzzzzzz/go-rapid-development/api/code"
+	"github.com/haozzzzzzzz/go-rapid-development/api/session"
 	"github.com/haozzzzzzzz/go-rapid-development/web/ginbuilder"
+	"github.com/sirupsen/logrus"
 )
 
-type ApiSession struct {
-	RequestData struct {
-		AppVersion     string ` + "`json:\"app_version\"`" + `
-		AppVersionCode string ` + "`json:\"app_version_code\"`" + `
-		DeviceId       string ` + "`json:\"device_id\"`" + `
-		AppType        string ` + "`json:\"app_type\"`" + `
-		ProductId      string ` + "`json:\"product_id\"`" + `
-	} ` + "`json:\"request_data\"`" + `
-
-	ResponseData struct {
-		ReturnCode *ginbuilder.ReturnCode ` + "`json:\"return_code\"`" + `
-	} ` + "`json:\"response_data\"`" + `
-
-	StartTime    time.Time
-	EndTime      time.Time
-	ExecDuration time.Duration
+type AppSession struct {
+	session.AppSession
 }
 
-func (m *ApiSession) BeforeHandle(ctx *ginbuilder.Context, method string, uri string) {
+func (m *AppSession) BeforeHandle(ctx *ginbuilder.Context, method string, uri string) {
 	m.StartTime = time.Now()
 
 	// metrics
-	metrics.API_EXEC_TIMES_COUNTER_TOTAL.Inc()
-	metrics.API_URI_CALL_TIMES_COUNTER_VEC.WithLabelValues(uri).Inc()
+	metrics.API_EXEC_TIMES_COUNTER_APP_TOTAL.Inc()
+	metrics.API_URI_CALL_TIMES_COUNTER_VEC.WithLabelValues(metrics.Ec2InstanceId, "app", uri).Inc()
 }
 
-func (m *ApiSession) AfterHandle(err error) {
+func (m *AppSession) AfterHandle(err error) {
 	m.EndTime = time.Now()
 	m.ExecDuration = m.EndTime.Sub(m.StartTime)
 
 	// metrics
-	metrics.API_SPENT_TIME_SUMMARY.Observe(m.ExecDuration.Seconds() * 1000)
+	metrics.API_SPENT_TIME_SUMMARY_APP.Observe(m.ExecDuration.Seconds() * 1000)
+
 	if m.ResponseData.ReturnCode != nil {
 		retCode := m.ResponseData.ReturnCode
-		metrics.API_RETURN_CODE_COUNTER_VEC.WithLabelValues(fmt.Sprintf("%d", retCode.Code)).Inc()
+		metrics.API_RETURN_CODE_COUNTER_VEC.WithLabelValues(metrics.Ec2InstanceId, "app", fmt.Sprintf("%d", retCode.Code)).Inc()
 
 		if retCode.Code != code.CodeSuccess.Code {
-			metrics.API_EXEC_TIMES_COUNTER_ABNORMAL.Inc()
+			metrics.API_EXEC_TIMES_COUNTER_APP_ABNORMAL.Inc()
 		}
 	}
+
 }
 
-func (m *ApiSession) Panic(err interface{}) {
-	metrics.API_EXEC_TIMES_COUNTER_PANIC.Inc()
+func (m *AppSession) Panic(err interface{}) {
+	metrics.API_EXEC_TIMES_COUNTER_APP_PANIC.Inc()
 }
 
-func (m *ApiSession) SetReturnCode(code *ginbuilder.ReturnCode) {
+func (m *AppSession) SetReturnCode(code *code.ApiCode) {
 	m.ResponseData.ReturnCode = code
 }
 
-func GetSession(ctx *ginbuilder.Context) (session *ApiSession) {
-	session = ctx.Session.(*ApiSession)
+func GetSession(ctx *ginbuilder.Context) (session *AppSession) {
+	session = ctx.Session.(*AppSession)
 	return
 }
 
 func SessionBuilder(ctx *ginbuilder.Context) (err error) {
-	ses := &ApiSession{}
+	ses := &AppSession{}
 	ctx.Session = ses
 
 	reqHeader := ctx.GinContext.Request.Header
+
 	ses.RequestData.AppVersion = reqHeader.Get("Version-Name")
-	ses.RequestData.AppVersionCode = strings.Trim(reqHeader.Get("Version-Code"), "")
+	strVersionCode := strings.Trim(reqHeader.Get("Version-Code"), "")
+
+	if strVersionCode != "" {
+		appVersionCode, errParse := strconv.ParseInt(strVersionCode, 10, 32)
+		err = errParse
+		if err != nil {
+			logrus.Errorf("parse string version code to int failed. %s.", err)
+			return
+		}
+		ses.RequestData.AppVersionCode = uint32(appVersionCode)
+
+	}
+
 	ses.RequestData.DeviceId = reqHeader.Get("Device-Id")
 	ses.RequestData.AppType = reqHeader.Get("App-Type")
 	ses.RequestData.ProductId = reqHeader.Get("Product-Id")
@@ -143,4 +161,79 @@ func SessionBuilder(ctx *ginbuilder.Context) (err error) {
 func init() {
 	ginbuilder.BindSessionBuilder(SessionBuilder)
 }
+
+type HomeAppSession = AppSession
+`
+
+var manageSessionFileText = `package session
+
+import (
+	"time"
+
+	"fmt"
+
+	"github.com/haozzzzzzzz/go-rapid-development/api/code"
+	"github.com/haozzzzzzzz/go-rapid-development/api/session"
+	"github.com/haozzzzzzzz/go-rapid-development/web/ginbuilder"
+)
+
+type ManageSession struct {
+	session.ManageSession
+}
+
+func (m *ManageSession) BeforeHandle(ctx *ginbuilder.Context, method string, uri string) {
+	m.StartTime = time.Now()
+
+	// metrics
+	metrics.API_EXEC_TIMES_COUNTER_MANAGE_TOTAL.Inc()
+	metrics.API_URI_CALL_TIMES_COUNTER_VEC.WithLabelValues(metrics.Ec2InstanceId, "manage", uri).Inc()
+
+}
+
+func (m *ManageSession) AfterHandle(err error) {
+	m.EndTime = time.Now()
+	m.ExecDuration = m.EndTime.Sub(m.StartTime)
+
+	// metrics
+	metrics.API_SPENT_TIME_SUMMARY_MANAGE.Observe(m.ExecDuration.Seconds() * 1000)
+	if m.ResponseData.ReturnCode != nil {
+		retCode := m.ResponseData.ReturnCode
+		metrics.API_RETURN_CODE_COUNTER_VEC.WithLabelValues(metrics.Ec2InstanceId, "manage", fmt.Sprintf("%d", retCode.Code)).Inc()
+
+		if retCode.Code != code.CodeSuccess.Code {
+			metrics.API_EXEC_TIMES_COUNTER_MANAGE_ABNORMAL.Inc()
+		}
+	}
+}
+
+func (m *ManageSession) Panic(err interface{}) {
+	metrics.API_EXEC_TIMES_COUNTER_MANAGE_PANIC.Inc()
+}
+
+func (m *ManageSession) SetReturnCode(code *code.ApiCode) {
+	m.ResponseData.ReturnCode = code
+}
+
+func GetSession(ctx *ginbuilder.Context) (session *ManageSession) {
+	session = ctx.Session.(*ManageSession)
+	return
+}
+
+func SessionBuilder(ctx *ginbuilder.Context) (err error) {
+	sess := &ManageSession{}
+	ctx.Session = sess
+	retCode, err := ctx.BindQueryData(&sess.RequestData)
+	if nil != err {
+		ctx.Errorf(retCode, "bind session query data failed. %s", err)
+		return
+	}
+
+	return
+}
+
+func init() {
+	ginbuilder.BindSessionBuilder(SessionBuilder)
+}
+
+type HomeManageSession = ManageSession
 `

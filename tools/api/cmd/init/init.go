@@ -105,7 +105,8 @@ func CommandApiAddService() *cobra.Command {
 	flags := cmd.Flags()
 	flags.StringVarP(&config.Name, "name", "n", "", "api service name")
 	flags.StringVarP(&config.ServiceDir, "path", "p", "./", "api service directory path")
-	flags.StringVarP(&config.Description, "description", "d", "api", "api service description")
+	flags.StringVarP(&config.Description, "description", "d", "api service", "api service description")
+	flags.StringVarP(&config.Type, "type", "t", "", "app、manage")
 	flags.StringVarP(&params.Host, "host", "H", "", "api serve host")
 	flags.StringVarP(&params.Port, "port", "P", "18100", "api serve port")
 

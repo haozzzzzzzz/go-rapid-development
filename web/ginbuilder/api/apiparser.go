@@ -374,7 +374,7 @@ func (m *ApiParser) MapApi() (err error) {
 		return
 	}
 
-	err = ioutil.WriteFile(fmt.Sprintf("%s/.proj/apis.yaml", m.ProjectPath), byteYamlApis, 0644)
+	err = ioutil.WriteFile(fmt.Sprintf("%s/.service/apis.yaml", m.ProjectPath), byteYamlApis, 0644)
 	if nil != err {
 		logrus.Errorf("write apis.yaml failed. \n%s.", err)
 		return

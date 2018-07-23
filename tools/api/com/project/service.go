@@ -10,11 +10,17 @@ import (
 	"os"
 )
 
+type ServiceType string
+const (
+	ServiceTypeApp ServiceType = "app"
+	ServiceTypeManage ServiceType = "manage"
+)
 
 type ServiceConfigFormat struct {
 	Name        string `json:"name" yaml:"name" validate:"required"`
 	ServiceDir  string `json:"service_dir" yaml:"service_dir" validate:"required"`
 	Description string `json:"description" yaml:"description"`
+	Type ServiceType `json:"type" yaml:"type" validate:"required"`
 }
 
 type Service struct {

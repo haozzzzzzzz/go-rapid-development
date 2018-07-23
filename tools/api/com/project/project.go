@@ -25,10 +25,10 @@ type Project struct {
 
 func (m *Project) Load(projectDir string) (err error) {
 	m.Config = &ProjectConfigFormat{}
-	confPath := fmt.Sprintf("%s/.proj/proj.yaml", projectDir)
+	confPath := fmt.Sprintf("%s/.project/project.yaml", projectDir)
 	err = yaml.ReadYamlFromFile(confPath, m.Config)
 	if nil != err {
-		logrus.Errorf("read project config  failed. %s.", err)
+		logrus.Errorf("read project config %q failed. %s.", confPath, err)
 		return
 	}
 	return

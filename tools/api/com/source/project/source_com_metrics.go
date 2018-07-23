@@ -7,10 +7,11 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
+	"github.com/haozzzzzzzz/go-rapid-development/utils/str"
 )
 
 func (m *ProjectSource) generateCommonComMetrics(comDir string) (err error) {
-	metricsDir := fmt.Sprintf("%s/common/metrics", comDir)
+	metricsDir := fmt.Sprintf("%s/metrics", comDir)
 	err = os.MkdirAll(metricsDir, project.ProjectDirMode)
 	if nil != err {
 		logrus.Errorf("make metrics dir %q failed. %s.", metricsDir, err)
@@ -18,7 +19,8 @@ func (m *ProjectSource) generateCommonComMetrics(comDir string) (err error) {
 	}
 
 	metricsFilePath := fmt.Sprintf("%s/metrics.go", metricsDir)
-	err = ioutil.WriteFile(metricsFilePath, []byte(metricsFileText), project.ProjectFileMode)
+	newMetricsFileText := fmt.Sprintf(metricsFileText, str.SnakeString(m.Project.Config.Name))
+	err = ioutil.WriteFile(metricsFilePath, []byte(newMetricsFileText), project.ProjectFileMode)
 	if nil != err {
 		logrus.Errorf("write metrics file %q failed. %s.", metricsFilePath, err)
 		return
@@ -60,11 +62,13 @@ var (
 	API_URI_CALL_TIMES_COUNTER_VEC *prometheus.CounterVec
 
 	// API响应时间分布
-	API_SPENT_TIME_SUMMARY prometheus.Summary
+	API_SPENT_TIME_SUMMARY_VEC    *prometheus.SummaryVec
 	API_SPENT_TIME_SUMMARY_APP    prometheus.Observer // app api响应
 	API_SPENT_TIME_SUMMARY_MANAGE prometheus.Observer // manage api响应
 
 )
+
+const MetricsNameSpace = "%s"
 
 func init() {
 	var err error

@@ -9,8 +9,8 @@ import (
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
 )
 
-func (m *ProjectSource) generateComMetrics(comDir string) (err error) {
-	metricsDir := fmt.Sprintf("%s/metrics", comDir)
+func (m *ProjectSource) generateCommonComMetrics(comDir string) (err error) {
+	metricsDir := fmt.Sprintf("%s/common/metrics", comDir)
 	err = os.MkdirAll(metricsDir, project.ProjectDirMode)
 	if nil != err {
 		logrus.Errorf("make metrics dir %q failed. %s.", metricsDir, err)

@@ -11,10 +11,10 @@ import (
 	project2 "github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
 )
 
-func (m *ProjectSource) generateStage() (err error) {
+func (m *ProjectSource) generateCommonStage() (err error) {
 	projectDir := m.ProjectDir
 	// stage
-	stageDir := fmt.Sprintf("%s/stage", projectDir)
+	stageDir := fmt.Sprintf("%s/common/stage", projectDir)
 	err = os.MkdirAll(stageDir, project2.ProjectDirMode)
 	if nil != err {
 		logrus.Errorf("make service stage dir %q failed. %s.", stageDir, err)

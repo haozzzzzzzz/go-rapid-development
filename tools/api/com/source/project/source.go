@@ -19,14 +19,14 @@ func NewProjectSource(project *project.Project) *ProjectSource {
 
 func (m *ProjectSource) Generate() (err error) {
 	// stage
-	err = m.generateStage()
+	err = m.generateCommonStage()
 	if nil != err {
 		logrus.Errorf("generate stage failed. %s.", err)
 		return
 	}
 
 	// com
-	err = m.generateCom()
+	err = m.generateCommonCom()
 	if nil != err {
 		logrus.Errorf("generate com failed. %s.", err)
 		return

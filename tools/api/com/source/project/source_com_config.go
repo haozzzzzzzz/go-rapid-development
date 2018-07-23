@@ -9,8 +9,8 @@ import (
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
 )
 
-func (m *ProjectSource) generateComConfig(comDir string) (err error) {
-	configDir := fmt.Sprintf("%s/config", comDir)
+func (m *ProjectSource) generateCommonComConfig(comDir string) (err error) {
+	configDir := fmt.Sprintf("%s/common/config", comDir)
 	err = os.MkdirAll(configDir, project.ProjectDirMode)
 	if nil != err {
 		logrus.Errorf("make com config dir %q failed. %s.", configDir, err)
@@ -55,8 +55,8 @@ import (
 )
 
 type EnvFormat struct {
-	Debug bool   ` + "json:\"debug\" yaml:\"debug\"" + `
-	Stage string ` + "json:\"stage\" yaml:\"stage\" validate:\"required\"" + `
+	Debug bool   ` + "`json:\"debug\" yaml:\"debug\"`" + `
+	Stage string ` + "`json:\"stage\" yaml:\"stage\" validate:\"required\"`" + `
 }
 
 func (m *EnvFormat) WithStagePrefix(strVal string) string {
@@ -86,14 +86,16 @@ var awsFileText = `package config
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/go-playground/validator"
+	"github.com/haozzzzzzzz/go-rapid-development/aws/ec2"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/yaml"
 	"github.com/sirupsen/logrus"
 )
 
 type AWSConfigFormat struct {
-	Region string ` + "`yaml:\"region\" validate:\"required\"`" + `
+	Region string ` + "`yaml:\"region\" validate:\"required\"`" +`
 }
 
 var AWSConfig AWSConfigFormat

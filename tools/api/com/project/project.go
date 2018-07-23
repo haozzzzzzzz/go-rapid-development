@@ -48,12 +48,15 @@ func (m *Project) Init() (err error) {
 
 	// detect project dir
 	projConfDir := fmt.Sprintf("%s/.project/", m.Config.ProjectDir)
-	if !file.PathExists(projConfDir) {
-		err = os.MkdirAll(projConfDir, ProjectDirMode)
-		if nil != err {
-			logrus.Errorf("mkdir %q failed. %s.", projConfDir, err)
-			return
-		}
+	if file.PathExists(projConfDir) {
+		err = errors.New("This directory was initialized")
+		return
+	}
+
+	err = os.MkdirAll(projConfDir, ProjectDirMode)
+	if nil != err {
+		logrus.Errorf("mkdir %q failed. %s.", projConfDir, err)
+		return
 	}
 
 	// create project config

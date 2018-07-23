@@ -2,13 +2,12 @@ package project
 
 import (
 	"fmt"
-	"os"
-
 	"github.com/go-playground/validator"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/file"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/yaml"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"os"
 )
 
 
@@ -60,22 +59,18 @@ func (m *Service) Init() (err error) {
 
 	// detect service dir
 	serviceDir := m.Config.ServiceDir
-	if !file.PathExists(serviceDir) {
-		err = os.MkdirAll(serviceDir, ProjectDirMode)
-		if nil != err {
-			logrus.Errorf("make service directory %q failed. %s.", serviceDir, err)
-			return
-		}
-	}
 
 	// create service config dir
-	projConfDir := fmt.Sprintf("%s/.service", serviceDir)
-	if !file.PathExists(projConfDir) {
-		err = os.MkdirAll(projConfDir, ProjectDirMode)
-		if nil != err {
-			logrus.Errorf("os mkdir %q failed. %s.", projConfDir, err)
-			return
-		}
+	srvConfDir := fmt.Sprintf("%s/.service", serviceDir)
+	if file.PathExists(srvConfDir) {
+		err = errors.New("This directory was initialized")
+		return
+	}
+
+	err = os.MkdirAll(srvConfDir, ProjectDirMode)
+	if nil != err {
+		logrus.Errorf("os mkdir %q failed. %s.", srvConfDir, err)
+		return
 	}
 
 	// create service config

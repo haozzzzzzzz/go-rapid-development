@@ -3,6 +3,8 @@ package project
 import (
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
 	"github.com/sirupsen/logrus"
+	"fmt"
+	"os"
 )
 
 type ProjectSource struct {
@@ -18,6 +20,8 @@ func NewProjectSource(project *project.Project) *ProjectSource {
 }
 
 func (m *ProjectSource) Generate() (err error) {
+	projectDir := m.ProjectDir
+
 	// stage
 	err = m.generateCommonStage()
 	if nil != err {
@@ -29,6 +33,21 @@ func (m *ProjectSource) Generate() (err error) {
 	err = m.generateCommonCom()
 	if nil != err {
 		logrus.Errorf("generate com failed. %s.", err)
+		return
+	}
+
+	// generate app service root dir
+	appDir := fmt.Sprintf("%s/app", projectDir)
+	err = os.MkdirAll(appDir, project.ProjectDirMode)
+	if nil != err {
+		logrus.Errorf("make project service dir %s failed. %s.", appDir, err)
+		return
+	}
+
+	// generate manage service root dir
+	manageDir := fmt.Sprintf("%s/manage", projectDir)
+	if nil != err {
+		logrus.Errorf("make project service dir %s failed. %s.", manageDir, err)
 		return
 	}
 

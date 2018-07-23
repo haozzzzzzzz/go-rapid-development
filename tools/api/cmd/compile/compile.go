@@ -6,7 +6,6 @@ import (
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/parser"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/haozzzzzzzz/go-rapid-development/tools/goimports"
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
 )
 
@@ -42,9 +41,6 @@ func CommandApiCompile() *cobra.Command {
 				logrus.Errorf("parse router failed. %s.", err)
 				return
 			}
-
-			// goimports
-			goimports.DoGoImports([]string{serviceDir}, true)
 
 		},
 	}

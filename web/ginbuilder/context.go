@@ -156,3 +156,8 @@ func (m *Context) TemporaryRedirect(location string) {
 func (m *Context) PermanentRedirect(location string) {
 	m.GinContext.Redirect(http.StatusPermanentRedirect, location)
 }
+
+func (m *Context) StatusNotFoundWarnf(logFormat string, logArgs ...interface{}) {
+	m.GinContext.Status(http.StatusNotFound)
+	m.Logger.Errorf(logFormat, logArgs...)
+}

@@ -5,19 +5,30 @@ import (
 
 	"github.com/go-playground/validator"
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/proj"
-	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/source"
-	"github.com/haozzzzzzzz/go-rapid-development/tools/goimports"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	service2 "github.com/haozzzzzzzz/go-rapid-development/tools/api/com/service"
 )
 
-// 初始化API项目
-func CommandApiInit() *cobra.Command {
-	var config proj.ProjectConfigFormat
-	var params source.GenerateParams
+// 初始化服务框架
+func CommandApiInitFramework() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use: "init_framework",
+		Short: "api project framework initialization",
+		Run: func(cmd *cobra.Command, args []string) {
+
+		},
+	}
+	return
+}
+
+// 初始化API服务
+func CommandApiInitService() *cobra.Command {
+	var config project.ServiceConfigFormat
+	var params service2.GenerateParams
 	var cmd = &cobra.Command{
-		Use:   "init",
-		Short: "api project initialization",
+		Use:   "init_service",
+		Short: "api service initialization",
 		Run: func(cmd *cobra.Command, args []string) {
 			err := validator.New().Struct(&config)
 			if nil != err {
@@ -25,40 +36,37 @@ func CommandApiInit() *cobra.Command {
 				return
 			}
 
-			absProjectDir, err := filepath.Abs(config.ProjectDir)
+			absServiceDir, err := filepath.Abs(config.ServiceDir)
 			if nil != err {
-				logrus.Errorf("get absolute file path %q failed. %s.", absProjectDir, err)
+				logrus.Errorf("get absolute file path %q failed. %s.", absServiceDir, err)
 				return
 			}
-			config.ProjectDir = absProjectDir
+			config.ServiceDir = absServiceDir
 
-			project := &proj.Project{
+			service := &project.Service{
 				Config: &config,
 			}
-			err = project.Init()
+			err = service.Init()
 			if nil != err {
-				logrus.Errorf("save project config failed. %s.", err)
+				logrus.Errorf("save service config failed. %s.", err)
 				return
 			}
 
-			// init api project files
-			apiProjectSource := source.NewApiProjectSource(project)
-			err = apiProjectSource.Generate(&params)
+			// init api service files
+			apiServiceSource := service2.NewApiServiceSource(service)
+			err = apiServiceSource.Generate(&params)
 			if nil != err {
-				logrus.Errorf("generate api project source failed. %s.", err)
+				logrus.Errorf("generate api service source failed. %s.", err)
 				return
 			}
-
-			// do go imports
-			goimports.DoGoImports([]string{config.ProjectDir}, true)
 
 		},
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&config.Name, "name", "n", "", "api project name")
-	flags.StringVarP(&config.ProjectDir, "path", "p", "./", "api project directory path")
-	flags.StringVarP(&config.Description, "description", "d", "api", "api project description")
+	flags.StringVarP(&config.Name, "name", "n", "", "api service name")
+	flags.StringVarP(&config.ServiceDir, "path", "p", "./", "api service directory path")
+	flags.StringVarP(&config.Description, "description", "d", "api", "api service description")
 	flags.StringVarP(&params.Host, "host", "H", "", "api serve host")
 	flags.StringVarP(&params.Port, "port", "P", "18100", "api serve port")
 

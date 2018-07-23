@@ -1,4 +1,4 @@
-package source
+package service
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (m *ApiProjectSource) generateBashBuild(shDir string) (err error) {
+func (m *ServiceSource) generateBashBuild(shDir string) (err error) {
 	bashBuildFilePath := fmt.Sprintf("%s/build.sh", shDir)
 	err = ioutil.WriteFile(bashBuildFilePath, []byte(bashBuildFileText), os.ModePerm)
 	if nil != err {

@@ -1,4 +1,4 @@
-package source
+package service
 
 import (
 	"fmt"
@@ -8,10 +8,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (m *ApiProjectSource) generateBashParams(shDir string) (err error) {
+func (m *ServiceSource) generateBashParams(shDir string) (err error) {
 	bashParamsFilePath := fmt.Sprintf("%s/params.sh", shDir)
-	newBashParamsFileText := fmt.Sprintf(bashParamsFileText, m.Project.Config.Name)
-	err = ioutil.WriteFile(bashParamsFilePath, []byte(newBashParamsFileText), proj.ProjectFileMode)
+	newBashParamsFileText := fmt.Sprintf(bashParamsFileText, m.Service.Config.Name)
+	err = ioutil.WriteFile(bashParamsFilePath, []byte(newBashParamsFileText), project.ProjectFileMode)
 	if nil != err {
 		logrus.Errorf("write params bash %q failed. %s.", bashParamsFilePath, err)
 		return

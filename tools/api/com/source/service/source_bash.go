@@ -1,4 +1,4 @@
-package source
+package service
 
 import (
 	"fmt"
@@ -8,11 +8,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (m *ApiProjectSource) generateBash() (err error) {
-	projDir := m.ProjectDir
+func (m *ServiceSource) generateBash() (err error) {
+	projDir := m.ServiceDir
 
 	shDir := fmt.Sprintf("%s/sh", projDir)
-	err = os.MkdirAll(shDir, proj.ProjectDirMode)
+	err = os.MkdirAll(shDir, project.ProjectDirMode)
 	if nil != err {
 		logrus.Errorf("make sh directory %q failed. %s.", shDir, err)
 		return

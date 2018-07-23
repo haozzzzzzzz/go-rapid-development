@@ -1,4 +1,4 @@
-package source
+package service
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (m *ApiProjectSource) generateBashJumpServer(shDir string) (err error) {
+func (m *ServiceSource) generateBashJumpServer(shDir string) (err error) {
 	bashJumpServerFilePath := fmt.Sprintf("%s/jump_server.sh", shDir)
 	err = ioutil.WriteFile(bashJumpServerFilePath, []byte(bashJumpServerFileText), os.ModePerm)
 	if nil != err {

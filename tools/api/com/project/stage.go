@@ -1,4 +1,4 @@
-package proj
+package project
 
 type Stage string
 

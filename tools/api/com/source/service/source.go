@@ -1,20 +1,24 @@
-package source
+package service
 
 import (
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/proj"
 	"github.com/sirupsen/logrus"
+	"fmt"
+	"os"
+	"io/ioutil"
+	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
 )
 
 // api 源文件目录
-type ApiProjectSource struct {
-	Project    *proj.Project
-	ProjectDir string
+type ServiceSource struct {
+	Service    *project.Service
+	ServiceDir string
 }
 
-func NewApiProjectSource(project *proj.Project) *ApiProjectSource {
-	return &ApiProjectSource{
-		Project:    project,
-		ProjectDir: project.Config.ProjectDir,
+func NewServiceSource(service *project.Service) *ServiceSource {
+	return &ServiceSource{
+		Service:    service,
+		ServiceDir: service.Config.ServiceDir,
 	}
 }
 
@@ -23,26 +27,12 @@ type GenerateParams struct {
 	Port string `json:"port"`
 }
 
-func (m *ApiProjectSource) Generate(params *GenerateParams) (err error) {
+func (m *ServiceSource) Generate(params *GenerateParams) (err error) {
 
 	// generate constant
 	err = m.generateConstant()
 	if nil != err {
 		logrus.Errorf("generate constant failed. %s.", err)
-		return
-	}
-
-	// stage
-	err = m.generateStage()
-	if nil != err {
-		logrus.Errorf("generate stage failed. %s.", err)
-		return
-	}
-
-	// com
-	err = m.generateCom()
-	if nil != err {
-		logrus.Errorf("generate com failed. %s.", err)
 		return
 	}
 

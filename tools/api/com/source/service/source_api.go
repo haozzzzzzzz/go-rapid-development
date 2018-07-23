@@ -1,28 +1,27 @@
-package source
+package service
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
-
-	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/proj"
+	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
 	"github.com/sirupsen/logrus"
+	"io/ioutil"
 )
 
-func (m *ApiProjectSource) generateApi() (err error) {
-	projDir := m.ProjectDir
+func (m *ServiceSource) generateApi() (err error) {
+	serviceDir := m.ServiceDir
 
 	// generate api folder
-	apiDir := fmt.Sprintf("%s/api", projDir)
-	err = os.MkdirAll(apiDir, proj.ProjectDirMode)
+	apiDir := fmt.Sprintf("%s/api", serviceDir)
+	err = os.MkdirAll(apiDir, project.ProjectDirMode)
 	if nil != err {
-		logrus.Errorf("make project api dir %q failed. %s.", apiDir, err)
+		logrus.Errorf("make service api dir %q failed. %s.", apiDir, err)
 		return
 	}
 
 	// routers
 	routersFilePath := fmt.Sprintf("%s/routers.go", apiDir)
-	err = ioutil.WriteFile(routersFilePath, []byte(routersFileText), proj.ProjectDirMode)
+	err = ioutil.WriteFile(routersFilePath, []byte(routersFileText), project.ProjectDirMode)
 	if nil != err {
 		logrus.Errorf("write api/routers.go failed. \n%s.", err)
 		return
@@ -30,14 +29,14 @@ func (m *ApiProjectSource) generateApi() (err error) {
 
 	// session
 	sessionDir := fmt.Sprintf("%s/session", apiDir)
-	err = os.MkdirAll(sessionDir, proj.ProjectDirMode)
+	err = os.MkdirAll(sessionDir, project.ProjectDirMode)
 	if nil != err {
 		logrus.Errorf("make api session dir %q failed. %s.", err)
 		return
 	}
 
 	sessionFilePath := fmt.Sprintf("%s/session.go", sessionDir)
-	err = ioutil.WriteFile(sessionFilePath, []byte(sessionFileText), proj.ProjectFileMode)
+	err = ioutil.WriteFile(sessionFilePath, []byte(sessionFileText), project.ProjectFileMode)
 	if nil != err {
 		logrus.Errorf("write session file %q failed. %s.", sessionFilePath, err)
 		return

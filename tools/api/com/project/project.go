@@ -1,0 +1,68 @@
+package project
+
+import (
+	"fmt"
+	"github.com/haozzzzzzzz/go-rapid-development/utils/yaml"
+	"github.com/sirupsen/logrus"
+	"github.com/pkg/errors"
+	"github.com/go-playground/validator"
+	"github.com/haozzzzzzzz/go-rapid-development/utils/file"
+	"os"
+)
+
+const ProjectFileMode os.FileMode = os.ModePerm ^ 0111
+
+const ProjectDirMode os.FileMode = os.ModePerm
+
+type ProjectConfigFormat struct {
+	Name string `json:"name" yaml:"name"`
+	ProjectDir string `json:"project_dir" yaml:"project_dir"`
+}
+
+type Project struct {
+	Config *ProjectConfigFormat
+}
+
+func (m *Project) Load(projectDir string) (err error) {
+	m.Config = &ProjectConfigFormat{}
+	confPath := fmt.Sprintf("%s/.proj/proj.yaml", projectDir)
+	err = yaml.ReadYamlFromFile(confPath, m.Config)
+	if nil != err {
+		logrus.Errorf("read project config  failed. %s.", err)
+		return
+	}
+	return
+}
+
+func (m *Project) Init() (err error) {
+	if m.Config == nil {
+		err = errors.New("empty config")
+		return
+	}
+
+	err = validator.New().Struct(m.Config)
+	if nil != err {
+		logrus.Errorf("validate service config failed. %s.", err)
+		return
+	}
+
+	// detect project dir
+	projConfDir := fmt.Sprintf("%s/.project/", m.Config.ProjectDir)
+	if !file.PathExists(projConfDir) {
+		err = os.MkdirAll(projConfDir, ProjectDirMode)
+		if nil != err {
+			logrus.Errorf("mkdir %q failed. %s.", projConfDir, err)
+			return
+		}
+	}
+
+	// create project config
+	configPath := fmt.Sprintf("%s/project.yaml", projConfDir)
+	err = yaml.WriteYamlToFile(configPath, m.Config, ProjectFileMode)
+	if nil != err {
+		logrus.Errorf("save project config to file failed. %s.", err)
+		return
+	}
+	
+	return
+}

@@ -1,4 +1,4 @@
-package source
+package project
 
 import (
 	"fmt"
@@ -7,19 +7,28 @@ import (
 
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/proj"
 	"github.com/sirupsen/logrus"
+	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
 )
 
-func (m *ApiProjectSource) generateComConfig(comDir string) (err error) {
+func (m *ProjectSource) generateComConfig(comDir string) (err error) {
 	configDir := fmt.Sprintf("%s/config", comDir)
-	err = os.MkdirAll(configDir, proj.ProjectDirMode)
+	err = os.MkdirAll(configDir, project.ProjectDirMode)
 	if nil != err {
 		logrus.Errorf("make com config dir %q failed. %s.", configDir, err)
 		return
 	}
 
+	// env
+	envFilePath := fmt.Sprintf("%s/env.go", configDir)
+	err = ioutil.WriteFile(envFilePath, []byte(envFileText), project.ProjectDirMode)
+	if nil != err {
+		logrus.Errorf("write env file %q failed. %s.", envFilePath, err)
+		return
+	}
+
 	// aws
 	awsFilePath := fmt.Sprintf("%s/aws.go", configDir)
-	err = ioutil.WriteFile(awsFilePath, []byte(awsFileText), proj.ProjectFileMode)
+	err = ioutil.WriteFile(awsFilePath, []byte(awsFileText), project.ProjectFileMode)
 	if nil != err {
 		logrus.Errorf("write aws file %q failed. %s.", awsFilePath, err)
 		return
@@ -27,7 +36,7 @@ func (m *ApiProjectSource) generateComConfig(comDir string) (err error) {
 
 	// xray
 	xrayFilePath := fmt.Sprintf("%s/xray.go", configDir)
-	err = ioutil.WriteFile(xrayFilePath, []byte(xrayFileText), proj.ProjectFileMode)
+	err = ioutil.WriteFile(xrayFilePath, []byte(xrayFileText), project.ProjectFileMode)
 	if nil != err {
 		logrus.Errorf("write xray file %q  failed. %s.", xrayFilePath, err)
 		return
@@ -35,6 +44,44 @@ func (m *ApiProjectSource) generateComConfig(comDir string) (err error) {
 
 	return
 }
+
+var envFileText = `package config
+
+import (
+	"fmt"
+
+	"github.com/go-playground/validator"
+	"github.com/haozzzzzzzz/go-rapid-development/utils/yaml"
+	"github.com/sirupsen/logrus"
+)
+
+type EnvFormat struct {
+	Debug bool   ` + "json:\"debug\" yaml:\"debug\"" + `
+	Stage string ` + "json:\"stage\" yaml:\"stage\" validate:\"required\"" + `
+}
+
+func (m *EnvFormat) WithStagePrefix(strVal string) string {
+	return fmt.Sprintf("%s_%s", m.Stage, strVal)
+}
+
+var EnvConfig EnvFormat
+
+func init() {
+	var err error
+	err = yaml.ReadYamlFromFile("./config/env.yaml", &EnvConfig)
+	if nil != err {
+		logrus.Errorf("read env config file failed. %s.", err)
+		return
+	}
+
+	err = validator.New().Struct(&EnvConfig)
+	if nil != err {
+		logrus.Fatalf("validate env config failed. %s", err)
+		return
+	}
+
+}
+`
 
 var awsFileText = `package config
 
@@ -52,6 +99,7 @@ type AWSConfigFormat struct {
 
 var AWSConfig AWSConfigFormat
 var AWSSession *session.Session
+var AWSEc2InstanceIdentifyDocument ec2metadata.EC2InstanceIdentityDocument
 
 func init() {
 	var err error
@@ -72,6 +120,12 @@ func init() {
 	AWSSession, err = session.NewSession(awsConfig)
 	if nil != err {
 		logrus.Fatalf("new aws session failed. %s", err)
+		return
+	}
+
+	AWSEc2InstanceIdentifyDocument, err = ec2.GetEc2InstanceIdentityDocument(AWSSession)
+	if nil != err {
+		logrus.Errorf("get ec2 instance identify document failed. %s.", err)
 		return
 	}
 

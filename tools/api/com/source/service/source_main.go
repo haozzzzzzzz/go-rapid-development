@@ -1,4 +1,4 @@
-package source
+package service
 
 import (
 	"fmt"
@@ -9,16 +9,16 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (m *ApiProjectSource) generateMain(params *GenerateParams) (err error) {
-	projDir := m.ProjectDir
+func (m *ServiceSource) generateMain(params *GenerateParams) (err error) {
+	serviceDir := m.ServiceDir
 
 	// generate main file
-	mainFilePath := fmt.Sprintf("%s/main.go", projDir)
+	mainFilePath := fmt.Sprintf("%s/main.go", serviceDir)
 	newMainFileText := strings.Replace(mainFileText, "$HOST$", params.Host, -1)
 	newMainFileText = strings.Replace(newMainFileText, "$PORT$", params.Port, -1)
-	err = ioutil.WriteFile(mainFilePath, []byte(newMainFileText), proj.ProjectFileMode)
+	err = ioutil.WriteFile(mainFilePath, []byte(newMainFileText), project.ProjectFileMode)
 	if nil != err {
-		logrus.Errorf("new project main file failed. %s.", err)
+		logrus.Errorf("new service main file failed. %s.", err)
 		return
 	}
 
@@ -30,7 +30,9 @@ var mainFileText = `package main
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/haozzzzzzzz/go-rapid-development/aws/xray"
@@ -59,7 +61,6 @@ func main() {
 	flags := mainCmd.Flags()
 	flags.StringVarP(&runParams.Host, "ip", "i", "$HOST$", "serve host ip")
 	flags.StringVarP(&runParams.Port, "port", "p", "$PORT$", "serve port")
-	flags.StringVarP(&runParams.Stage, "stage", "s", "test", "deploy stage. dev、test、pre、prod")
 
 	if err := mainCmd.Execute(); err != nil {
 		logrus.Println(err)
@@ -71,15 +72,17 @@ func main() {
 type RunParams struct {
 	Host  string
 	Port  string
-	Stage string
 }
 
 func Run(runParams *RunParams) {
+	serviceName := config.EnvConfig.WithStagePrefix(constant.ServiceName)
+
+	rand.Seed(time.Now().Unix())
 
 	engine := ginbuilder.GetEngine()
 
 	// bind xray
-	engine.Use(xray.XRayGinMiddleware(fmt.Sprintf("%s_%s", runParams.Stage, constant.ServiceName)))
+	engine.Use(xray.XRayGinMiddleware(serviceName))
 
 	// bind prometheus
 	engine.GET(fmt.Sprintf("/%s/metrics", constant.ServiceName), func(context *gin.Context) {
@@ -94,6 +97,8 @@ func Run(runParams *RunParams) {
 	})
 
 	api.BindRouters(engine)
+
+	logrus.Infof("Running %s on %s:%s", serviceName, runParams.Host, runParams.Port)
 	engine.Run(fmt.Sprintf("%s:%s", runParams.Host, runParams.Port))
 
 }

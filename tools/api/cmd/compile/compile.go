@@ -7,46 +7,50 @@ import (
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/proj"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/haozzzzzzzz/go-rapid-development/tools/goimports"
 )
 
 func CommandApiCompile() *cobra.Command {
-	var projectDir string
+	var serviceDir string
 	var cmd = &cobra.Command{
 		Use:   "compile",
-		Short: "api project compilation",
+		Short: "api service compilation",
 		Run: func(cmd *cobra.Command, args []string) {
-			if projectDir == "" {
-				logrus.Errorf("project dir required")
+			if serviceDir == "" {
+				logrus.Errorf("service dir required")
 				return
 			}
 
 			var err error
-			projectDir, err = filepath.Abs(projectDir)
+			serviceDir, err = filepath.Abs(serviceDir)
 			if nil != err {
-				logrus.Errorf("get absolute project path failed. \ns%s.", err)
+				logrus.Errorf("get absolute service path failed. \ns%s.", err)
 				return
 			}
 
-			// project
-			project, err := proj.LoadProject(projectDir)
+			// service
+			service, err := project.LoadService(serviceDir)
 			if nil != err {
-				logrus.Errorf("load project failed. %s.", err)
+				logrus.Errorf("load service failed. %s.", err)
 				return
 			}
 
 			// api parser
-			apiParser := parser.NewApiParser(project)
+			apiParser := parser.NewApiParser(service)
 			err = apiParser.ParseRouter()
 			if nil != err {
 				logrus.Errorf("parse router failed. %s.", err)
 				return
 			}
 
+			// goimports
+			goimports.DoGoImports([]string{serviceDir}, true)
+
 		},
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&projectDir, "path", "p", "./", "project path")
+	flags.StringVarP(&serviceDir, "path", "p", "./", "service path")
 
 	return cmd
 }

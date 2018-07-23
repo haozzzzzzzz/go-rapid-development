@@ -1,4 +1,4 @@
-package source
+package service
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (m *ApiProjectSource) generateBashTargetServer(shDir string) (err error) {
+func (m *ServiceSource) generateBashTargetServer(shDir string) (err error) {
 	bashTargetServerFilePath := fmt.Sprintf("%s/target_server.sh", shDir)
 	err = ioutil.WriteFile(bashTargetServerFilePath, []byte(bashTargetServerFileText), os.ModePerm)
 	if nil != err {
@@ -55,22 +55,35 @@ then
     sudo touch ${logPath}
 fi
 
-# 更新日志logrotate
-echo "${logPath} {
-    size 50M
-    rotate 10
-    notifempty
-    copytruncate
-    create 0644 root root
-    dateformat -%Y%m%d.%s
-}" | sudo tee /etc/logrotate.d/${serviceName}
+# 清空日志
+emptyLogCrontabSh=/etc/cron.daily/empty_${serviceName}_log
+if [ ! -e ${emptyLogCrontabSh} ]
+then
+    sudo touch ${emptyLogCrontabSh}
+    sudo chmod 777 ${emptyLogCrontabSh}
+    echo "#!/bin/sh
+    " | sudo tee ${emptyLogCrontabSh}
+fi
 
+echo "cat /dev/null > ${logPath}
+" | sudo tee ${emptyLogCrontabSh}
+
+# 定时清空/var/log/awslogs/.log的内容
+emptyAwslogsLog=/etc/cron.daily/empty_awslogs_log
+if [ ! -e ${emptyAwslogsLog} ]
+then
+    sudo touch ${emptyAwslogsLog}
+    sudo chmod 777 ${emptyAwslogsLog}
+    echo "#!bin/sh
+systemctl stop awslogsd.service
+cat /dev/null > /var/log/awslogs.log
+systemctl start awslogsd.service
+" | sudo tee ${emptyAwslogsLog}
+fi
 
 # 设置awslogs配置
 awsLogsConf=/etc/awslogs/config/${serviceName}.conf
 echo "[${logPath}]
-
-datetime_format = %Y-%m-%d %H:%M:%S
 
 encoding=utf_8
 
@@ -97,7 +110,7 @@ fi
 
 # 启动文件
 sudo echo "#!/usr/bin/env bash
-${serviceDir}/main -s ${stage} > $logPath 2>&1
+${serviceDir}/main > $logPath 2>&1
 " > ${runSh}
 
 # 创建service文件

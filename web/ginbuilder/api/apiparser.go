@@ -14,7 +14,6 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator"
-	"github.com/haozzzzzzzz/go-rapid-development/tools/goimports"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/file"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/printutil"
 	"github.com/sirupsen/logrus"
@@ -363,10 +362,10 @@ func (m *ApiParser) MapApi() (err error) {
 		return
 	}
 
-	logrus.Info("Doing go imports")
-	// do goimports
-	goimports.DoGoImports([]string{m.ApiDir}, true)
-	logrus.Info("Do go imports completed")
+	//logrus.Info("Doing go imports")
+	//// do goimports
+	//goimports.DoGoImports([]string{m.ApiDir}, true)
+	//logrus.Info("Do go imports completed")
 
 	// save api.yaml
 	byteYamlApis, err := yaml.Marshal(apis)

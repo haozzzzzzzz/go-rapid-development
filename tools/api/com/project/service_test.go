@@ -1,4 +1,4 @@
-package proj
+package project
 
 import (
 	"fmt"
@@ -6,12 +6,12 @@ import (
 )
 
 func TestProject_Save(t *testing.T) {
-	config := &ProjectConfigFormat{
+	config := &ServiceConfigFormat{
 		Name:       "test",
-		ProjectDir: "/Users/hao/Documents/Projects/Github/go_lambda_learning/src/github.com/haozzzzzzzz/go-rapid-development/tools/api/common/proj",
+		ServiceDir: "/Users/hao/Documents/Projects/Github/go_lambda_learning/src/github.com/haozzzzzzzz/go-rapid-development/tools/api/common/proj",
 	}
 
-	project := &Project{
+	project := &Service{
 		Config: config,
 	}
 
@@ -23,7 +23,7 @@ func TestProject_Save(t *testing.T) {
 }
 
 func TestProject_Load(t *testing.T) {
-	project := &Project{}
+	project := &Service{}
 	err := project.Load("/Users/hao/Documents/Projects/Github/go_lambda_learning/src/github.com/haozzzzzzzz/go-rapid-development/tools/api/common/proj")
 	if nil != err {
 		t.Error(err)

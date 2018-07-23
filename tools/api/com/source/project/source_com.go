@@ -1,4 +1,4 @@
-package source
+package project
 
 import (
 	"fmt"
@@ -6,15 +6,16 @@ import (
 
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/proj"
 	"github.com/sirupsen/logrus"
+	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
 )
 
-func (m *ApiProjectSource) generateCom() (err error) {
-	projDir := m.ProjectDir
+func (m *ProjectSource) generateCom() (err error) {
+	projectDir := m.ProjectDir
 
-	comDir := fmt.Sprintf("%s/com", projDir)
-	err = os.MkdirAll(comDir, proj.ProjectDirMode)
+	comDir := fmt.Sprintf("%s/com", projectDir)
+	err = os.MkdirAll(comDir, project.ProjectDirMode)
 	if nil != err {
-		logrus.Errorf("make project dir %s failed. %s.", comDir, err)
+		logrus.Errorf("make service component dir %s failed. %s.", comDir, err)
 		return
 	}
 

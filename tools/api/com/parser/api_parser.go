@@ -7,21 +7,21 @@ import (
 )
 
 type ApiParser struct {
-	Project    *proj.Project
-	ProjectDir string
+	Service    *project.Service
+	ServiceDir string
 }
 
-func NewApiParser(project *proj.Project) *ApiParser {
+func NewApiParser(service *project.Service) *ApiParser {
 	return &ApiParser{
-		Project:    project,
-		ProjectDir: project.Config.ProjectDir,
+		Service:    service,
+		ServiceDir: service.Config.ServiceDir,
 	}
 }
 
 func (m *ApiParser) ParseRouter() (err error) {
-	projectDir := m.ProjectDir
+	serviceDir := m.ServiceDir
 
-	err = api.NewApiParser(projectDir).MapApi()
+	err = api.NewApiParser(serviceDir).MapApi()
 	if nil != err {
 		logrus.Errorf("mapping api failed. %s.", err)
 		return

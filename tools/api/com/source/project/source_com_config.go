@@ -54,16 +54,16 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type EnvFormat struct {
+type EnvConfigFormat struct {
 	Debug bool   ` + "`json:\"debug\" yaml:\"debug\"`" + `
 	Stage string ` + "`json:\"stage\" yaml:\"stage\" validate:\"required\"`" + `
 }
 
-func (m *EnvFormat) WithStagePrefix(strVal string) string {
+func (m *EnvConfigFormat) WithStagePrefix(strVal string) string {
 	return fmt.Sprintf("%s_%s", m.Stage, strVal)
 }
 
-var EnvConfig EnvFormat
+var EnvConfig EnvConfigFormat
 
 func init() {
 	var err error

@@ -69,7 +69,7 @@ func init() {
 	var err error
 	err = yaml.ReadYamlFromFile("./config/env.yaml", &EnvConfig)
 	if nil != err {
-		logrus.Errorf("read env config file failed. %s.", err)
+		logrus.Fatalf("read env config file failed. %s.", err)
 		return
 	}
 

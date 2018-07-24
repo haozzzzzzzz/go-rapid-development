@@ -110,6 +110,13 @@ func (m *Request) Get() (resp *http.Response, err error) {
 
 func (m *Request) GetJSON(v interface{}) (err error) {
 	ack, err := m.Get()
+	defer func() {
+		errClose := ack.Body.Close()
+		if errClose != nil {
+			logrus.Errorf("close http response body failed. %s.", err)
+		}
+	}()
+
 	if err != nil {
 		logrus.Errorf("request failed. %s.", err)
 		return
@@ -125,6 +132,12 @@ func (m *Request) GetJSON(v interface{}) (err error) {
 
 func (m *Request) GetText() (text string, err error) {
 	resp, err := m.Get()
+	defer func() {
+		errClose := resp.Body.Close()
+		if errClose != nil {
+			logrus.Errorf("close http response body failed. %s.", err)
+		}
+	}()
 	if err != nil {
 		logrus.Errorf("get api failed. %s.", err)
 		return
@@ -158,6 +171,13 @@ func (m *Request) PostJson(body interface{}, resp interface{}) (err error) {
 	} else {
 		response, err = m.Client.Post(strUrl, contentType, bytes.NewBuffer(bytesBody))
 	}
+
+	defer func() {
+		errClose := response.Body.Close()
+		if errClose != nil {
+			logrus.Errorf("close http response body failed. %s.", err)
+		}
+	}()
 
 	if err != nil {
 		logrus.Warnf("post request failed. %s", err)

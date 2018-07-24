@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	ClientRequest = &http.Client{
+	RequestClient = &http.Client{
 		Transport: &http.Transport{
 			//MaxIdleConns:        1000,
 			//MaxIdleConnsPerHost: 200,
@@ -45,7 +45,7 @@ type Request struct {
 
 func NewRequest(strUrl string, ctx context.Context, client *http.Client) (req *Request, err error) {
 	if client == nil {
-		client = ClientRequest
+		client = RequestClient
 	}
 
 	url, err := NewUrlByStrUrl(strUrl)
@@ -55,7 +55,7 @@ func NewRequest(strUrl string, ctx context.Context, client *http.Client) (req *R
 	}
 
 	if client == nil {
-		client = ClientRequest
+		client = RequestClient
 	}
 
 	req = &Request{
@@ -70,7 +70,7 @@ func NewRequest(strUrl string, ctx context.Context, client *http.Client) (req *R
 
 func NewRequestByUrl(reqUrl *Url, ctx context.Context, client *http.Client) (req *Request) {
 	if client == nil {
-		client = ClientRequest
+		client = RequestClient
 	}
 
 	req = &Request{

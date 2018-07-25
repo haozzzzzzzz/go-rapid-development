@@ -162,8 +162,6 @@ func SessionBuilder(ctx *ginbuilder.Context) (err error) {
 func init() {
 	ginbuilder.BindSessionBuilder(SessionBuilder)
 }
-
-type HomeAppSession = AppSession
 `
 
 var manageSessionFileText = `package session
@@ -235,6 +233,4 @@ func SessionBuilder(ctx *ginbuilder.Context) (err error) {
 func init() {
 	ginbuilder.BindSessionBuilder(SessionBuilder)
 }
-
-type HomeManageSession = ManageSession
 `

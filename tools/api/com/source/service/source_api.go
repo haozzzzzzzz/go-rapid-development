@@ -117,6 +117,8 @@ func (m *AppSession) AfterHandle(err error) {
 		}
 	}
 
+	metrics.API_HTTP_STATUS_CODE_COUNTER_VEC.WithLabelValues(metrics.Ec2InstanceId, "app", fmt.Sprintf("%d", m.Ctx.GinContext.Writer.Status())).Inc()
+
 }
 
 func (m *AppSession) Panic(err interface{}) {
@@ -133,7 +135,11 @@ func GetSession(ctx *ginbuilder.Context) (session *AppSession) {
 }
 
 func SessionBuilder(ctx *ginbuilder.Context) (err error) {
-	ses := &AppSession{}
+	ses := &AppSession{
+		AppSession: session.AppSession{
+			Ctx: ctx,
+		},
+	}
 	ctx.Session = ses
 
 	reqHeader := ctx.GinContext.Request.Header
@@ -203,6 +209,9 @@ func (m *ManageSession) AfterHandle(err error) {
 			metrics.API_EXEC_TIMES_COUNTER_MANAGE_ABNORMAL.Inc()
 		}
 	}
+
+	metrics.API_HTTP_STATUS_CODE_COUNTER_VEC.WithLabelValues(metrics.Ec2InstanceId, "manage", fmt.Sprintf("%d", m.Ctx.GinContext.Writer.Status())).Inc()
+
 }
 
 func (m *ManageSession) Panic(err interface{}) {
@@ -219,7 +228,11 @@ func GetSession(ctx *ginbuilder.Context) (session *ManageSession) {
 }
 
 func SessionBuilder(ctx *ginbuilder.Context) (err error) {
-	sess := &ManageSession{}
+	sess := &ManageSession{
+		ManageSession: session.ManageSession{
+			Ctx: ctx,
+		},
+	}
 	ctx.Session = sess
 	retCode, err := ctx.BindQueryData(&sess.RequestData)
 	if nil != err {

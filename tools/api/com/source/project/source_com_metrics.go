@@ -58,6 +58,9 @@ var (
 	// API返回码分布
 	API_RETURN_CODE_COUNTER_VEC *prometheus.CounterVec
 
+	// HTTP状态码
+	API_HTTP_STATUS_CODE_COUNTER_VEC *prometheus.CounterVec
+
 	// 接口调用次数
 	API_URI_CALL_TIMES_COUNTER_VEC *prometheus.CounterVec
 
@@ -119,6 +122,19 @@ func init() {
 		"api",
 		"return_code",
 		"api返回码",
+		[]string{"instance", "origin", "code"},
+	)
+	if nil != err {
+		logrus.Fatal(err)
+		return
+	}
+
+	// http 状态码
+	API_HTTP_STATUS_CODE_COUNTER_VEC, err = metrics.NewCounterVec(
+		MetricsNameSpace,
+		"api",
+		"http_status_code",
+		"api http 状态码",
 		[]string{"instance", "origin", "code"},
 	)
 	if nil != err {

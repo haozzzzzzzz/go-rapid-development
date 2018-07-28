@@ -163,8 +163,6 @@ func (m *Context) PermanentRedirect(location string) {
 
 // 302
 // 临时性重定向。该状态码表示请求的资源已被分配了新的URI，希望用户（本次）能使用新的URI访问。
-// 如果资源经过cloudfront再进入源服务的话，301和307会被缓存到cloudfront。
-// 对于一些只希望本次进行跳转，不缓存给cloudfront，下次cloudfront再次执行请求的功能。使用302进行跳转
 func (m *Context) StatusFoundRedirect(location string) {
 	m.GinContext.Redirect(http.StatusFound, location)
 }

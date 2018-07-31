@@ -40,10 +40,10 @@ func Encode(imgType string, writer io.Writer, img image.Image) (newImgType strin
 		err = gif.Encode(writer, img, nil)
 	case TYPE_BMP:
 		err = bmp.Encode(writer, img)
-	default:
-		newImgType = TYPE_PNG
-		logrus.Warnf("encode unsupported encode image type: %s to png", imgType)
-		err = png.Encode(writer, img) // 转成png
+	default: // webp
+		newImgType = TYPE_JPEG
+		logrus.Warnf("encode unsupported encode image type: %s to jpeg", imgType)
+		err = jpeg.Encode(writer, img, nil) // 转成png
 	}
 	return
 }

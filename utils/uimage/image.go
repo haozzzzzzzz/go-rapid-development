@@ -33,7 +33,7 @@ func Encode(imgType string, writer io.Writer, img image.Image) (newImgType strin
 	newImgType = imgType
 	switch imgType {
 	case TYPE_JPEG:
-		err = jpeg.Encode(writer, img, &jpeg.Options{Quality: 50})
+		err = jpeg.Encode(writer, img, &jpeg.Options{Quality: 75})
 	case TYPE_PNG:
 		err = png.Encode(writer, img)
 	case TYPE_GIF:
@@ -43,7 +43,7 @@ func Encode(imgType string, writer io.Writer, img image.Image) (newImgType strin
 	default: // webp
 		newImgType = TYPE_JPEG
 		logrus.Warnf("encode unsupported encode image type: %s to jpeg", imgType)
-		err = jpeg.Encode(writer, img, &jpeg.Options{Quality: 50}) // 转成jpeg
+		err = jpeg.Encode(writer, img, &jpeg.Options{Quality: 75}) // 转成jpeg
 	}
 	return
 }

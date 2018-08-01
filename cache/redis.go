@@ -372,8 +372,23 @@ func (m *Client) ZRevRange(key string, start int64, stop int64) (result []string
 	return
 }
 
-func (m *Client) ZUnionStore(dest string, store redis.ZStore, keys ...string) (result int64, err error) {
-	cmder := m.RedisClient.ZUnionStore(dest, store, keys...)
+func (m *Client) ZUnionStore(destination string, store redis.ZStore, keys ...string) (result int64, err error) {
+	cmder := m.RedisClient.ZUnionStore(destination, store, keys...)
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+
+	return
+}
+
+func (m *Client) ZInterStore(destination string, store redis.ZStore, keys ...string) (result int64, err error) {
+	cmder := m.RedisClient.ZInterStore(destination, store, keys...)
 	checker := m.CommandChecker()
 	if checker != nil {
 		checker.Before(m, cmder)

@@ -401,3 +401,104 @@ func (m *Client) ZInterStore(destination string, store redis.ZStore, keys ...str
 
 	return
 }
+
+// list
+func (m *Client) RPush(key string, values ...interface{}) (result int64, err error) {
+	cmder := m.RedisClient.RPush(key, values...)
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+
+	return
+}
+
+func (m *Client) LPop(key string) (result string, err error) {
+	cmder := m.RedisClient.LPop(key)
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+
+	return
+}
+
+// 非原子操作的批量将队列头部的元素弹出
+func (m *Client) LRangePop(key string, start uint64, stop uint64) (result []string, err error) {
+	result = make([]string, 0)
+	defer func() {
+		if nil != err {
+			result = make([]string, 0)
+			return
+		}
+	}()
+
+	result, err = m.LRange(key, int64(start), int64(stop))
+	if nil != err {
+		logrus.Errorf("range get list failed. key: %s, start: %d, stop: %d. error: %s.", key, start, stop, err)
+		return
+	}
+
+	_, err = m.LTrim(key, int64(stop+1), int64(-1))
+	if nil != err {
+		logrus.Errorf("trim list failed. %s.", err)
+		return
+	}
+
+	return
+}
+
+func (m *Client) LLen(key string) (result int64, err error) {
+	cmder := m.RedisClient.LLen(key)
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+
+	return
+}
+
+func (m *Client) LRange(key string, start int64, stop int64) (result []string, err error) {
+	cmder := m.RedisClient.LRange(key, start, stop)
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+
+	return
+}
+
+func (m *Client) LTrim(key string, start int64, stop int64) (result string, err error) {
+	cmder := m.RedisClient.LTrim(key, start, stop)
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+
+	return
+}

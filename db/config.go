@@ -27,7 +27,11 @@ func NewDB(config *ClientConfigFormat) (sqlxDB *sqlx.DB, err error) {
 	sqlxDB.SetMaxOpenConns(config.MaxOpen)
 	sqlxDB.SetConnMaxLifetime(config.MaxLifetimeSeconds * time.Second)
 
-	sqlxDB.Ping()
+	err = sqlxDB.Ping()
+	if nil != err {
+		logrus.Errorf("ping to db failed. %s.", err)
+		return
+	}
 
 	return
 }

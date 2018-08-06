@@ -63,8 +63,14 @@ var (
 		Message: "verify header params failed",
 	}
 
+	// proxy
+	CodeErrorProxyFailed = &ApiCode{
+		Code:    1100,
+		Message: "proxy failed",
+	}
+
 	CodeErrorProxyRequestFailed = &ApiCode{
-		Code:    1050,
+		Code:    1101,
 		Message: "request porxy failed",
 	}
 

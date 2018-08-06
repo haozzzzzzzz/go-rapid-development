@@ -7,6 +7,7 @@ import (
 
 	http2 "net/http"
 
+	"github.com/haozzzzzzzz/go-rapid-development/api/code"
 	"github.com/haozzzzzzzz/go-rapid-development/api/request"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/http"
 	"github.com/sirupsen/logrus"
@@ -97,4 +98,16 @@ func (m *Client) Post(
 	}
 
 	return
+}
+
+type ResponseMessage struct {
+	ReturnCode uint32 `json:"ret"`
+	Message    string `json:"msg"`
+}
+
+func (m *ResponseMessage) ApiCode() *code.ApiCode {
+	return &code.ApiCode{
+		Code:    m.ReturnCode,
+		Message: m.Message,
+	}
 }

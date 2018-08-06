@@ -40,7 +40,7 @@ func TestMain(m *testing.M) {
 
 func TestClient_LRangePop(t *testing.T) {
 	key := "test_l_range_pop"
-	result, err := redisClient.LRangePop(key, 0, 100)
+	result, err := redisClient.LRangePop(key, 1)
 	if nil != err {
 		t.Error(err)
 		return

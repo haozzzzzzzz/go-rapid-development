@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 
 	"github.com/go-redis/redis"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -434,7 +435,12 @@ func (m *Client) LPop(key string) (result string, err error) {
 }
 
 // 非原子操作的批量将队列头部的元素弹出
-func (m *Client) LRangePop(key string, start uint64, stop uint64) (result []string, err error) {
+func (m *Client) LRangePop(key string, num uint64) (result []string, err error) {
+	if num <= 0 {
+		err = errors.New("LRangePop num params should be greater than 0")
+		return
+	}
+
 	result = make([]string, 0)
 	defer func() {
 		if nil != err {
@@ -443,9 +449,14 @@ func (m *Client) LRangePop(key string, start uint64, stop uint64) (result []stri
 		}
 	}()
 
-	result, err = m.LRange(key, int64(start), int64(stop))
+	stop := num - 1
+	result, err = m.LRange(key, int64(0), int64(stop))
 	if nil != err {
-		logrus.Errorf("range get list failed. key: %s, start: %d, stop: %d. error: %s.", key, start, stop, err)
+		logrus.Errorf("range get list failed. key: %s, num: %d. error: %s.", key, num, err)
+		return
+	}
+
+	if len(result) == 0 {
 		return
 	}
 

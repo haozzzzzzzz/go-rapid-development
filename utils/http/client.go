@@ -86,6 +86,7 @@ func (m *Request) URL() string {
 	return m.Url.String()
 }
 
+// when err !=nil, resp returns nil
 func (m *Request) Get() (resp *http.Response, err error) {
 	strUrl := m.URL()
 	if m.Ctx != nil {
@@ -110,6 +111,11 @@ func (m *Request) Get() (resp *http.Response, err error) {
 
 func (m *Request) GetJSON(v interface{}) (err error) {
 	ack, err := m.Get()
+	if err != nil {
+		logrus.Errorf("request failed. %s.", err)
+		return
+	}
+
 	defer func() {
 		errClose := ack.Body.Close()
 		if errClose != nil {
@@ -119,11 +125,6 @@ func (m *Request) GetJSON(v interface{}) (err error) {
 			}
 		}
 	}()
-
-	if err != nil {
-		logrus.Errorf("request failed. %s.", err)
-		return
-	}
 
 	err = json2.UnmarshalJsonFromReader(ack.Body, v)
 	if nil != err {
@@ -135,6 +136,11 @@ func (m *Request) GetJSON(v interface{}) (err error) {
 
 func (m *Request) GetText() (text string, err error) {
 	resp, err := m.Get()
+	if err != nil {
+		logrus.Errorf("get api failed. %s.", err)
+		return
+	}
+
 	defer func() {
 		errClose := resp.Body.Close()
 		if errClose != nil {
@@ -144,10 +150,6 @@ func (m *Request) GetText() (text string, err error) {
 			}
 		}
 	}()
-	if err != nil {
-		logrus.Errorf("get api failed. %s.", err)
-		return
-	}
 
 	bytesBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -178,6 +180,11 @@ func (m *Request) PostJson(body interface{}, resp interface{}) (err error) {
 		response, err = m.Client.Post(strUrl, contentType, bytes.NewBuffer(bytesBody))
 	}
 
+	if err != nil {
+		logrus.Warnf("post request failed. %s", err)
+		return
+	}
+
 	defer func() {
 		errClose := response.Body.Close()
 		if errClose != nil {
@@ -187,11 +194,6 @@ func (m *Request) PostJson(body interface{}, resp interface{}) (err error) {
 			}
 		}
 	}()
-
-	if err != nil {
-		logrus.Warnf("post request failed. %s", err)
-		return
-	}
 
 	err = json2.UnmarshalJsonFromReader(response.Body, resp)
 	if nil != err {

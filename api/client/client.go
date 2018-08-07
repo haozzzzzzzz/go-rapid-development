@@ -9,7 +9,7 @@ import (
 
 	"github.com/haozzzzzzzz/go-rapid-development/api/code"
 	"github.com/haozzzzzzzz/go-rapid-development/api/request"
-	"github.com/haozzzzzzzz/go-rapid-development/utils/http"
+	"github.com/haozzzzzzzz/go-rapid-development/http"
 	"github.com/sirupsen/logrus"
 )
 

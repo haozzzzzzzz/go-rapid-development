@@ -229,6 +229,15 @@ func (m *Request) PostJson(body interface{}, resp interface{}) (err error) {
 }
 
 func (m *Request) Do(rawRequest *http.Request) (response *http.Response, err error) {
+	// checker
+	checker := m.RequestChecker()
+	if checker != nil {
+		checker.Before(m, nil)
+		defer func() {
+			checker.After(response, err)
+		}()
+	}
+
 	response, err = ctxhttp.Do(m.Ctx, m.Client, rawRequest)
 	return
 }

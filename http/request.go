@@ -14,6 +14,12 @@ import (
 	"golang.org/x/net/context/ctxhttp"
 )
 
+var defaultRequestCheckerMaker RequestCheckerMaker
+
+func SetDefaultRequestCheckerMaker(checkerMaker RequestCheckerMaker) {
+	defaultRequestCheckerMaker = checkerMaker
+}
+
 type RequestChecker interface {
 	Before(request *Request, body interface{})
 	After(response *http.Response, err error)
@@ -59,10 +65,11 @@ func NewRequest(
 	}
 
 	req = &Request{
-		Url:    url,
-		codecs: "json",
-		Ctx:    ctx,
-		Client: client,
+		Url:                 url,
+		codecs:              "json",
+		Ctx:                 ctx,
+		Client:              client,
+		RequestCheckerMaker: defaultRequestCheckerMaker,
 	}
 
 	return
@@ -78,10 +85,11 @@ func NewRequestByUrl(
 	}
 
 	req = &Request{
-		Url:    reqUrl,
-		codecs: "json",
-		Ctx:    ctx,
-		Client: client,
+		Url:                 reqUrl,
+		codecs:              "json",
+		Ctx:                 ctx,
+		Client:              client,
+		RequestCheckerMaker: defaultRequestCheckerMaker,
 	}
 	return
 }

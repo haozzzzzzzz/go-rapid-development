@@ -91,8 +91,24 @@ func (m *Client) Get(key string) (result string, err error) {
 	return
 }
 
-func (m *Client) MGet(key string) (result []interface{}, err error) {
-	cmder := m.RedisClient.MGet(key)
+func (m *Client) MGet(keys ...string) (result []interface{}, err error) {
+	cmder := m.RedisClient.MGet(keys...)
+
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+
+	return
+}
+
+func (m *Client) MSet(pairs ...interface{}) (result string, err error) {
+	cmder := m.RedisClient.MSet(pairs...)
 
 	checker := m.CommandChecker()
 	if checker != nil {

@@ -3,7 +3,6 @@ package session
 import (
 	"time"
 
-	"github.com/haozzzzzzzz/go-rapid-development/api/code"
 	"github.com/haozzzzzzzz/go-rapid-development/web/ginbuilder"
 )
 
@@ -17,10 +16,6 @@ type AppSession struct {
 		ProductId      string `json:"product_id"`
 	} `json:"request_data"`
 
-	ResponseData struct {
-		ReturnCode *code.ApiCode `json:"return_code"`
-	} `json:"response_data"`
-
 	StartTime    time.Time
 	EndTime      time.Time
 	ExecDuration time.Duration
@@ -32,9 +27,6 @@ type ManageSession struct {
 		UserId   string `json:"user_id" form:"user_id" binding:"required"`   // 用户ID
 		UserName string `json:"username" form:"username" binding:"required"` // 用户名
 	} `json:"request_data"`
-	ResponseData struct {
-		ReturnCode *code.ApiCode `json:"return_code"`
-	} `json:"response_data"`
 
 	StartTime    time.Time
 	EndTime      time.Time

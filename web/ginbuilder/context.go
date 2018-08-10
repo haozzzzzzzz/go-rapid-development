@@ -25,10 +25,11 @@ func BindSessionBuilder(sesBuilder SessionBuilderFunc) {
 }
 
 type Context struct {
-	GinContext *gin.Context
-	RequestCtx context.Context
-	Logger     *logrus.Entry
-	Session    Session
+	GinContext   *gin.Context
+	RequestCtx   context.Context
+	Logger       *logrus.Entry
+	Session      Session
+	ResponseData *Response
 }
 
 func NewContext(ginContext *gin.Context) (ctx *Context, err error) {
@@ -108,11 +109,8 @@ func (m *Context) BindPathData(pathData interface{}) (retCode *code.ApiCode, err
 }
 
 func (m *Context) Send(code *code.ApiCode, obj interface{}) {
-	response := NewResponse(code, obj)
-	m.GinContext.JSON(http.StatusOK, response)
-	if m.Session != nil {
-		m.Session.SetReturnCode(code)
-	}
+	m.ResponseData = NewResponse(code, obj)
+	m.GinContext.JSON(http.StatusOK, m.ResponseData)
 	return
 }
 

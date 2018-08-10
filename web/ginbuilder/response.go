@@ -11,6 +11,13 @@ type Response struct {
 	Data       interface{} `json:"data"`
 }
 
+func (m *Response) GetApiCode() *code.ApiCode {
+	return &code.ApiCode{
+		Code:    m.ReturnCode,
+		Message: m.Message,
+	}
+}
+
 func NewResponse(code *code.ApiCode, data interface{}) *Response {
 	if data == nil {
 		data = make(map[string]interface{})

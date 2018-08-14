@@ -171,6 +171,7 @@ func (m *Request) GetText() (text string, err error) {
 				err = errClose
 			}
 		}
+
 	}()
 
 	bytesBody, err := ioutil.ReadAll(resp.Body)

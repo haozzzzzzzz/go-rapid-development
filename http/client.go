@@ -10,8 +10,9 @@ import (
 var (
 	RequestClient = &http.Client{
 		Transport: &http.Transport{
-			//MaxIdleConns:        1000,
-			//MaxIdleConnsPerHost: 200,
+			//MaxIdleConns:        100,
+			//MaxIdleConnsPerHost: 2,
+			IdleConnTimeout: 5 * time.Minute,
 			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 				d := net.Dialer{
 					Timeout:   2 * time.Second,

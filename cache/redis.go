@@ -76,6 +76,20 @@ func (m *Client) Expire(key string, expiration time.Duration) (result bool, err 
 	return
 }
 
+func (m *Client) Keys(pattern string) (result []string, err error) {
+	cmder := m.RedisClient.Keys(pattern)
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+	return
+}
+
 func (m *Client) Get(key string) (result string, err error) {
 	cmder := m.RedisClient.Get(key)
 

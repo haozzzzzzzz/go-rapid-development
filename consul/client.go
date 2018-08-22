@@ -3,6 +3,7 @@ package consul
 import (
 	"fmt"
 
+	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
 	"github.com/hashicorp/consul/api"
 	"github.com/hashicorp/consul/watch"
 	"github.com/sirupsen/logrus"
@@ -41,6 +42,12 @@ func (m *Client) GetSync(key string, localValue LocalValue) (err error) {
 		return
 	}
 
+	if pair == nil {
+		err = uerrors.Newf("consul key not exist. %s", key)
+		return
+	}
+
+	fmt.Println(pair)
 	fmt.Println(localValue)
 	err = localValue.Set(pair.Value)
 	if nil != err {

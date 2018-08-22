@@ -1,6 +1,8 @@
 package consul
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/consul/api"
 	"github.com/hashicorp/consul/watch"
 	"github.com/sirupsen/logrus"
@@ -39,6 +41,7 @@ func (m *Client) GetSync(key string, localValue LocalValue) (err error) {
 		return
 	}
 
+	fmt.Println(localValue)
 	err = localValue.Set(pair.Value)
 	if nil != err {
 		logrus.Errorf("set local value failed. error: %s.", err)

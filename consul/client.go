@@ -1,8 +1,6 @@
 package consul
 
 import (
-	"fmt"
-
 	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
 	"github.com/hashicorp/consul/api"
 	"github.com/hashicorp/consul/watch"
@@ -47,8 +45,6 @@ func (m *Client) GetSync(key string, localValue LocalValue) (err error) {
 		return
 	}
 
-	fmt.Println(pair)
-	fmt.Println(localValue)
 	err = localValue.Set(pair.Value)
 	if nil != err {
 		logrus.Errorf("set local value failed. error: %s.", err)

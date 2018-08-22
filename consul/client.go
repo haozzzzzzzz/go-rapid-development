@@ -47,6 +47,7 @@ func (m *Client) GetSync(key string, localValue LocalValue) (err error) {
 		logrus.Errorf("set local value failed. error: %s.", err)
 		return
 	}
+
 	return
 }
 

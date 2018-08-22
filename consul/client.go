@@ -85,7 +85,14 @@ func (m *Client) Watch(key string, localValue LocalValue) (err error) {
 		}
 	}
 
-	go plan.Run(m.Config.Address)
+	go func() {
+		logrus.Infof("running consul plan. key: %s, address: %s", key, m.Config.Address)
+		err := plan.Run(m.Config.Address)
+		if nil != err {
+			logrus.Errorf("run consul plan failed. key: %s. address: %s. error: %s.", key, m.Config.Address, err)
+			return
+		}
+	}()
 
 	return
 }

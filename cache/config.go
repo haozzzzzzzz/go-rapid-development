@@ -6,7 +6,7 @@ import (
 )
 
 type RedisConfigFormat struct {
-	Address  string `json:"address" binding:"required"`
+	Address  string `json:"address" yaml:"address" validate:"required"`
 	PoolSize int    `json:"pool_size" yaml:"pool_size"` // 默认是CPU核心数*10
 	DB       int    `json:"db" yaml:"db"`
 }

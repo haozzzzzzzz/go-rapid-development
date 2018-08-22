@@ -66,6 +66,7 @@ func (m *Client) Watch(key string, localValue LocalValue) (err error) {
 	}
 
 	plan.Handler = func(u uint64, i interface{}) {
+		logrus.Infof("consul plan ack. %v", i)
 		if i == nil {
 			logrus.Warnf("plan return value is nil. key: %s", key)
 			return
@@ -85,5 +86,6 @@ func (m *Client) Watch(key string, localValue LocalValue) (err error) {
 	}
 
 	go plan.Run(m.Config.Address)
+
 	return
 }

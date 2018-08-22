@@ -66,12 +66,12 @@ func (m *Client) Watch(key string, localValue LocalValue) (err error) {
 	}
 
 	plan.Handler = func(u uint64, i interface{}) {
-		logrus.Infof("consul plan ack. %v", i)
 		if i == nil {
 			logrus.Warnf("plan return value is nil. key: %s", key)
 			return
 		}
 
+		logrus.Infof("consul plan ack. %v", i.(string))
 		pair, ok := i.(*api.KVPair)
 		if !ok {
 			logrus.Warnf("plan return value's type is not KVPair. %v", i)

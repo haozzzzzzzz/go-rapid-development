@@ -26,7 +26,7 @@ type AppSession struct {
 	ExecDuration time.Duration
 }
 
-func (m *AppSession) GetLoggerFields() logrus.Fields {
+func (m *AppSession) GetTraceFields() logrus.Fields {
 	return logrus.Fields{
 		"trace_id":         m.TraceId,
 		"client_ip":        m.ClientIP,
@@ -52,7 +52,7 @@ type ManageSession struct {
 	ExecDuration time.Duration
 }
 
-func (m *ManageSession) GetLoggerFields() logrus.Fields {
+func (m *ManageSession) GetTraceFields() logrus.Fields {
 	return logrus.Fields{
 		"trace_id":         m.TraceId,
 		"client_ip":        m.ClientIP,

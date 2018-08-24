@@ -6,6 +6,8 @@ import (
 
 	"context"
 
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/haozzzzzzzz/go-rapid-development/api/code"
@@ -13,6 +15,45 @@ import (
 	"gopkg.in/go-playground/validator.v8"
 )
 
+const TRACE_REQUEST_KEY = "trace"
+
+// engine
+func DefaultEngine() (engine *gin.Engine) {
+	engine = gin.New()
+	engine.Use(func(context *gin.Context) {
+		context.Set(TRACE_REQUEST_KEY, logrus.Fields{})
+
+		startTime := time.Now()
+		context.Next()
+		duration := time.Now().Sub(startTime)
+
+		var logFields logrus.Fields
+		value, exist := context.Get(TRACE_REQUEST_KEY)
+		if !exist {
+			logFields = logrus.Fields{}
+		}
+
+		logFields, ok := value.(logrus.Fields)
+		if !ok {
+			logFields = logrus.Fields{}
+		}
+
+		method := context.Request.Method
+		statusCode := context.Writer.Status()
+		path := context.Request.URL.Path
+		raw := context.Request.URL.RawQuery
+		if raw != "" {
+			path = path + "?" + raw
+		}
+
+		logrus.WithFields(logFields).Infof("%s | %d | %v | %s", method, statusCode, duration, path)
+
+	}, gin.Recovery())
+
+	return
+}
+
+// context
 var sessionBuilder SessionBuilderFunc
 
 func BindSessionBuilder(sesBuilder SessionBuilderFunc) {
@@ -48,6 +89,11 @@ func NewContext(ginContext *gin.Context) (ctx *Context, err error) {
 	}
 
 	return
+}
+
+func (m *Context) SetTraceFields(fields logrus.Fields) {
+	m.Logger = m.Logger.WithFields(fields)
+	m.GinContext.Set(TRACE_REQUEST_KEY, m.Logger.Data)
 }
 
 func (m *Context) BindQueryData(queryData interface{}) (retCode *code.ApiCode, err error) {

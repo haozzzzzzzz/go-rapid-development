@@ -8,7 +8,11 @@ import (
 )
 
 type AppSession struct {
-	Ctx         *ginbuilder.Context
+	Ctx *ginbuilder.Context
+
+	TraceId  string `json:"trace_id"`
+	ClientIP string `json:"client_ip"`
+
 	RequestData struct {
 		AppVersion     string `json:"app_version"`
 		AppVersionCode uint32 `json:"app_version_code"`
@@ -24,6 +28,8 @@ type AppSession struct {
 
 func (m *AppSession) GetLoggerFields() logrus.Fields {
 	return logrus.Fields{
+		"trace_id":         m.TraceId,
+		"client_ip":        m.ClientIP,
 		"app_version_code": m.RequestData.AppVersionCode,
 		"app_device_id":    m.RequestData.DeviceId,
 		"app_product_id":   m.RequestData.ProductId,
@@ -31,7 +37,11 @@ func (m *AppSession) GetLoggerFields() logrus.Fields {
 }
 
 type ManageSession struct {
-	Ctx         *ginbuilder.Context
+	Ctx *ginbuilder.Context
+
+	TraceId  string `json:"trace_id"`
+	ClientIP string `json:"client_ip"`
+
 	RequestData struct {
 		UserId   string `json:"user_id" form:"user_id" binding:"required"`   // 用户ID
 		UserName string `json:"username" form:"username" binding:"required"` // 用户名
@@ -44,6 +54,8 @@ type ManageSession struct {
 
 func (m *ManageSession) GetLoggerFields() logrus.Fields {
 	return logrus.Fields{
+		"trace_id":         m.TraceId,
+		"client_ip":        m.ClientIP,
 		"manage_user_id":   m.RequestData.UserId,
 		"manage_user_name": m.RequestData.UserName,
 	}

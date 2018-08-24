@@ -2,11 +2,12 @@ package ginbuilder
 
 import (
 	"encoding/json"
-	"log"
+
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
-	"github.com/sirupsen/logrus"
+	"github.com/haozzzzzzzz/go-rapid-development/utils/uruntime"
 )
 
 type HandleFunc struct {
@@ -23,40 +24,51 @@ func (m *HandleFunc) GinHandler(ginCtx *gin.Context) {
 		return
 	}
 
+	defer func() {
+		if errPanic := recover(); errPanic != nil {
+			if ctx.Session != nil {
+				ctx.Session.Panic(errPanic)
+			}
+
+			// print panic stack
+			stack := uruntime.Stack(3)
+			ctx.Logger.Error(string(stack))
+
+			if err == nil {
+				err = uerrors.Newf("panic occurs: %#v", errPanic)
+			}
+
+			ginCtx.AbortWithStatus(http.StatusInternalServerError)
+		}
+
+		// print error
+		if err != nil {
+			ctx.Logger.Errorf("error: %s", err)
+
+			// dump request
+			dumpRequest := &struct {
+				Response interface{} `json:"response"`
+			}{
+				Response: ctx.ResponseData,
+			}
+
+			byteDumpInfo, errMarshal := json.Marshal(dumpRequest)
+			if errMarshal != nil {
+				ctx.Logger.Errorf("%#v", dumpRequest)
+			}
+
+			ctx.Logger.Error(string(byteDumpInfo))
+
+		}
+
+		if ctx.Session != nil {
+			ctx.Session.AfterHandle(err)
+		}
+
+	}()
+
 	if ctx.Session != nil {
 		ctx.Session.BeforeHandle(ctx, m.HttpMethod, m.RelativePath)
-		defer func() {
-			var errPanic interface{}
-			if errPanic = recover(); errPanic != nil {
-				ctx.Session.Panic(errPanic)
-				if err == nil {
-					err = uerrors.Newf("panic occurs: %#v", errPanic)
-				}
-			}
-			defer func() { // 先处理，后抛出
-				if errPanic != nil {
-					logrus.Panic(errPanic)
-				}
-			}()
-
-			ctx.Session.AfterHandle(err)
-
-			// print error
-			if err != nil {
-				ctx.Logger.Errorf("error occurs: %#v", err)
-
-				if ctx.ResponseData != nil {
-					byteResponseData, errMarshal := json.Marshal(ctx.ResponseData)
-					if errMarshal != nil {
-						log.Printf("marshal response data failed.\n%#v\n", ctx.ResponseData)
-					}
-
-					log.Println(string(byteResponseData))
-				}
-			}
-
-		}()
-
 	}
 
 	err = m.Handle(ctx)

@@ -18,9 +18,11 @@ import (
 	"fmt"
 	"os"
 
+	"bufio"
+
 	"encoding/json"
 
-	homedir "github.com/mitchellh/go-homedir"
+	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -34,35 +36,44 @@ var rootCmd = &cobra.Command{
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
-		var jsonString string
-		fmt.Scanln(&jsonString)
+		var err error
+		inputReader := bufio.NewReader(os.Stdin)
+		for {
+			var jsonString string
+			jsonString, err = inputReader.ReadString('\n')
+			if nil != err {
+				return
+			}
 
-		logData := make(map[string]interface{})
-		err := json.Unmarshal([]byte(jsonString), &logData)
-		if err != nil {
-			fmt.Println(jsonString)
-			return
+			logData := make(map[string]interface{})
+			err := json.Unmarshal([]byte(jsonString), &logData)
+			if err != nil {
+				fmt.Println(jsonString)
+				continue
+			}
+
+			var (
+				strLevel   string
+				strMessage string
+				strTime    string
+			)
+
+			if logData["level"] != nil {
+				strLevel = logData["level"].(string)
+			}
+
+			if logData["msg"] != nil {
+				strMessage = logData["msg"].(string)
+			}
+
+			if logData["time"] != nil {
+				strTime = logData["time"].(string)
+			}
+
+			fmt.Println("-------------------------------------------------------")
+			fmt.Printf("%s %s\n", strLevel, strTime)
+			fmt.Printf(strMessage + "\n")
 		}
-
-		var (
-			strLevel   string
-			strMessage string
-			strTime    string
-		)
-
-		if logData["level"] != nil {
-			strLevel = logData["level"].(string)
-		}
-
-		if logData["msg"] != nil {
-			strMessage = logData["msg"].(string)
-		}
-
-		if logData["time"] != nil {
-			strMessage = logData["time"].(string)
-		}
-
-		fmt.Printf("%s %s %s\n", strLevel, strTime, strMessage)
 
 	},
 }

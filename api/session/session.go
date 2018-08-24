@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/haozzzzzzzz/go-rapid-development/web/ginbuilder"
+	"github.com/sirupsen/logrus"
 )
 
 type AppSession struct {
@@ -21,6 +22,14 @@ type AppSession struct {
 	ExecDuration time.Duration
 }
 
+func (m *AppSession) GetLoggerFields() logrus.Fields {
+	return logrus.Fields{
+		"app_version_code": m.RequestData.AppVersionCode,
+		"app_device_id":    m.RequestData.DeviceId,
+		"app_product_id":   m.RequestData.ProductId,
+	}
+}
+
 type ManageSession struct {
 	Ctx         *ginbuilder.Context
 	RequestData struct {
@@ -31,4 +40,11 @@ type ManageSession struct {
 	StartTime    time.Time
 	EndTime      time.Time
 	ExecDuration time.Duration
+}
+
+func (m *ManageSession) GetLoggerFields() logrus.Fields {
+	return logrus.Fields{
+		"manage_user_id":   m.RequestData.UserId,
+		"manage_user_name": m.RequestData.UserName,
+	}
 }

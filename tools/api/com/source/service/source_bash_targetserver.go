@@ -27,7 +27,7 @@ then
 fi
 
 serviceName=$2
-if [ -z ${stage} ]
+if [ -z ${serviceName} ]
 then
     echo "serviceName is required"
     exit

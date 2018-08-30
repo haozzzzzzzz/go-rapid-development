@@ -8,8 +8,9 @@ import (
 )
 
 // 运行命令
-func RunCommand(name string, args ...string) (exit int, err error) {
+func RunCommand(workingDir string, name string, args ...string) (exit int, err error) {
 	execCommand := exec.Command(name, args...)
+	execCommand.Dir = workingDir
 	output, err := execCommand.Output()
 	strOutput := string(output)
 	if strOutput != "" {

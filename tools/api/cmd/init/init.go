@@ -4,11 +4,11 @@ import (
 	"path/filepath"
 
 	"github.com/go-playground/validator"
+	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
+	project2 "github.com/haozzzzzzzz/go-rapid-development/tools/api/com/source/project"
+	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/source/service"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
-	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/source/service"
-	project2 "github.com/haozzzzzzzz/go-rapid-development/tools/api/com/source/project"
 )
 
 // 初始化服务框架
@@ -16,7 +16,7 @@ func CommandApiInit() (cmd *cobra.Command) {
 	var config project.ProjectConfigFormat
 
 	cmd = &cobra.Command{
-		Use: "init",
+		Use:   "init",
 		Short: "api project initialization",
 		Run: func(cmd *cobra.Command, args []string) {
 			err := validator.New().Struct(&config)
@@ -106,7 +106,7 @@ func CommandApiAddService() *cobra.Command {
 	flags.StringVarP(&config.Name, "name", "n", "", "api service name")
 	flags.StringVarP(&config.ServiceDir, "path", "p", "./", "api service directory path")
 	flags.StringVarP(&config.Description, "description", "d", "api service", "api service description")
-	flags.StringVarP(&config.Type, "type", "t", "", "app、manage")
+	flags.StringVarP(&config.Type, "type", "t", "", "app、manage、rpc")
 	flags.StringVarP(&params.Host, "host", "H", "", "api serve host")
 	flags.StringVarP(&params.Port, "port", "P", "18100", "api serve port")
 

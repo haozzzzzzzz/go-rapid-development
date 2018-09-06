@@ -5,10 +5,11 @@ import (
 	"io/ioutil"
 	"os"
 
+	project2 "github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
+	"github.com/haozzzzzzzz/go-rapid-development/utils/str"
+	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
-	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
-	project2 "github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
 )
 
 func (m *ProjectSource) generateCommonStage() (err error) {
@@ -40,13 +41,23 @@ func (m *ProjectSource) generateStageFiles(stageDir string, stage project2.Stage
 		return
 	}
 
-	// env.yaml
-	envConfigFilePath := fmt.Sprintf("%s/env.yaml", stageConfigDir)
 	envConfig := &struct {
-		Debug bool          `json:"debug" yaml:"debug"`
+		Debug bool           `json:"debug" yaml:"debug"`
 		Stage project2.Stage `json:"stage" yaml:"stage"`
 	}{
 		Stage: stage,
+	}
+
+	logConfig := &struct {
+		LogLevel uint32 `json:"log_level" yaml:"log_level"`
+	}{
+		LogLevel: 5, // 5:debug 4:info 3:warn 2:error 1:fatal 0:panic
+	}
+
+	serviceConfig := &struct {
+		MetricsNamespace string `json:"metrics_namespace" yaml:"metrics_namespace"`
+	}{
+		MetricsNamespace: str.SnakeString(m.Project.Config.Name),
 	}
 
 	switch stage {
@@ -56,12 +67,17 @@ func (m *ProjectSource) generateStageFiles(stageDir string, stage project2.Stage
 		envConfig.Debug = true
 	case project2.StagePre:
 		envConfig.Debug = false
+		logConfig.LogLevel = 4
 	case project2.StageProd:
 		envConfig.Debug = false
+		logConfig.LogLevel = 4
 	default:
 		err = uerrors.Newf("unknown stage type %s", stage)
 		return
 	}
+
+	// env.yaml
+	envConfigFilePath := fmt.Sprintf("%s/env.yaml", stageConfigDir)
 	envConfigFileBytes, err := yaml.Marshal(envConfig)
 	if nil != err {
 		logrus.Errorf("yaml marshal env config failed. %s.", err)
@@ -87,6 +103,34 @@ func (m *ProjectSource) generateStageFiles(stageDir string, stage project2.Stage
 	err = ioutil.WriteFile(xrayConfigFilePath, []byte(xrayConfigFileText), project2.ProjectFileMode)
 	if nil != err {
 		logrus.Errorf("write xray config file %q failed. %s.", xrayConfigFilePath, err)
+		return
+	}
+
+	// log.yaml
+	logConfigFilePath := fmt.Sprintf("%s/log.yaml", stageConfigDir)
+	logConfigFileBytes, err := yaml.Marshal(logConfig)
+	if nil != err {
+		logrus.Errorf("yaml marshal log config failed. error: %s.", err)
+		return
+	}
+
+	err = ioutil.WriteFile(logConfigFilePath, logConfigFileBytes, project2.ProjectFileMode)
+	if nil != err {
+		logrus.Errorf("write log config file failed. path: %s. error: %s.", logConfigFilePath, err)
+		return
+	}
+
+	// service.yaml
+	serviceConfigFilePath := fmt.Sprintf("%s/service.yaml", stageConfigDir)
+	serviceConfigFileBytes, err := yaml.Marshal(serviceConfig)
+	if nil != err {
+		logrus.Errorf("yaml marshal service config failed. error: %s.", err)
+		return
+	}
+
+	err = ioutil.WriteFile(serviceConfigFilePath, serviceConfigFileBytes, project2.ProjectFileMode)
+	if nil != err {
+		logrus.Errorf("write service config file failed.path: %s. error: %s.", serviceConfigFilePath, err)
 		return
 	}
 

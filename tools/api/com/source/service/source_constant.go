@@ -5,8 +5,9 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/sirupsen/logrus"
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
+	"github.com/haozzzzzzzz/go-rapid-development/utils/str"
+	"github.com/sirupsen/logrus"
 )
 
 func (m *ServiceSource) generateConstant() (err error) {
@@ -20,7 +21,7 @@ func (m *ServiceSource) generateConstant() (err error) {
 		return
 	}
 	constantFilePath := fmt.Sprintf("%s/constant.go", constantDir)
-	newConstantFileText := fmt.Sprintf(constantFileText, m.Service.Config.Name)
+	newConstantFileText := fmt.Sprintf(constantFileText, str.SnakeString(m.Service.Config.Name))
 	err = ioutil.WriteFile(constantFilePath, []byte(newConstantFileText), project.ProjectFileMode)
 
 	return

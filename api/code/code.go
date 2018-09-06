@@ -133,4 +133,34 @@ var (
 		Code:    2103,
 		Message: "redis delete record failed",
 	}
+
+	// dynamodb 错误
+	CodeErrorDynamodb = &ApiCode{
+		Code:    2200,
+		Message: "dynamodb error",
+	}
+
+	// dynamodb 获取失败
+	CodeErrorDynamodbGetFailed = &ApiCode{
+		Code:    2201,
+		Message: "dynamodb get record failed",
+	}
+
+	// dynamodb 设置失败
+	CodeErrorDynamodbSetFailed = &ApiCode{
+		Code:    2202,
+		Message: "dynamodb set record failed",
+	}
+
+	// dynamodb 删除失败
+	CodeErrorDynamodbDeleteFailed = &ApiCode{
+		Code:    2203,
+		Message: "dynamodb delete record failed",
+	}
+
+	// dynamodb unmarshal失败
+	CodeErrorDynamodbAttributeUnmarshalFailed = &ApiCode{
+		Code:    2204,
+		Message: "dynamodb unmarshal failed",
+	}
 )

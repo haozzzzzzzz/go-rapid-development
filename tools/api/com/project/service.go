@@ -2,25 +2,28 @@ package project
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/go-playground/validator"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/file"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/yaml"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"os"
 )
 
 type ServiceType string
+
 const (
-	ServiceTypeApp ServiceType = "app"
+	ServiceTypeApp    ServiceType = "app"
 	ServiceTypeManage ServiceType = "manage"
+	ServiceTypeRPC    ServiceType = "rpc"
 )
 
 type ServiceConfigFormat struct {
 	Name        string `json:"name" yaml:"name" validate:"required"`
 	ServiceDir  string `json:"service_dir" yaml:"service_dir" validate:"required"`
 	Description string `json:"description" yaml:"description"`
-	Type string `json:"type" yaml:"type" validate:"required"`
+	Type        string `json:"type" yaml:"type" validate:"required"`
 }
 
 type Service struct {

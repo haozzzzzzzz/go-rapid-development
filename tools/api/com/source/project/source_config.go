@@ -5,15 +5,23 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/sirupsen/logrus"
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
+	"github.com/sirupsen/logrus"
 )
 
-func (m *ProjectSource) generateCommonComConfig(comDir string) (err error) {
-	configDir := fmt.Sprintf("%s/config", comDir)
+func (m *ProjectSource) generateCommonConfig() (err error) {
+	configDir := fmt.Sprintf("%s/common/config", m.ProjectDir)
 	err = os.MkdirAll(configDir, project.ProjectDirMode)
 	if nil != err {
 		logrus.Errorf("make com config dir %q failed. %s.", configDir, err)
+		return
+	}
+
+	// init
+	initFilePath := fmt.Sprintf("%s/init.go", configDir)
+	err = ioutil.WriteFile(initFilePath, []byte(initFileText), project.ProjectDirMode)
+	if nil != err {
+		logrus.Errorf("write init file failed. file: %s. error: %s.", initFilePath, err)
 		return
 	}
 
@@ -41,8 +49,46 @@ func (m *ProjectSource) generateCommonComConfig(comDir string) (err error) {
 		return
 	}
 
+	// log
+	logFilePath := fmt.Sprintf("%s/log.go", configDir)
+	err = ioutil.WriteFile(logFilePath, []byte(logFileText), project.ProjectFileMode)
+	if nil != err {
+		logrus.Errorf("write log file failed. path: %s. error: %s.", logFilePath, err)
+		return
+	}
+
+	// service
+	serviceFilePath := fmt.Sprintf("%s/service.go", configDir)
+	err = ioutil.WriteFile(logFilePath, []byte(serviceFileText), project.ProjectFileMode)
+	if nil != err {
+		logrus.Errorf("write service file failed. path: %s. error: %s.", serviceFilePath, err)
+		return
+	}
+
 	return
 }
+
+var initFileText = `package config
+
+import (
+	"log"
+
+	"github.com/sirupsen/logrus"
+)
+
+func init() {
+
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+	newLogger := logrus.New()
+	newLogger.Formatter = &logrus.JSONFormatter{}
+	log.SetOutput(newLogger.Writer())
+
+	CheckAWSConfig()
+	CheckEnvConfig()
+	CheckServiceConfig()
+	CheckXRayConfig()
+}
+`
 
 var envFileText = `package config
 
@@ -63,17 +109,22 @@ func (m *EnvConfigFormat) WithStagePrefix(strVal string) string {
 	return fmt.Sprintf("%s_%s", m.Stage, strVal)
 }
 
-var EnvConfig EnvConfigFormat
+var EnvConfig *EnvConfigFormat
 
-func init() {
-	var err error
-	err = yaml.ReadYamlFromFile("./config/env.yaml", &EnvConfig)
-	if nil != err {
-		logrus.Fatalf("read env config file failed. %s.", err)
+func CheckEnvConfig() {
+	if EnvConfig != nil {
 		return
 	}
 
-	err = validator.New().Struct(&EnvConfig)
+	EnvConfig = &EnvConfigFormat{}
+	var err error
+	err = yaml.ReadYamlFromFile("./config/env.yaml", EnvConfig)
+	if nil != err {
+		logrus.Errorf("read env config file failed. %s.", err)
+		return
+	}
+
+	err = validator.New().Struct(EnvConfig)
 	if nil != err {
 		logrus.Fatalf("validate env config failed. %s", err)
 		return
@@ -95,16 +146,21 @@ import (
 )
 
 type AWSConfigFormat struct {
-	Region string ` + "`yaml:\"region\" validate:\"required\"`" +`
+	Region string ` + "`yaml:\"region\" validate:\"required\"`" + `
 }
 
-var AWSConfig AWSConfigFormat
+var AWSConfig *AWSConfigFormat
 var AWSSession *session.Session
 var AWSEc2InstanceIdentifyDocument ec2metadata.EC2InstanceIdentityDocument
 
-func init() {
+func CheckAWSConfig() {
+	if AWSConfig != nil {
+		return
+	}
+
+	AWSConfig = &AWSConfigFormat{}
 	var err error
-	err = yaml.ReadYamlFromFile("./config/aws.yaml", &AWSConfig)
+	err = yaml.ReadYamlFromFile("./config/aws.yaml", AWSConfig)
 	if nil != err {
 		logrus.Fatalf("read aws config file failed. %s", err)
 		return
@@ -152,24 +208,29 @@ type XRayConfigFormat struct {
 	ServiceVersion string ` + "`json:\"service_version\" yaml:\"service_version\"`" + `
 }
 
-var XRayConfig XRayConfigFormat
+var XRayConfig *XRayConfigFormat
 
-func init() {
+func CheckXRayConfig() {
+	if XRayConfig != nil {
+		return
+	}
+
+	XRayConfig = &XRayConfigFormat{}
 	var err error
-	err = yaml.ReadYamlFromFile("./config/xray.yaml", &XRayConfig)
+	err = yaml.ReadYamlFromFile("./config/xray.yaml", XRayConfig)
 	if nil != err {
 		logrus.Fatalf("read xray config failed. %s", err)
 		return
 	}
 
-	err = validator.New().Struct(&XRayConfig)
+	err = validator.New().Struct(XRayConfig)
 	if nil != err {
 		logrus.Fatalf("validate xray config failed. %s", err)
 		return
 	}
 
 	err = xray.Configure(xray.Config{
-		DaemonAddr:     XRayConfig.DaemonAddress, 
+		DaemonAddr:     XRayConfig.DaemonAddress,
 		LogLevel:       XRayConfig.LogLevel,
 		ServiceVersion: XRayConfig.ServiceVersion,
 	})
@@ -177,5 +238,78 @@ func init() {
 		logrus.Fatalf("configure xray config failed. %s", err)
 		return
 	}
+}
+`
+
+var logFileText = `package config
+
+import (
+	"github.com/go-playground/validator"
+	"github.com/haozzzzzzzz/go-rapid-development/utils/yaml"
+	"github.com/sirupsen/logrus"
+)
+
+type LogConfigFormat struct {
+	LogLevel logrus.Level ` + "`json:\"log_level\" yaml:\"log_level\" validate:\"required\"`" + `
+}
+
+var LogConfig *LogConfigFormat
+
+func CheckLogConfig() {
+	if LogConfig != nil {
+		return
+	}
+
+	LogConfig = &LogConfigFormat{}
+	var err error
+	err = yaml.ReadYamlFromFile("./config/log.yaml", LogConfig)
+	if nil != err {
+		logrus.Fatalf("read log config file failed. %s", err)
+		return
+	}
+
+	err = validator.New().Struct(LogConfig)
+	if nil != err {
+		logrus.Fatalf("validate log config failed. %s", err)
+		return
+	}
+
+	logrus.SetLevel(LogConfig.LogLevel)
+}
+`
+
+var serviceFileText = `package config
+
+import (
+	"github.com/go-playground/validator"
+	"github.com/haozzzzzzzz/go-rapid-development/utils/yaml"
+	"github.com/sirupsen/logrus"
+)
+
+type ServiceConfigFormat struct {
+	MetricsNamespace string ` + "`json:\"metrics_namespace\" yaml:\"metrics_namespace\" validate:\"required\"`" + `
+}
+
+var ServiceConfig *ServiceConfigFormat
+
+func CheckServiceConfig() {
+	if ServiceConfig != nil {
+		return
+	}
+
+	ServiceConfig = &ServiceConfigFormat{}
+	var err error
+	err = yaml.ReadYamlFromFile("./config/service.yaml", ServiceConfig)
+	if nil != err {
+		logrus.Fatalf("read service config file failed. %s", err)
+		return
+	}
+
+	err = validator.New().Struct(ServiceConfig)
+	if nil != err {
+		logrus.Errorf("validate service config failed. %s.", err)
+		return
+	}
+
 }
 `

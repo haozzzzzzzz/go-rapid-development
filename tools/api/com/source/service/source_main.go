@@ -5,9 +5,9 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/sirupsen/logrus"
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
+	"github.com/sirupsen/logrus"
 )
 
 func (m *ServiceSource) generateMain(params *GenerateParams) (err error) {
@@ -24,6 +24,8 @@ func (m *ServiceSource) generateMain(params *GenerateParams) (err error) {
 		metricPanicCounter = "SERVICE_TIMES_COUNTER_APP_PANIC"
 	case project.ServiceTypeManage:
 		metricPanicCounter = "SERVICE_TIMES_COUNTER_MANAGE_PANIC"
+	case project.ServiceTypeRPC:
+		metricPanicCounter = "SERVICE_TIMES_COUNTER_RPC_PANIC"
 	default:
 		err = uerrors.Newf("unknown service type. %s", serviceType)
 		return
@@ -45,11 +47,14 @@ func (m *ServiceSource) generateMain(params *GenerateParams) (err error) {
 var mainFileText = `package main
 
 import (
+	// TODO 这里需要import config
+
 	"fmt"
 	"math/rand"
 	"os"
 	"time"
 
+	"github.com/fvbock/endless"
 	"github.com/gin-gonic/gin"
 	"github.com/haozzzzzzzz/go-rapid-development/aws/xray"
 	"github.com/haozzzzzzzz/go-rapid-development/web/ginbuilder"
@@ -62,6 +67,7 @@ func main() {
 	// metric
 	defer func() {
 		if err := recover(); err != nil {
+			logrus.Error(err)
 			metrics.$METRIC_PANIC_COUNTER$.Inc()
 		}
 	}()
@@ -70,7 +76,11 @@ func main() {
 	mainCmd := &cobra.Command{
 		Long: fmt.Sprintf("%s service", constant.ServiceName),
 		Run: func(cmd *cobra.Command, args []string) {
-			Run(runParams)
+			err := Run(runParams)
+			if nil != err {
+				logrus.Errorf("run service failed. %s.", err)
+				return
+			}
 		},
 	}
 
@@ -90,18 +100,24 @@ type RunParams struct {
 	Port  string
 }
 
-func Run(runParams *RunParams) {
+func Run(runParams *RunParams) (err error) {
 	serviceName := config.EnvConfig.WithStagePrefix(constant.ServiceName)
-
 	rand.Seed(time.Now().Unix())
 
-	engine := ginbuilder.GetEngine()
+	if config.EnvConfig.Debug {
+		gin.SetMode(gin.DebugMode)
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
+	engine := ginbuilder.DefaultEngine()
 
 	// bind xray
 	engine.Use(xray.XRayGinMiddleware(serviceName))
 
 	// bind prometheus
-	engine.GET(fmt.Sprintf("/%s/metrics", constant.ServiceName), func(context *gin.Context) {
+	// TODO 需要添加前缀
+	engine.GET(fmt.Sprintf("/%s/metrics", ""), func(context *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {
 				logrus.Println(err)
@@ -114,8 +130,18 @@ func Run(runParams *RunParams) {
 
 	api.BindRouters(engine)
 
-	logrus.Infof("Running %s on %s:%s", serviceName, runParams.Host, runParams.Port)
-	engine.Run(fmt.Sprintf("%s:%s", runParams.Host, runParams.Port))
+	log.Printf("Running %s on %s:%s\n", serviceName, runParams.Host, runParams.Port)
 
+	address := fmt.Sprintf("%s:%s", runParams.Host, runParams.Port)
+
+	endless.DefaultReadTimeOut = 10 * time.Second
+	endless.DefaultWriteTimeOut = 10 * time.Second
+	err = endless.ListenAndServe(address, engine)
+	if nil != err {
+		logrus.Errorf("start listening and serving http on %s failed. %s", address, err)
+		return
+	}
+
+	return
 }
 `

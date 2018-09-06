@@ -29,5 +29,6 @@ export GOARCH=amd64
 api compile -p ../
 go build -o ../stage/${stage}/main ../main.go
 cd ../stage/${stage}/
-zip -r deploy_${stage}_${serviceName}.zip main config
+cp ${goPath}/bin/logfmt ./ # copy log format tool
+zip -r deploy_${stage}_${serviceName}.zip main logfmt config
 `

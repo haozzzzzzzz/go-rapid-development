@@ -93,6 +93,9 @@ func (m *ApiParser) ScanApi() (apis []*ApiItem, err error) {
 			apiItem.SourceFile = strings.Replace(fileName, m.ProjectPath, "", 1)
 			apiItem.ApiHandlerFunc = objName
 			apiItem.ApiHandlerPackage = packageName
+			relativeDir := filepath.Dir(fileName)
+			relativePackageDir := strings.Replace(relativeDir, path+"/", "", 1)
+			apiItem.RelativePackage = strings.Replace(relativePackageDir, "/", "_", -1)
 
 			for _, value := range valueSpec.Values {
 				compositeLit, ok := value.(*ast.CompositeLit)
@@ -312,7 +315,7 @@ func (m *ApiParser) MapApi() (err error) {
 
 	newRoutersFileMiddle := bytes.NewBuffer(nil)
 	for _, apiItem := range apis {
-		str := fmt.Sprintf("    engine.Handle(\"%s\", \"%s\", %s.%s.GinHandler)\n", apiItem.HttpMethod, apiItem.RelativePath, apiItem.ApiHandlerPackage, apiItem.ApiHandlerFunc)
+		str := fmt.Sprintf("    engine.Handle(\"%s\", \"%s\", %s.%s.GinHandler)\n", apiItem.HttpMethod, apiItem.RelativePath, apiItem.RelativePackage, apiItem.ApiHandlerFunc)
 		newRoutersFileMiddle.Write([]byte(str))
 	}
 

@@ -22,6 +22,10 @@ func KeyAttributeValue(val interface{}) (attributeValue *dynamodb.AttributeValue
 type AttributeValueKeyMap map[string]interface{}
 
 func (m *AttributeValueKeyMap) Convert() (attributeValues map[string]*dynamodb.AttributeValue) {
+	if *m == nil {
+		return
+	}
+
 	attributeValues = make(map[string]*dynamodb.AttributeValue)
 
 	for name, value := range *m {

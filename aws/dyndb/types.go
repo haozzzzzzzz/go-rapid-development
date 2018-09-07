@@ -17,3 +17,16 @@ func KeyAttributeValue(val interface{}) (attributeValue *dynamodb.AttributeValue
 
 	return
 }
+
+// 普通属性map可以转换成dynamodb的属性map
+type AttributeValueKeyMap map[string]interface{}
+
+func (m *AttributeValueKeyMap) Convert() (attributeValues map[string]*dynamodb.AttributeValue) {
+	attributeValues = make(map[string]*dynamodb.AttributeValue)
+
+	for name, value := range *m {
+		attributeValues[name] = KeyAttributeValue(value)
+	}
+
+	return
+}

@@ -3,6 +3,8 @@ package dyndb
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -17,8 +19,9 @@ type CommandCheckerMaker interface {
 	NewChecker() CommandChecker
 }
 
-var ErrNoItems = errors.New("dynamodb: no items in result set")
-var ErrInvalidParams = errors.New("dynamodb: invalid params")
+var (
+	ErrNoRows = errors.New("dynamodb: no rows in result set")
+)
 
 type Client struct {
 	DB                  *dynamodb.DynamoDB
@@ -44,11 +47,19 @@ func (m *Client) ListTables(input *dynamodb.ListTablesInput) (output *dynamodb.L
 	}
 
 	output, err = m.DB.ListTablesWithContext(m.Ctx, input)
-	if nil != err {
-		logrus.Errorf("dynamodb list tables failed. error: %s.", err)
-		return
+	return
+}
+
+func (m *Client) CreateTable(input *dynamodb.CreateTableInput) (output *dynamodb.CreateTableOutput, err error) {
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, input)
+		defer func() {
+			checker.After(err)
+		}()
 	}
 
+	output, err = m.DB.CreateTable(input)
 	return
 }
 
@@ -62,10 +73,29 @@ func (m *Client) DescribeTable(input *dynamodb.DescribeTableInput) (output *dyna
 	}
 
 	output, err = m.DB.DescribeTable(input)
+	return
+}
+
+func (m *Client) TableExists(tableName string) (exists bool, err error) {
+	_, err = m.DescribeTable(&dynamodb.DescribeTableInput{
+		TableName: aws.String(tableName),
+	})
 	if nil != err {
-		logrus.Errorf("describe table failed. error: %s.", err)
-		return
+		awsErr, ok := err.(awserr.Error)
+		if ok == true && awsErr.Code() == dynamodb.ErrCodeResourceNotFoundException {
+			err = nil
+			exists = false
+
+		} else {
+			logrus.Errorf("describe table failed. error: %s.", err)
+			return
+
+		}
+
+	} else {
+		exists = true
 	}
+
 	return
 }
 
@@ -81,15 +111,10 @@ func (m *Client) Scan(input *dynamodb.ScanInput) (output *dynamodb.ScanOutput, e
 	}
 
 	output, err = m.DB.ScanWithContext(m.Ctx, input)
-	if nil != err {
-		logrus.Errorf("dynamodb scan failed. error: %s.", err)
-		return
-	}
-
 	return
 }
 
-// 查询
+// 查询。dynamodb只会一次query返回总大小1m的数据，要获取所有数据，请使用QueryPage
 func (m *Client) Query(
 	input *dynamodb.QueryInput,
 ) (
@@ -105,10 +130,19 @@ func (m *Client) Query(
 	}
 
 	output, err = m.DB.QueryWithContext(m.Ctx, input)
-	if nil != err {
-		logrus.Errorf("dynamodb query failed. error: %s.", err)
-		return
+	return
+}
+
+func (m *Client) QueryPage(input *dynamodb.QueryInput, fn func(*dynamodb.QueryOutput, bool) bool) (err error) {
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, input)
+		defer func() {
+			checker.After(err)
+		}()
 	}
+
+	err = m.DB.QueryPagesWithContext(m.Ctx, input, fn)
 	return
 }
 
@@ -124,12 +158,11 @@ func (m *Client) GetItem(input *dynamodb.GetItemInput) (output *dynamodb.GetItem
 
 	output, err = m.DB.GetItemWithContext(m.Ctx, input)
 	if nil != err {
-		logrus.Errorf("dynamodb get item failed. error: %s.", err)
 		return
 	}
 
 	if output.Item == nil {
-		err = ErrNoItems
+		err = ErrNoRows
 		output = nil
 	}
 
@@ -147,11 +180,6 @@ func (m *Client) BatchGetItem(input *dynamodb.BatchGetItemInput) (output *dynamo
 	}
 
 	output, err = m.DB.BatchGetItemWithContext(m.Ctx, input)
-	if nil != err {
-		logrus.Errorf("dynamodb batch get item failed. error: %s.", err)
-		return
-	}
-
 	return
 }
 
@@ -166,11 +194,6 @@ func (m *Client) PutItem(input *dynamodb.PutItemInput) (output *dynamodb.PutItem
 	}
 
 	output, err = m.DB.PutItemWithContext(m.Ctx, input)
-	if nil != err {
-		logrus.Errorf("dynamodb put item failed. error: %s.", err)
-		return
-	}
-
 	return
 }
 
@@ -185,11 +208,6 @@ func (m *Client) BatchWriteItem(input *dynamodb.BatchWriteItemInput) (output *dy
 	}
 
 	output, err = m.DB.BatchWriteItemWithContext(m.Ctx, input)
-	if nil != err {
-		logrus.Errorf("dynamodb batch write item failed. error: %s.", err)
-		return
-	}
-
 	return
 }
 
@@ -204,11 +222,6 @@ func (m *Client) DeleteItem(input *dynamodb.DeleteItemInput) (output *dynamodb.D
 	}
 
 	output, err = m.DB.DeleteItemWithContext(m.Ctx, input)
-	if nil != err {
-		logrus.Errorf("dynamodb delete item failed. error: %s.", err)
-		return
-	}
-
 	return
 }
 
@@ -225,10 +238,5 @@ func (m *Client) UpdateItem(
 	}
 
 	output, err = m.DB.UpdateItemWithContext(m.Ctx, input)
-	if nil != err {
-		logrus.Errorf("dynamodb update item failed. error: %s.", err)
-		return
-	}
-
 	return
 }

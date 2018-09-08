@@ -1,20 +1,18 @@
 package dyndb
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/gosexy/to"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/sirupsen/logrus"
 )
 
 func KeyAttributeValue(val interface{}) (attributeValue *dynamodb.AttributeValue) {
-	attributeValue = &dynamodb.AttributeValue{}
-	switch val.(type) {
-	case string:
-		attributeValue.S = aws.String(val.(string))
-	default:
-		attributeValue.N = aws.String(to.String(val))
+	attributeValue, err := dynamodbattribute.Marshal(val)
+	if nil != err {
+		logrus.Errorf("dynamodbattribute marshal failed. error: %s.", err)
+		attributeValue = nil
+		return
 	}
-
 	return
 }
 

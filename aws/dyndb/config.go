@@ -17,8 +17,8 @@ type ClientCredentials struct {
 
 type ClientConfigFormat struct {
 	Region      string             `json:"region" yaml:"region"`
-	Endpoint    string             `json:"endpoint" yaml:"endpoint"`       // 可选选项
-	Credentials *ClientCredentials `json:"credentials" yaml:"credentials"` // 可选选项
+	Credentials *ClientCredentials `json:"credentials" yaml:"credentials"`
+	Endpoint    string             `json:"endpoint" yaml:"endpoint"`
 }
 
 func NewDynamoDB(config *ClientConfigFormat) (client *dynamodb.DynamoDB, err error) {

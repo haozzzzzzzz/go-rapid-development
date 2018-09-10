@@ -114,7 +114,6 @@ func (m *Client) Scan(input *dynamodb.ScanInput) (output *dynamodb.ScanOutput, e
 	return
 }
 
-// 查询。dynamodb只会一次query返回总大小1m的数据，要获取所有数据，请使用QueryPage
 func (m *Client) Query(
 	input *dynamodb.QueryInput,
 ) (
@@ -133,7 +132,7 @@ func (m *Client) Query(
 	return
 }
 
-func (m *Client) QueryPage(input *dynamodb.QueryInput, fn func(*dynamodb.QueryOutput, bool) bool) (err error) {
+func (m *Client) QueryPage(input *dynamodb.QueryInput, fn func(output *dynamodb.QueryOutput, lastPage bool) bool) (err error) {
 	checker := m.CommandChecker()
 	if checker != nil {
 		checker.Before(m, input)
@@ -222,6 +221,20 @@ func (m *Client) DeleteItem(input *dynamodb.DeleteItemInput) (output *dynamodb.D
 	}
 
 	output, err = m.DB.DeleteItemWithContext(m.Ctx, input)
+	return
+}
+
+// 删除表单
+func (m *Client) DeleteTable(input *dynamodb.DeleteTableInput) (output *dynamodb.DeleteTableOutput, err error) {
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, input)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	output, err = m.DB.DeleteTableWithContext(m.Ctx, input)
 	return
 }
 

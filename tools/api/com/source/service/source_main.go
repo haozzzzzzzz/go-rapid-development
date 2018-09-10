@@ -117,7 +117,7 @@ func Run(runParams *RunParams) (err error) {
 
 	// bind prometheus
 	// TODO 需要添加前缀
-	engine.GET(fmt.Sprintf("/%s/metrics", ""), func(context *gin.Context) {
+	engine.GET(fmt.Sprintf("/api/%s/metrics", ""), func(context *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {
 				logrus.Println(err)

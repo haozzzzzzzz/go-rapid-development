@@ -23,3 +23,22 @@ func ShuffleSlice(rawSlice []interface{}) {
 	}
 
 }
+
+func ShuffleInt64Slice(rawSlice []int64) {
+	lenSlice := len(rawSlice)
+	if lenSlice == 0 {
+		return
+	}
+
+	for i := 0; i < lenSlice-1; i++ {
+		changeIndex := num.RandInt(i, lenSlice)
+		if changeIndex == i {
+			continue
+		}
+
+		temp := rawSlice[i]
+		rawSlice[i] = rawSlice[changeIndex]
+		rawSlice[changeIndex] = temp
+	}
+
+}

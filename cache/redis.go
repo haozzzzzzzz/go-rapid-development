@@ -325,6 +325,37 @@ func (m *Client) SAdd(key string, members ...interface{}) (result int64, err err
 	return
 }
 
+func (m *Client) SRem(key string, members ...interface{}) (result int64, err error) {
+	cmder := m.RedisClient.SRem(key, members...)
+
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+
+	return
+}
+
+func (m *Client) SMembers(key string) (result []string, err error) {
+	cmder := m.RedisClient.SMembers(key)
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+
+	return
+}
+
 // key不存在，不会返回redis.Nil
 func (m *Client) SRandMemberN(key string, count int64) (result []string, err error) {
 	cmder := m.RedisClient.SRandMemberN(key, count)

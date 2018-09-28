@@ -114,6 +114,20 @@ func (m *Client) Scan(input *dynamodb.ScanInput) (output *dynamodb.ScanOutput, e
 	return
 }
 
+// 扫描
+func (m *Client) ScanPage(input *dynamodb.ScanInput, fn func(output *dynamodb.ScanOutput, lastPage bool) (cont bool)) (err error) {
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, input)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	err = m.DB.ScanPagesWithContext(m.Ctx, input, fn)
+	return
+}
+
 func (m *Client) Query(
 	input *dynamodb.QueryInput,
 ) (
@@ -132,7 +146,7 @@ func (m *Client) Query(
 	return
 }
 
-func (m *Client) QueryPage(input *dynamodb.QueryInput, fn func(output *dynamodb.QueryOutput, lastPage bool) bool) (err error) {
+func (m *Client) QueryPage(input *dynamodb.QueryInput, fn func(output *dynamodb.QueryOutput, lastPage bool) (cont bool)) (err error) {
 	checker := m.CommandChecker()
 	if checker != nil {
 		checker.Before(m, input)

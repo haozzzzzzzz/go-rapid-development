@@ -56,20 +56,18 @@ then
 fi
 
 # 清空日志
-emptyLogCrontabSh=/etc/cron.daily/empty_${serviceName}_log
+emptyLogCrontabSh=/etc/cron.hourly/empty_${serviceName}_log
 if [ ! -e ${emptyLogCrontabSh} ]
 then
     sudo touch ${emptyLogCrontabSh}
     sudo chmod 777 ${emptyLogCrontabSh}
     echo "#!/bin/sh
+cat /dev/null > ${logPath}
     " | sudo tee ${emptyLogCrontabSh}
 fi
 
-echo "cat /dev/null > ${logPath}
-" | sudo tee ${emptyLogCrontabSh}
-
 # 定时清空/var/log/awslogs/.log的内容
-emptyAwslogsLog=/etc/cron.daily/empty_awslogs_log
+emptyAwslogsLog=/etc/cron.hourly/empty_awslogs_log
 if [ ! -e ${emptyAwslogsLog} ]
 then
     sudo touch ${emptyAwslogsLog}
@@ -127,6 +125,8 @@ After=network.target awslogsd.service
 Type=simple
 WorkingDirectory=${serviceDir}
 ExecStart=${runSh}
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s TERM $MAINPID
 Restart=always
 
 [Install]

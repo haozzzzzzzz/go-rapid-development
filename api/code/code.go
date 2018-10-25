@@ -63,6 +63,12 @@ var (
 		Message: "verify header params failed",
 	}
 
+	// token无效
+	CodeErrorToken = &ApiCode{
+		Code:    1006,
+		Message: "verify token failed",
+	}
+
 	// proxy
 	CodeErrorProxyFailed = &ApiCode{
 		Code:    1100,

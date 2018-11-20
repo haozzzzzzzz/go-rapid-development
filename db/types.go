@@ -142,7 +142,7 @@ func (m *InterfaceMap) Scan(src interface{}) (err error) {
 	}
 
 	if source == "" {
-		return
+		source = "{}"
 	}
 
 	err = json.Unmarshal([]byte(source), m)

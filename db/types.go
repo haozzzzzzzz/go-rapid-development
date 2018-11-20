@@ -81,6 +81,41 @@ func (m *Uint32Map) Scan(src interface{}) (err error) {
 	return
 }
 
+// float64 map
+type Float64Map map[string]float64
+
+func (m Float64Map) Value() (value driver.Value, err error) {
+	byteValue, err := json.Marshal(m)
+	if nil != err {
+		logrus.Errorf("marshal uint32 map failed. %s.", err)
+		return
+	}
+
+	value = string(byteValue)
+	return
+}
+
+func (m *Float64Map) Scan(src interface{}) (err error) {
+	var source string
+	switch src.(type) {
+	case string:
+		source = src.(string)
+	case []byte:
+		source = string(src.([]byte))
+	default:
+		return errors.New(fmt.Sprintf("Incompatible type %q for Uint32Map", reflect.TypeOf(src)))
+	}
+
+	err = json.Unmarshal([]byte(source), m)
+	if nil != err {
+		logrus.Errorf("unmarshal string slice failed. %s.", err)
+		return
+	}
+
+	return
+}
+
+// interface map
 type InterfaceMap map[string]interface{}
 
 func (m InterfaceMap) Value() (value driver.Value, err error) {
@@ -104,6 +139,10 @@ func (m *InterfaceMap) Scan(src interface{}) (err error) {
 		source = string(src.([]byte))
 	default:
 		return errors.New(fmt.Sprintf("Incompatible type %q for InterfaceMap", reflect.TypeOf(src)))
+	}
+
+	if source == "" {
+		return
 	}
 
 	err = json.Unmarshal([]byte(source), m)

@@ -119,10 +119,9 @@ func (m *Float64Map) Scan(src interface{}) (err error) {
 type InterfaceMap map[string]interface{}
 
 func (m InterfaceMap) Value() (value driver.Value, err error) {
-	fmt.Println("interfacemap ", m)
-
 	if m == nil {
 		value = "{}"
+		return
 	}
 
 	byteValue, err := json.Marshal(m)

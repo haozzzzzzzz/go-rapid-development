@@ -119,6 +119,10 @@ func (m *Float64Map) Scan(src interface{}) (err error) {
 type InterfaceMap map[string]interface{}
 
 func (m InterfaceMap) Value() (value driver.Value, err error) {
+	if m == nil {
+		value = "{}"
+	}
+
 	byteValue, err := json.Marshal(m)
 	if nil != err {
 		logrus.Errorf("marshal interface map failed. %s.", err)

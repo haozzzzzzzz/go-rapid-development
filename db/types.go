@@ -141,6 +141,10 @@ func (m *InterfaceMap) Scan(src interface{}) (err error) {
 		return errors.New(fmt.Sprintf("Incompatible type %q for InterfaceMap", reflect.TypeOf(src)))
 	}
 
+	if source == "" {
+		source = "null"
+	}
+
 	err = json.Unmarshal([]byte(source), m)
 	if nil != err {
 		logrus.Errorf("unmarshal string slice failed. %s.", err)

@@ -119,11 +119,6 @@ func (m *Float64Map) Scan(src interface{}) (err error) {
 type InterfaceMap map[string]interface{}
 
 func (m InterfaceMap) Value() (value driver.Value, err error) {
-	if m == nil {
-		value = "{}"
-		return
-	}
-
 	byteValue, err := json.Marshal(m)
 	if nil != err {
 		logrus.Errorf("marshal interface map failed. %s.", err)
@@ -144,10 +139,6 @@ func (m *InterfaceMap) Scan(src interface{}) (err error) {
 		source = string(src.([]byte))
 	default:
 		return errors.New(fmt.Sprintf("Incompatible type %q for InterfaceMap", reflect.TypeOf(src)))
-	}
-
-	if source == "" {
-		source = "{}"
 	}
 
 	err = json.Unmarshal([]byte(source), m)

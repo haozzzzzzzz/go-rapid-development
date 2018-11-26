@@ -77,12 +77,8 @@ import (
 )
 
 func init() {
-
-	logrus.SetFormatter(&logrus.JSONFormatter{})
-	newLogger := logrus.New()
-	newLogger.Formatter = &logrus.JSONFormatter{}
-	log.SetOutput(newLogger.Writer())
-
+	CheckLogConfig()
+	
 	CheckAWSConfig()
 	CheckEnvConfig()
 	CheckServiceConfig()
@@ -249,13 +245,26 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type LogOutputConfigFormat struct {
+	Filedir    string ` + "`json:\"filedir\" yaml:\"filedir\" validate:\"required\"`" + `
+	MaxSize    int    ` + "`json:\"max_size\" yaml:\"max_size\" validate:\"required\"`" + `
+	MaxBackups int    ` + "`json:\"max_backups\" yaml:\"max_backups\" validate:\"required\"`" + `
+	MaxAge     int    ` + "`json:\"max_age\" yaml:\"max_age\" validate:\"required\"`" + `
+	Compress   bool   ` + "`json:\"compress\" yaml:\"compress\"`" + `
+}
+
 type LogConfigFormat struct {
 	LogLevel logrus.Level ` + "`json:\"log_level\" yaml:\"log_level\" validate:\"required\"`" + `
+	Output   *LogOutputConfigFormat ` + "`json:\"output\" yaml:\"output\"`" + `
 }
 
 var LogConfig *LogConfigFormat
 
 func CheckLogConfig() {
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+	newLogger := logrus.New()
+	newLogger.Formatter = &logrus.JSONFormatter{}
+
 	if LogConfig != nil {
 		return
 	}
@@ -275,6 +284,23 @@ func CheckLogConfig() {
 	}
 
 	logrus.SetLevel(LogConfig.LogLevel)
+	if LogConfig.Output != nil {
+		filename := fmt.Sprintf("%s/%s/info.log", LogConfig.Output.Filedir, dependent.ServiceName)
+		logger := &lumberjack.Logger{
+			Filename:   filename,
+			MaxSize:    LogConfig.Output.MaxSize,
+			MaxBackups: LogConfig.Output.MaxBackups,
+			MaxAge:     LogConfig.Output.MaxAge,
+			Compress:   LogConfig.Output.Compress,
+		}
+		logrus.SetOutput(logger)
+		log.SetOutput(logger)
+
+	} else {
+		log.SetOutput(newLogger.Writer())
+
+	}
+
 }
 `
 

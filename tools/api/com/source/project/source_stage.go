@@ -48,10 +48,14 @@ func (m *ProjectSource) generateStageFiles(stageDir string, stage project2.Stage
 		Stage: stage,
 	}
 
-	logConfig := &struct {
-		LogLevel uint32 `json:"log_level" yaml:"log_level"`
-	}{
-		LogLevel: 5, // 5:debug 4:info 3:warn 2:error 1:fatal 0:panic
+	logConfig := make(map[string]interface{})
+	logConfig["log_level"] = 5
+	logConfig["output"] = map[string]interface{}{
+		"filedir":     "/Users/hao/Documents/Projects/XunLei/video_buddy_service/bin/log",
+		"max_size":    5,
+		"max_backups": 3,
+		"max_age":     3,
+		"compress":    false,
 	}
 
 	serviceConfig := &struct {
@@ -63,14 +67,26 @@ func (m *ProjectSource) generateStageFiles(stageDir string, stage project2.Stage
 	switch stage {
 	case project2.StageDev:
 		envConfig.Debug = true
+
 	case project2.StageTest:
 		envConfig.Debug = true
-	case project2.StagePre:
+		logConfig["output"] = map[string]interface{}{
+			"filedir":     "/data/logs",
+			"max_size":    500,
+			"max_backups": 3,
+			"max_age":     3,
+			"compress":    false,
+		}
+	case project2.StagePre, project2.StageProd:
 		envConfig.Debug = false
-		logConfig.LogLevel = 4
-	case project2.StageProd:
-		envConfig.Debug = false
-		logConfig.LogLevel = 4
+		logConfig["log_level"] = 4
+		logConfig["output"] = map[string]interface{}{
+			"filedir":     "/data/logs",
+			"max_size":    500,
+			"max_backups": 3,
+			"max_age":     3,
+			"compress":    false,
+		}
 	default:
 		err = uerrors.Newf("unknown stage type %s", stage)
 		return

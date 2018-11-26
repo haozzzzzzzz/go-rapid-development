@@ -183,6 +183,11 @@ func (m *Context) Errorf(code *code.ApiCode, logFormat string, logArgs ...interf
 	m.Logger.Errorf(logFormat, logArgs...)
 }
 
+func (m *Context) ErrorfReturn(code *code.ApiCode, obj interface{}, logFormat string, logArgs ...interface{}) {
+	m.Send(code, obj)
+	m.Logger.Errorf(logFormat, logArgs...)
+}
+
 func (m *Context) Warnf(code *code.ApiCode, logFormat string, logArgs ...interface{}) {
 	m.Send(code, nil)
 	m.Logger.Warnf(logFormat, logArgs...)

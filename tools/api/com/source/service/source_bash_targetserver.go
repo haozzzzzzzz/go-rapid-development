@@ -55,19 +55,8 @@ then
     sudo touch ${logPath}
 fi
 
-# 清空日志
-emptyLogCrontabSh=/etc/cron.hourly/empty_${serviceName}_log
-if [ ! -e ${emptyLogCrontabSh} ]
-then
-    sudo touch ${emptyLogCrontabSh}
-    sudo chmod 777 ${emptyLogCrontabSh}
-    echo "#!/bin/sh
-cat /dev/null > ${logPath}
-    " | sudo tee ${emptyLogCrontabSh}
-fi
-
 # 定时清空/var/log/awslogs/.log的内容
-emptyAwslogsLog=/etc/cron.hourly/empty_awslogs_log
+emptyAwslogsLog=/etc/cron.daily/empty_awslogs_log
 if [ ! -e ${emptyAwslogsLog} ]
 then
     sudo touch ${emptyAwslogsLog}
@@ -98,19 +87,6 @@ log_group_name = ${stage}${logPath}" | sudo tee ${awsLogsConf}
 sudo systemctl restart awslogsd.service
 sudo systemctl enable awslogsd.service
 
-# 创建bash文件
-runSh=${serviceDir}/run.sh
-if [ ! -e ${runSh} ]
-then
-    sudo touch ${runSh}
-    sudo chmod 777 ${runSh}
-fi
-
-# 启动文件
-sudo echo "#!/usr/bin/env bash
-${serviceDir}/main > $logPath 2>&1
-" > ${runSh}
-
 # 创建service文件
 userServiceName=user_service_${serviceName}
 userServiceFilePath=/lib/systemd/system/${userServiceName}.service
@@ -124,9 +100,9 @@ After=network.target awslogsd.service
 [Service]
 Type=simple
 WorkingDirectory=${serviceDir}
-ExecStart=${runSh}
-ExecReload=/bin/kill -s HUP $MAINPID
-ExecStop=/bin/kill -s TERM $MAINPID
+ExecStart=${serviceDir}/main
+ExecReload=/bin/kill -s HUP "'$MAINPID'"
+ExecStop=/bin/kill -s TERM "'$MAINPID'"
 Restart=always
 
 [Install]

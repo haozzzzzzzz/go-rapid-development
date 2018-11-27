@@ -47,6 +47,9 @@ func (m *ServiceSource) generateMain(params *GenerateParams) (err error) {
 var mainFileText = `package main
 
 import (
+	// TODO 这里import first_init
+	// 空一行
+
 	// TODO 这里需要import config
 
 	"fmt"

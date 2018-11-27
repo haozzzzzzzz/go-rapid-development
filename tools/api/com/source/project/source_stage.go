@@ -77,6 +77,7 @@ func (m *ProjectSource) generateStageFiles(stageDir string, stage project2.Stage
 			"max_age":     3,
 			"compress":    false,
 		}
+
 	case project2.StagePre, project2.StageProd:
 		envConfig.Debug = false
 		logConfig["log_level"] = 4
@@ -87,6 +88,7 @@ func (m *ProjectSource) generateStageFiles(stageDir string, stage project2.Stage
 			"max_age":     3,
 			"compress":    false,
 		}
+
 	default:
 		err = uerrors.Newf("unknown stage type %s", stage)
 		return

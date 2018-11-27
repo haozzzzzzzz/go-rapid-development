@@ -1,10 +1,9 @@
 package service
 
 import (
-	"github.com/sirupsen/logrus"
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
+	"github.com/sirupsen/logrus"
 )
-
 
 // api 源文件目录
 type ServiceSource struct {
@@ -30,6 +29,13 @@ func (m *ServiceSource) Generate(params *GenerateParams) (err error) {
 	err = m.generateConstant()
 	if nil != err {
 		logrus.Errorf("generate constant failed. %s.", err)
+		return
+	}
+
+	// generate first init
+	err = m.generateFirstInit()
+	if nil != err {
+		logrus.Errorf("generate first init failed. error: %s.", err)
 		return
 	}
 

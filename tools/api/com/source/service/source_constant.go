@@ -23,7 +23,10 @@ func (m *ServiceSource) generateConstant() (err error) {
 	constantFilePath := fmt.Sprintf("%s/constant.go", constantDir)
 	newConstantFileText := fmt.Sprintf(constantFileText, str.SnakeString(m.Service.Config.Name))
 	err = ioutil.WriteFile(constantFilePath, []byte(newConstantFileText), project.ProjectFileMode)
-
+	if nil != err {
+		logrus.Errorf("write file %s failed. error: %s.", constantFilePath, err)
+		return
+	}
 	return
 }
 

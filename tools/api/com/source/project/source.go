@@ -30,6 +30,13 @@ func (m *ProjectSource) Generate() (err error) {
 		return
 	}
 
+	// dependent
+	err = m.generateDependent()
+	if nil != err {
+		logrus.Errorf("generate dependent failed. error: %s.", err)
+		return
+	}
+
 	// stage
 	err = m.generateCommonStage()
 	if nil != err {

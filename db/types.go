@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"reflect"
 
+	"strings"
+
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -184,5 +186,28 @@ func (m *Uint32Slice) Scan(src interface{}) (err error) {
 		return
 	}
 
+	return
+}
+
+type SplitStringSlice []string
+
+func (m SplitStringSlice) Value() (value driver.Value, err error) {
+	value = strings.Join(m, ",")
+	return
+}
+
+func (m *SplitStringSlice) Scan(src interface{}) (err error) {
+	var source string
+	switch src.(type) {
+	case string:
+		source = src.(string)
+	case []byte:
+		source = string(src.([]byte))
+	default:
+		err = errors.New(fmt.Sprintf("Incompatible type %q for SplitStringSlice", reflect.TypeOf(src)))
+		return
+	}
+
+	*m = strings.Split(source, ",")
 	return
 }

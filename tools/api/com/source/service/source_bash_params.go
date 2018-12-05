@@ -5,12 +5,13 @@ import (
 	"io/ioutil"
 
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
+	"github.com/haozzzzzzzz/go-rapid-development/utils/str"
 	"github.com/sirupsen/logrus"
 )
 
 func (m *ServiceSource) generateBashParams(shDir string) (err error) {
 	bashParamsFilePath := fmt.Sprintf("%s/params.sh", shDir)
-	newBashParamsFileText := fmt.Sprintf(bashParamsFileText, m.Service.Config.Name)
+	newBashParamsFileText := fmt.Sprintf(bashParamsFileText, str.SnakeString(m.Service.Config.Name))
 	err = ioutil.WriteFile(bashParamsFilePath, []byte(newBashParamsFileText), project.ProjectFileMode)
 	if nil != err {
 		logrus.Errorf("write params bash %q failed. %s.", bashParamsFilePath, err)

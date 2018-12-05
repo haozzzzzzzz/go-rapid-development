@@ -56,6 +56,7 @@ import (
 	"math/rand"
 	"os"
 	"time"
+	"log"
 
 	"github.com/fvbock/endless"
 	"github.com/gin-gonic/gin"

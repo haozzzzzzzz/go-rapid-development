@@ -59,7 +59,7 @@ func (m *ProjectSource) generateCommonConfig() (err error) {
 
 	// service
 	serviceFilePath := fmt.Sprintf("%s/service.go", configDir)
-	err = ioutil.WriteFile(logFilePath, []byte(serviceFileText), project.ProjectFileMode)
+	err = ioutil.WriteFile(serviceFilePath, []byte(serviceFileText), project.ProjectFileMode)
 	if nil != err {
 		logrus.Errorf("write service file failed. path: %s. error: %s.", serviceFilePath, err)
 		return
@@ -69,12 +69,6 @@ func (m *ProjectSource) generateCommonConfig() (err error) {
 }
 
 var initFileText = `package config
-
-import (
-	"log"
-
-	"github.com/sirupsen/logrus"
-)
 
 func init() {
 	CheckLogConfig()
@@ -240,6 +234,8 @@ func CheckXRayConfig() {
 var logFileText = `package config
 
 import (
+	"fmt"
+	"log"
 	"github.com/go-playground/validator"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/yaml"
 	"github.com/sirupsen/logrus"

@@ -1,3 +1,3 @@
 package db
 
-const ErrorDuplicateEntryForKey = 1064
+const ErrorDuplicateEntryForKey = 1062

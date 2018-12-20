@@ -10,6 +10,7 @@ import (
 	"github.com/haozzzzzzzz/go-rapid-development/api/code"
 	"github.com/haozzzzzzzz/go-rapid-development/api/request"
 	"github.com/haozzzzzzzz/go-rapid-development/http"
+	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -25,6 +26,13 @@ func (m *Client) Get(
 	iPathData interface{},
 	iQueryData interface{},
 ) (err error) {
+	defer func() {
+		iRecover := recover()
+		if iRecover != nil {
+			err = uerrors.Newf("panic: %#v", iRecover)
+		}
+	}()
+
 	apiUrl := fmt.Sprintf("%s%s", m.UrlPrefix, urlPath)
 	reqUrl, err := http.NewUrlByStrUrl(apiUrl)
 	if nil != err {
@@ -33,14 +41,14 @@ func (m *Client) Get(
 	}
 
 	pathData := make(map[string][]string)
-	err = request.FormMapStruct(pathData, iPathData)
+	err = request.FormMap(pathData, iPathData)
 	if nil != err {
 		logrus.Errorf("map path data failed. %s.", err)
 		return
 	}
 
 	queryData := make(map[string][]string)
-	err = request.FormMapStruct(queryData, iQueryData)
+	err = request.FormMap(queryData, iQueryData)
 	if nil != err {
 		logrus.Errorf("map query data failed. %s.", err)
 		return
@@ -66,6 +74,13 @@ func (m *Client) Post(
 	iQueryData interface{},
 	iPostData interface{},
 ) (err error) {
+	defer func() {
+		iRecover := recover()
+		if iRecover != nil {
+			err = uerrors.Newf("panic: %#v", iRecover)
+		}
+	}()
+
 	apiUrl := fmt.Sprintf("%s%s", m.UrlPrefix, urlPath)
 	reqUrl, err := http.NewUrlByStrUrl(apiUrl)
 	if nil != err {
@@ -74,14 +89,14 @@ func (m *Client) Post(
 	}
 
 	pathData := make(map[string][]string)
-	err = request.FormMapStruct(pathData, iPathData)
+	err = request.FormMap(pathData, iPathData)
 	if nil != err {
 		logrus.Errorf("map path data failed. %s.", err)
 		return
 	}
 
 	queryData := make(map[string][]string)
-	err = request.FormMapStruct(queryData, iQueryData)
+	err = request.FormMap(queryData, iQueryData)
 	if nil != err {
 		logrus.Errorf("map query data failed. %s.", err)
 		return

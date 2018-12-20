@@ -29,3 +29,32 @@ func TestFormMapStruct(t *testing.T) {
 
 	fmt.Println(form)
 }
+
+func TestFormMap(t *testing.T) {
+	var err error
+	form := make(map[string][]string, 0)
+
+	//err = FormMap(form, map[string]string{})
+	//if nil != err {
+	//	t.Error(err)
+	//	return
+	//}
+
+	//var i = 1
+	//err = FormMapStruct(form, &i)
+	//if nil != err {
+	//	t.Error(err)
+	//	return
+	//}
+
+	err = FormMap(form, map[string]string{
+		"hello": "world",
+	})
+	if nil != err {
+		t.Error(err)
+		return
+	}
+
+	fmt.Println(form)
+
+}

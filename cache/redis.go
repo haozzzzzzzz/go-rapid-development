@@ -277,6 +277,40 @@ func (m *Client) HKeys(key string) (result []string, err error) {
 	return
 }
 
+func (m *Client) HIncrBy(key string, field string, incr int64) (result int64, err error) {
+	cmder := m.RedisClient.HIncrBy(key, field, incr)
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+
+	return
+}
+
+func (m *Client) HGetAll(key string) (result map[string]string, err error) {
+	cmder := m.RedisClient.HGetAll(key)
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+	if nil != err {
+		logrus.Errorf("hgetall failed. error: %s.", err)
+		return
+	}
+
+	return
+}
+
 func (m *Client) SetJSON(key string, value interface{}, expiration time.Duration) (result string, err error) {
 	byteValue, err := json.Marshal(value)
 	if nil != err {
@@ -305,6 +339,25 @@ func (m *Client) HSetJSON(key string, field string, value interface{}) (result b
 		logrus.Errorf("redis hset failed. %s.", err)
 		return
 	}
+	return
+}
+
+// 没有则返回redis.Nil
+func (m *Client) HGetJSON(key string, field string, value interface{}) (err error) {
+	result, err := m.HGet(key, field)
+	if nil != err {
+		if err != redis.Nil {
+			logrus.Errorf("get hash item failed. key: %s. field: %s. error: %s.", key, field, err)
+		}
+		return
+	}
+
+	err = json.Unmarshal([]byte(result), value)
+	if nil != err {
+		logrus.Errorf("unmarshal hash item failed. error: %s.", err)
+		return
+	}
+
 	return
 }
 

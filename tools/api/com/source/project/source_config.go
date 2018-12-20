@@ -280,7 +280,7 @@ func CheckLogConfig() {
 	}
 
 	logrus.SetLevel(LogConfig.LogLevel)
-	if LogConfig.Output != nil {
+	if LogConfig.Output != nil && dependent.ServiceName != ""{
 		filename := fmt.Sprintf("%s/%s/info.log", LogConfig.Output.Filedir, dependent.ServiceName)
 		logger := &lumberjack.Logger{
 			Filename:   filename,

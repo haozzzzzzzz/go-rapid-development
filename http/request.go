@@ -153,6 +153,7 @@ func (m *Request) GetJSON(v interface{}) (err error) {
 		logrus.Errorf("unmarshal body json failed. %s.", err)
 		return
 	}
+
 	return
 }
 

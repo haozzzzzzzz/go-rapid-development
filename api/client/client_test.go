@@ -13,7 +13,7 @@ func TestClient_Get(t *testing.T) {
 		UrlPrefix: "http://127.0.0.1:18105",
 	}
 
-	urlPath := "/config_manage/v1/condition_group/attachment/filter_list/:config_type"
+	urlPath := "/config_manage/v1/condition_group/attachment/type_list/:config_type"
 	iRespData := &struct {
 		ReturnCode uint32      `json:"ret"`
 		Message    string      `json:"msg"`
@@ -51,4 +51,33 @@ func TestClient_Get(t *testing.T) {
 	}
 
 	fmt.Println(iRespData)
+}
+
+func TestClient_Get2(t *testing.T) {
+	var err error
+	urlPath := "/api/advert_rpc/v1/advert/advert_group/get_advert/:group_id"
+	pathData := map[string]string{
+		"group_id": "1",
+	}
+
+	queryData := map[string]string{
+		"caller":   "test",
+		"position": "000",
+		"times":    "0",
+	}
+
+	respData := make(map[string]interface{})
+
+	client := Client{
+		Ctx:       context.Background(),
+		UrlPrefix: "http://127.0.0.1:18114",
+	}
+
+	err = client.Get(urlPath, &respData, pathData, queryData)
+	if nil != err {
+		t.Error(err)
+		return
+	}
+
+	fmt.Println(respData)
 }

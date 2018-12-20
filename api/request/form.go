@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -180,8 +181,64 @@ func setTimeField(val string, structField reflect.StructField, value reflect.Val
 	return nil
 }
 
+// 支持*ptr和map[string]string
+func FormMap(form map[string][]string, i interface{}) (err error) {
+	if i == nil {
+		return
+	}
+
+	typeI := reflect.TypeOf(i)
+	kind := typeI.Kind()
+	switch kind {
+	case reflect.Map:
+		params, ok := i.(map[string]string)
+		if ok {
+			err = FormMapMap(form, params)
+			if nil != err {
+				logrus.Errorf(" failed. error: %s.", err)
+				return
+			}
+			return
+		}
+
+	case reflect.Ptr:
+		elemKind := typeI.Elem().Kind()
+		if elemKind == reflect.Struct {
+			err = FormMapStruct(form, i)
+			if nil != err {
+				logrus.Errorf("form map struct failed. error: %s.", err)
+				return
+			}
+			return
+		}
+
+	}
+
+	err = uerrors.Newf("not support %q to form map", typeI)
+
+	return
+}
+
+func FormMapMap(form map[string][]string, params map[string]string) (err error) {
+	if params == nil {
+		return
+	}
+
+	for key, param := range params {
+		form[key] = []string{param}
+	}
+	return
+}
+
 // transform struct into form
 func FormMapStruct(form map[string][]string, ptr interface{}) (err error) {
+	defer func() {
+		iRecover := recover()
+		if iRecover != nil {
+			err = uerrors.Newf("%s", iRecover)
+		}
+	}()
+
 	if ptr == nil {
 		return
 	}
@@ -212,6 +269,7 @@ func FormMapStruct(form map[string][]string, ptr interface{}) (err error) {
 			sliceElemKind := structField.Type().Elem().Kind()
 			if sliceElemKind == reflect.Struct { // not support struct
 				err = errors.New("do not support map struct to form")
+				return
 			}
 
 			len := structField.Len()
@@ -278,7 +336,7 @@ func getWithProperType(valueKind reflect.Kind, val reflect.Value) (ret string, e
 		ret = val.String()
 
 	default:
-		err = errors.New("Unknown type")
+		err = uerrors.Newf("Unknown type, kind: %s, value: %s", valueKind, val)
 	}
 
 	return

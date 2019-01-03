@@ -4,6 +4,11 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
+	"os"
+
+	"reflect"
+
+	"github.com/sirupsen/logrus"
 )
 
 func UnmarshalJsonFromReader(reader io.Reader, v interface{}) error {
@@ -21,4 +26,36 @@ func UnmarshalJsonFromReader(reader io.Reader, v interface{}) error {
 	}
 
 	return nil
+}
+
+func ReadJsonFromFile(filePath string, obj interface{}) (err error) {
+	byteObj, err := ioutil.ReadFile(filePath)
+	if nil != err {
+		logrus.Errorf("read %q json file failed. error: %s.", filePath, err)
+		return
+	}
+
+	err = json.Unmarshal(byteObj, obj)
+	if nil != err {
+		logrus.Errorf("unmarshal %q json file failed. error: %s.", err)
+		return
+	}
+
+	return
+}
+
+func WriteJsonToFile(filePath string, obj interface{}, mode os.FileMode) (err error) {
+	byteObj, err := json.Marshal(obj)
+	if nil != err {
+		logrus.Errorf("marshal %q  failed. error: %s.", reflect.TypeOf(obj), err)
+		return
+	}
+
+	err = ioutil.WriteFile(filePath, byteObj, mode)
+	if nil != err {
+		logrus.Errorf("write %q failed. error: %s.", filePath, err)
+		return
+	}
+
+	return
 }

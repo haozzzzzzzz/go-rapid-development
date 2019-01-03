@@ -232,8 +232,39 @@ func (m *Client) HGet(key string, field string) (result string, err error) {
 	return
 }
 
+func (m *Client) HMGet(key string, fields ...string) (result []interface{}, err error) {
+	cmder := m.RedisClient.HMGet(key, fields...)
+
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+
+	return
+}
+
 func (m *Client) HSet(key string, field string, value interface{}) (result bool, err error) {
 	cmder := m.RedisClient.HSet(key, field, value)
+
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+	return
+}
+
+func (m *Client) HMSet(key string, fields map[string]interface{}) (result string, err error) {
+	cmder := m.RedisClient.HMSet(key, fields)
 
 	checker := m.CommandChecker()
 	if checker != nil {

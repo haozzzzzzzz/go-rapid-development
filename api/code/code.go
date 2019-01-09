@@ -69,6 +69,12 @@ var (
 		Message: "verify token failed",
 	}
 
+	// 请求被拒绝
+	CodeErrorRequestRejected = &ApiCode{
+		Code:    1007,
+		Message: "request was rejected",
+	}
+
 	// proxy
 	CodeErrorProxyFailed = &ApiCode{
 		Code:    1100,

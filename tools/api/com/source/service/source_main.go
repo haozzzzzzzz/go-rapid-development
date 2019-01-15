@@ -51,7 +51,8 @@ import (
 	// 空一行
 
 	// TODO 这里需要import config
-
+	// TODO 这里需要导入session
+	
 	"fmt"
 	"math/rand"
 	"os"
@@ -121,7 +122,8 @@ func Run(runParams *RunParams) (err error) {
 
 	// bind prometheus
 	// TODO 需要添加前缀
-	engine.GET(fmt.Sprintf("/api/%s/metrics", ""), func(context *gin.Context) {
+	metricsPath := "/api/__/metrics"
+	engine.GET(metricsPath, func(context *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {
 				logrus.Println(err)

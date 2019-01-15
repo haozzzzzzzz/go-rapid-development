@@ -156,6 +156,45 @@ func (m *InterfaceMap) Scan(src interface{}) (err error) {
 	return
 }
 
+// string map
+type StringMap map[string]string
+
+func (m StringMap) Value() (value driver.Value, err error) {
+	byteValue, err := json.Marshal(m)
+	if nil != err {
+		logrus.Errorf("marshal interface map failed. %s.", err)
+		return
+	}
+
+	value = string(byteValue)
+
+	return
+}
+
+func (m *StringMap) Scan(src interface{}) (err error) {
+	var source string
+	switch src.(type) {
+	case string:
+		source = src.(string)
+	case []byte:
+		source = string(src.([]byte))
+	default:
+		return errors.New(fmt.Sprintf("Incompatible type %q for StringMap", reflect.TypeOf(src)))
+	}
+
+	if source == "" {
+		source = "null"
+	}
+
+	err = json.Unmarshal([]byte(source), m)
+	if nil != err {
+		logrus.Errorf("unmarshal string slice failed. %s.", err)
+		return
+	}
+
+	return
+}
+
 type Uint32Slice []uint32
 
 func (m Uint32Slice) Value() (value driver.Value, err error) {

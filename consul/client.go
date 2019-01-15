@@ -1,6 +1,8 @@
 package consul
 
 import (
+	"encoding/json"
+
 	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
 	"github.com/hashicorp/consul/api"
 	"github.com/hashicorp/consul/watch"
@@ -50,6 +52,60 @@ func (m *Client) GetSync(key string, localValue LocalValue) (err error) {
 		logrus.Errorf("set local value failed. error: %s.", err)
 		return
 	}
+
+	return
+}
+
+// get
+const Nil = uerrors.StringError("consul: nil")
+
+func (m *Client) GetJson(key string, obj interface{}) (err error) {
+	defer func() {
+		if nil != err {
+			obj = nil
+			return
+		}
+	}()
+
+	pair, _, err := m.Api.KV().Get(key, nil)
+	if nil != err {
+		logrus.Errorf("get key value pair failed. key: %s. error: %s.", key, err)
+		return
+	}
+
+	if pair == nil {
+		err = Nil
+		return
+	}
+
+	err = json.Unmarshal(pair.Value, obj)
+	if nil != err {
+		logrus.Errorf("unmarshal obj failed. error: %s.", err)
+		return
+	}
+
+	return
+}
+
+// put
+func (m *Client) PutJson(key string, obj interface{}, sesId string) (err error) {
+	value, err := json.Marshal(obj)
+	if nil != err {
+		logrus.Errorf("marshal obj failed. error: %s.", err)
+		return
+	}
+
+	meta, err := m.Api.KV().Put(&api.KVPair{
+		Key:     key,
+		Value:   value,
+		Session: sesId,
+	}, nil)
+	if nil != err {
+		logrus.Errorf("put value failed. error: %s.", err)
+		return
+	}
+
+	_ = meta
 
 	return
 }

@@ -65,6 +65,14 @@ func (m *ProjectSource) generateCommonConfig() (err error) {
 		return
 	}
 
+	// session
+	sessionFilePath := fmt.Sprintf("%s/session.go", configDir)
+	err = ioutil.WriteFile(sessionFilePath, []byte(sessionFileText), project.ProjectFileMode)
+	if nil != err {
+		logrus.Errorf("write session file failed. path: %s. error: %s.", sessionFilePath, err)
+		return
+	}
+
 	return
 }
 
@@ -77,6 +85,7 @@ func init() {
 	CheckEnvConfig()
 	CheckServiceConfig()
 	CheckXRayConfig()
+	CheckSessionConfig()
 }
 `
 
@@ -333,5 +342,26 @@ func CheckServiceConfig() {
 		return
 	}
 
+}
+`
+
+var sessionFileText = `package config
+
+import (
+	"service/common/session"
+
+	"github.com/sirupsen/logrus"
+)
+
+func CheckSessionConfig() {
+	var err error
+	CheckAWSConfig()
+	CheckServiceConfig()
+
+	err = session.InitMetrics(ServiceConfig.MetricsNamespace, AWSEc2InstanceIdentifyDocument.InstanceID)
+	if nil != err {
+		logrus.Fatalf("init session metrics failed. error: %s.", err)
+		return
+	}
 }
 `

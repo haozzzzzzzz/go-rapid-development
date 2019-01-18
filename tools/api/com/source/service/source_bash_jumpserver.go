@@ -31,10 +31,14 @@ then
     exit
 fi
 
+cd luohao
+
+jumpZipFile=jump_${stage}_${serviceName}.tar.gz
+tar -xzvf ${jumpZipFile}
+
 zipFile=deploy_${stage}_${serviceName}.zip
 targetServerSh=target_server.sh
 
-cd luohao
 if [ ! -e ${zipFile} ]
 then
     echo "no target zip file ${zipFile} exists"
@@ -46,6 +50,7 @@ scp -i ${targetServerKey} ${zipFile} ${targetServer}:~/
 ssh -i ${targetServerKey} ${targetServer} 'bash -s' < ${targetServerSh} ${stage} ${serviceName}
 
 # 删除本地临时文件
+rm ${jumpZipFile}
 rm ${zipFile}
 rm ${targetServerSh}
 `

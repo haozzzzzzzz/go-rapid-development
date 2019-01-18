@@ -22,13 +22,17 @@ func (m *ServiceSource) generateBashDeploy(shDir string) (err error) {
 var bashDeployFileText = `#!/usr/bin/env bash
 source params.sh
 
+read -p "Input essh password:" -s password
+
+echo ""
 # 复制文件到跳板机
 cd ../stage/${stage}
-scp ./deploy_${stage}_${serviceName}.zip ${jumpServer}:~/luohao/
+echo "[begin] copy package to remote"
+sshpass -p ${password} scp -v ./jump_${stage}_${serviceName}.tar.gz ${jumpServer}:~/luohao/
+echo "[finish] copy package to remote"
 
 cd ../../sh/
-scp target_server.sh ${jumpServer}:~/luohao/
-
+echo "[begin] deploy"
 # 在跳板机执行操作
-ssh ${jumpServer} 'bash -s' < "jump_server.sh" ${stage} ${serviceName} ${targetServerKey} ${targetServer}
-`
+sshpass -p ${password} ssh ${jumpServer} 'bash -s' < "jump_server.sh" ${stage} ${serviceName} ${targetServerKey} ${targetServer}
+echo "[finish] deploy"`

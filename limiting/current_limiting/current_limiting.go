@@ -5,14 +5,8 @@ import (
 
 	"sync"
 
-	"fmt"
-
 	"github.com/sirupsen/logrus"
 )
-
-type Limiting interface {
-	AcceptData(datas ...interface{}) (err error)
-}
 
 type Store interface {
 	Push(datas ...interface{})
@@ -95,7 +89,7 @@ func (m *MinuteFrequencyLimiting) Start() (err error) {
 	// workers
 	for i := uint(0); i < m.WorkerNumber; i++ {
 		go func(workerId uint) {
-			fmt.Println("running worker")
+			logrus.Printf("running minute frequency limiting worker_%d", workerId)
 			var err error
 			for { // 循环做任务
 				datas, ok := <-datasC
@@ -103,7 +97,6 @@ func (m *MinuteFrequencyLimiting) Start() (err error) {
 					return
 				}
 
-				fmt.Printf("worker: %d, data: %#v\n", workerId, datas)
 				err = m.Handler(datas...)
 				if nil != err {
 					logrus.Errorf("handle data failed. %s", err)

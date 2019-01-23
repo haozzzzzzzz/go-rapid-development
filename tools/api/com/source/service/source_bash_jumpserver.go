@@ -46,8 +46,8 @@ then
 fi
 
 # 拷贝文件到远程主机
-scp -i ${targetServerKey} ${zipFile} ${targetServer}:~/
-ssh -i ${targetServerKey} ${targetServer} 'bash -s' < ${targetServerSh} ${stage} ${serviceName}
+scp -o StrictHostKeyChecking=no -i ${targetServerKey} ${zipFile} ${targetServer}:~/
+ssh -o StrictHostKeyChecking=no -i ${targetServerKey} ${targetServer} 'bash -s' < ${targetServerSh} ${stage} ${serviceName}
 
 # 删除本地临时文件
 rm ${jumpZipFile}

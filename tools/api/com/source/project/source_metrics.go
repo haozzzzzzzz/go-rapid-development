@@ -41,10 +41,6 @@ var (
 	// ec2 instance id
 	Ec2InstanceId string
 
-	// 服务次数统计
-	SERVICE_TIMES_COUNTER_VEC   *prometheus.CounterVec
-	SERVICE_TIMES_COUNTER_APP_PANIC    prometheus.Counter // app service panic
-	SERVICE_TIMES_COUNTER_MANAGE_PANIC prometheus.Counter // manage service panic
 )
 
 func init() {
@@ -52,24 +48,5 @@ func init() {
 
 	MetricsNamespace = config.ServiceConfig.MetricsNamespace
 	Ec2InstanceId = config.AWSEc2InstanceIdentifyDocument.InstanceID
-
-	// system次数统计
-	SERVICE_TIMES_COUNTER_VEC, err = metrics.NewCounterVec(
-		MetricsNamespace,
-		"system",
-		"service_times",
-		"服务次数统计",
-		[]string{"instance", "origin", "type"},
-	)
-	if nil != err {
-		logrus.Fatal(err)
-		return
-	}
-
-	// app service panic
-	SERVICE_TIMES_COUNTER_APP_PANIC = SERVICE_TIMES_COUNTER_VEC.WithLabelValues(Ec2InstanceId, "app", "panic")
-	// manage service panic
-	SERVICE_TIMES_COUNTER_MANAGE_PANIC = SERVICE_TIMES_COUNTER_VEC.WithLabelValues(Ec2InstanceId, "manage", "panic")
-
 }
 `

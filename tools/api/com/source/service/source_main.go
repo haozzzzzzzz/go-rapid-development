@@ -69,14 +69,6 @@ import (
 )
 
 func main() {
-	// metric
-	defer func() {
-		if err := recover(); err != nil {
-			logrus.Error(err)
-			metrics.$METRIC_PANIC_COUNTER$.Inc()
-		}
-	}()
-
 	runParams := &RunParams{}
 	mainCmd := &cobra.Command{
 		Long: fmt.Sprintf("%s service", constant.ServiceName),

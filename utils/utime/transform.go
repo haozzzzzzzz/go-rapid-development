@@ -14,7 +14,7 @@ func DayStartTime(t time.Time) (dayStartTime time.Time) {
 
 func DayStartTimeOffset(t time.Time, dayOffset int) (dayStartTime time.Time) {
 	thisDayStartTime := DayStartTime(t)
-	dayStartTime = thisDayStartTime.Add(24 * time.Duration(dayOffset))
+	dayStartTime = thisDayStartTime.Add(24 * time.Duration(dayOffset) * time.Hour)
 	return
 }
 

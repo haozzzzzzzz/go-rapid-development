@@ -7,7 +7,11 @@ import (
 	"github.com/hashicorp/consul/api"
 	"github.com/hashicorp/consul/watch"
 	"github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
 )
+
+// get
+const Nil = uerrors.StringError("consul: nil")
 
 type LocalValue interface {
 	// should add lock, multi goroutines access
@@ -56,17 +60,8 @@ func (m *Client) GetSync(key string, localValue LocalValue) (err error) {
 	return
 }
 
-// get
-const Nil = uerrors.StringError("consul: nil")
-
-func (m *Client) GetJson(key string, obj interface{}) (err error) {
-	defer func() {
-		if nil != err {
-			obj = nil
-			return
-		}
-	}()
-
+// get string
+func (m *Client) GetString(key string) (value string, err error) {
 	pair, _, err := m.Api.KV().Get(key, nil)
 	if nil != err {
 		logrus.Errorf("get key value pair failed. key: %s. error: %s.", key, err)
@@ -78,9 +73,38 @@ func (m *Client) GetJson(key string, obj interface{}) (err error) {
 		return
 	}
 
-	err = json.Unmarshal(pair.Value, obj)
+	value = string(pair.Value)
+
+	return
+}
+
+// get yaml
+func (m *Client) GetYaml(key string, obj interface{}) (err error) {
+	value, err := m.GetString(key)
 	if nil != err {
-		logrus.Errorf("unmarshal obj failed. error: %s.", err)
+		logrus.Errorf("get consul value failed. error: %s.", err)
+		return
+	}
+
+	err = yaml.Unmarshal([]byte(value), obj)
+	if nil != err {
+		logrus.Errorf("unmarshal consul value to yaml obj failed. error: %s.", err)
+		return
+	}
+
+	return
+}
+
+func (m *Client) GetJson(key string, obj interface{}) (err error) {
+	value, err := m.GetString(key)
+	if nil != err {
+		logrus.Errorf("get consul value failed. error: %s.", err)
+		return
+	}
+
+	err = json.Unmarshal([]byte(value), obj)
+	if nil != err {
+		logrus.Errorf("unmarshal consul value to json obj failed. error: %s.", err)
 		return
 	}
 

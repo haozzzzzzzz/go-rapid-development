@@ -75,6 +75,18 @@ var (
 		Message: "request was rejected",
 	}
 
+	// session无效
+	CodeErrorSession = &ApiCode{
+		Code:    1008,
+		Message: "invalid session",
+	}
+
+	// 请求参数错误
+	CodeErrorRequestParams = &ApiCode{
+		Code:    1009,
+		Message: "verify request params failed",
+	}
+
 	// proxy
 	CodeErrorProxyFailed = &ApiCode{
 		Code:    1100,

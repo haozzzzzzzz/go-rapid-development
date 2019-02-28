@@ -202,6 +202,23 @@ func (m *Client) SetNX(key string, value interface{}, expiration time.Duration) 
 	return
 }
 
+// incr
+func (m *Client) Incr(key string) (result int64, err error) {
+	cmder := m.RedisClient.Incr(key)
+
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+
+	return
+}
+
 func (m *Client) Del(keys ...string) (result int64, err error) {
 	cmder := m.RedisClient.Del(keys...)
 

@@ -219,6 +219,21 @@ func (m *Client) Incr(key string) (result int64, err error) {
 	return
 }
 
+func (m *Client) IncrBy(key string, value int64) (result int64, err error) {
+	cmder := m.RedisClient.IncrBy(key, value)
+
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+	return
+}
+
 func (m *Client) Del(keys ...string) (result int64, err error) {
 	cmder := m.RedisClient.Del(keys...)
 

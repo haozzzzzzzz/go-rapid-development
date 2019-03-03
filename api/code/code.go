@@ -87,6 +87,12 @@ var (
 		Message: "verify request params failed",
 	}
 
+	// 请求过于频繁
+	CodeErrorRequestFrequently = &ApiCode{
+		Code:    1010,
+		Message: "request frequently",
+	}
+
 	// proxy
 	CodeErrorProxyFailed = &ApiCode{
 		Code:    1100,

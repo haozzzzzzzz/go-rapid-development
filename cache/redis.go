@@ -688,5 +688,6 @@ func (m *Client) LTrim(key string, start int64, stop int64) (result string, err 
 
 	result, err = cmder.Result()
 
+	m.RedisClient.Pipeline()
 	return
 }

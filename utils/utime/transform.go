@@ -15,11 +15,6 @@ func DayStartTimeOffset(t time.Time, dayOffset int) (dayStartTime time.Time) {
 	return
 }
 
-func TodayStartTime() (today time.Time) {
-	today = DayStartTime(time.Now())
-	return
-}
-
 // 一周的开始时间，从周一开始
 func WeekStartTime(t time.Time) (weekStartTime time.Time) {
 	dayStart := DayStartTime(t)

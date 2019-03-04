@@ -35,7 +35,7 @@ func WeekStartTime(t time.Time) (weekStartTime time.Time) {
 	weekStartTime = time.Unix(weekStartUnix, 0).In(t.Location())
 
 	if weekDay == 0 { // 周日属于上一周
-		weekStartTime = OffsetWeekStartTime(weekStartTime, -1)
+		weekStartTime = WeekStartTimeOffset(weekStartTime, -1)
 	}
 
 	return
@@ -54,7 +54,7 @@ func MonthStartTimeOffset(t time.Time, monthOffset int) (monthStartTime time.Tim
 }
 
 // 前（后）几周的开始时间
-func OffsetWeekStartTime(weekStartTime time.Time, offset int) (thatWeekStartTime time.Time) {
+func WeekStartTimeOffset(weekStartTime time.Time, offset int) (thatWeekStartTime time.Time) {
 	var secondsWeekOffset = 60 * 60 * 24 * 7 * time.Duration(offset)
 	thatWeekStartTime = weekStartTime.Add(secondsWeekOffset * time.Second)
 	return

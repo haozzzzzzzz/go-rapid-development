@@ -49,7 +49,8 @@ func MonthStartTimeOffset(t time.Time, monthOffset int) (monthStartTime time.Tim
 }
 
 // 前（后）几周的开始时间
-func WeekStartTimeOffset(weekStartTime time.Time, offset int) (thatWeekStartTime time.Time) {
+func WeekStartTimeOffset(t time.Time, offset int) (thatWeekStartTime time.Time) {
+	weekStartTime := WeekStartTime(t)
 	var secondsWeekOffset = 60 * 60 * 24 * 7 * time.Duration(offset)
 	thatWeekStartTime = weekStartTime.Add(secondsWeekOffset * time.Second)
 	return

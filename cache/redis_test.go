@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis"
+	"github.com/sirupsen/logrus"
 )
 
 var rawRedisClient *redis.Client
@@ -68,5 +69,17 @@ func TestClient_Set(t *testing.T) {
 		return
 	}
 
+	fmt.Println(result)
+}
+
+func TestClient_WatchGetOrSet(t *testing.T) {
+	key := "test_watch"
+	isNew, result, err := redisClient.WatchGetOrSet(key, "1", 1*time.Hour)
+	if nil != err {
+		logrus.Errorf("watch get or set failed. error: %s.", err)
+		return
+	}
+
+	fmt.Println(isNew)
 	fmt.Println(result)
 }

@@ -93,6 +93,12 @@ var (
 		Message: "request frequently",
 	}
 
+	// 请求条件不符
+	CodeErrorConditionCheckFailed = &ApiCode{
+		Code:    1011,
+		Message: "condition check failed",
+	}
+
 	// proxy
 	CodeErrorProxyFailed = &ApiCode{
 		Code:    1100,

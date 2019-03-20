@@ -99,12 +99,19 @@ var (
 		Message: "condition check failed",
 	}
 
+	// 请求资源不存在
+	CodeErrorResourceNotExists = &ApiCode{
+		Code:    1012,
+		Message: "resource not exists",
+	}
+
 	// proxy
 	CodeErrorProxyFailed = &ApiCode{
 		Code:    1100,
 		Message: "proxy failed",
 	}
 
+	// 请求api失败
 	CodeErrorProxyRequestFailed = &ApiCode{
 		Code:    1101,
 		Message: "request porxy failed",

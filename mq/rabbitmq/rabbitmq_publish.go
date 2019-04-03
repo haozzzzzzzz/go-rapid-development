@@ -91,7 +91,6 @@ func (m *ExchangePublisher) connect() (err error) {
 			for {
 				select {
 				case msg := <-m.msgC:
-					logrus.Printf("chanel publish : %d ", channelOrder)
 					if msg == nil {
 						return
 					}

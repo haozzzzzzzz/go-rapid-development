@@ -20,8 +20,8 @@ func UnmarshalJsonFromReader(reader io.Reader, v interface{}) error {
 	}
 
 	err = json.Unmarshal(bytes, v)
-
 	if err != nil {
+		logrus.Errorf("unmarshal json from reader's content failed. content: %s. error: %s.", string(bytes), err)
 		return err
 	}
 

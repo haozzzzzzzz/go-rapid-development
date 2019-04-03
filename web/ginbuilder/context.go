@@ -126,6 +126,15 @@ func (m *Context) BindPostData(postData interface{}) (retCode *code.ApiCode, err
 	return
 }
 
+// form-urlencoded
+func (m *Context) BindPostForm(postData interface{}) (err error) {
+	err = m.GinContext.MustBindWith(postData, binding.FormPost)
+	if nil != err {
+		return
+	}
+	return
+}
+
 func (m *Context) BindPathData(pathData interface{}) (retCode *code.ApiCode, err error) {
 	defer func() {
 		if err != nil {
@@ -218,5 +227,14 @@ func (m *Context) StatusFoundRedirect(location string) {
 
 func (m *Context) StatusNotFoundWarnf(logFormat string, logArgs ...interface{}) {
 	m.GinContext.Status(http.StatusNotFound)
+	m.Logger.Errorf(logFormat, logArgs...)
+}
+
+func (m *Context) String(result string) {
+	m.GinContext.String(http.StatusOK, result)
+}
+
+func (m *Context) StringErrorf(result string, logFormat string, logArgs ...interface{}) {
+	m.GinContext.String(http.StatusOK, result)
 	m.Logger.Errorf(logFormat, logArgs...)
 }

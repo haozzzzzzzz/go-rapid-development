@@ -20,6 +20,18 @@ type Client struct {
 	UrlPrefix  string
 }
 
+func NewClient(
+	ctx context.Context,
+	httpClient *http2.Client,
+	urlPrefix string,
+) *Client {
+	return &Client{
+		Ctx:        ctx,
+		HttpClient: httpClient,
+		UrlPrefix:  urlPrefix,
+	}
+}
+
 func (m *Client) Get(
 	urlPath string,
 	iRespData interface{},

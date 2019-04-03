@@ -6,4 +6,5 @@ import (
 )
 
 var RequestClientWithXray = xray.Client(http.RequestClient)
+var LongTimeoutRequestClientWithXray = xray.Client(http.LongTimeoutRequestClient)
 var NoTimeoutRequestClientWithXray = xray.Client(http.NoTimeoutRequestClient)

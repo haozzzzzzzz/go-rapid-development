@@ -105,6 +105,11 @@ var (
 		Message: "resource not exists",
 	}
 
+	CodeErrorPostFormParams = &ApiCode{
+		Code:    1013,
+		Message: "verify post form params failed",
+	}
+
 	// proxy
 	CodeErrorProxyFailed = &ApiCode{
 		Code:    1100,

@@ -42,6 +42,10 @@ func (m *QueueConsumer) Start() {
 		go func(workerOrder uint32) {
 			for msg := range m.msgC {
 				func(msg *amqp.Delivery) {
+					if msg == nil {
+						return
+					}
+
 					var errGo error
 					defer func() {
 						if iRec := recover(); iRec != nil {

@@ -5,6 +5,10 @@ import (
 	"testing"
 )
 
+func TestToFloat(t *testing.T) {
+	fmt.Println(ToFloat("1.1"))
+}
+
 func TestFloatDecimal(t *testing.T) {
 	fmt.Println(FloatDecimalPrecise(0.01, 1))
 	fmt.Println(FloatDecimalPrecise(1.1234567, 1))

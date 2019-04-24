@@ -71,14 +71,14 @@ const TradeStatusTimeout string = "timeout"
 const TradeStatusCancel string = "cancel"
 
 type PayoutAsyncNotifyPostData struct {
-	TradeNo     string `json:"tradeNo" form:"tradeNo" structs:"trade_no" binding:"required"`
-	MerTransNo  string `json:"merTransNo" form:"merTransNo" structs:"mer_trans_no" binding:"required"`
+	TradeNo     string `json:"tradeNo" form:"tradeNo" structs:"tradeNo" binding:"required"`
+	MerTransNo  string `json:"merTransNo" form:"merTransNo" structs:"merTransNo" binding:"required"`
 	Currency    string `json:"currency" form:"currency" structs:"currency" binding:"required"`
 	Amount      string `json:"amount" form:"amount" structs:"amount" binding:"required"`
-	TotalFee    string `json:"totalFee" form:"totalFee" structs:"total_fee" binding:"required"`
-	TradeStatus string `json:"tradeStatus" form:"tradeStatus" structs:"trade_status" binding:"required"`
-	CreateTime  string `json:"createTime" form:"createTime" structs:"create_time" binding:"required"` // 北京时间 GMT +8
-	UpdateTime  string `json:"updateTime" form:"updateTime" structs:"update_time" binding:"required"` // 北京时间
+	TotalFee    string `json:"totalFee" form:"totalFee" structs:"totalFee" binding:"required"`
+	TradeStatus string `json:"tradeStatus" form:"tradeStatus" structs:"tradeStatus" binding:"required"`
+	CreateTime  string `json:"createTime" form:"createTime" structs:"createTime" binding:"required"` // 北京时间 GMT +8
+	UpdateTime  string `json:"updateTime" form:"updateTime" structs:"updateTime" binding:"required"` // 北京时间
 	Sign        string `json:"sign" form:"sign" structs:"sign" binding:"required"`
 }
 
@@ -163,9 +163,6 @@ func DokypaySign(params map[string]interface{}, signKey string) (strSign string)
 	}
 
 	pairs = append(pairs, fmt.Sprintf("key=%s", signKey))
-	for _, pair := range pairs {
-		fmt.Println(pair)
-	}
 	originStr := strings.Join(pairs, "&")
 	strSign = str.Sha256([]byte(originStr))
 	return

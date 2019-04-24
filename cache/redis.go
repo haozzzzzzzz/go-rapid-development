@@ -489,6 +489,22 @@ func (m *Client) SRandMemberN(key string, count int64) (result []string, err err
 	return
 }
 
+func (m *Client) SPopN(key string, count int64) (result []string, err error) {
+	cmder := m.RedisClient.SPopN(key, count)
+
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, cmder)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	result, err = cmder.Result()
+
+	return
+}
+
 // sorted set
 func (m *Client) ZCard(key string) (result int64, err error) {
 	cmder := m.RedisClient.ZCard(key)

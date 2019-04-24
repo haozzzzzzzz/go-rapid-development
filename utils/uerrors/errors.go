@@ -16,4 +16,4 @@ func (m StringError) Error() string {
 }
 
 // 查询不到记录
-const ErrQueryNoRecord StringError = "Err query no record"
+const ErrQueryNoRecord StringError = "error: query no record"

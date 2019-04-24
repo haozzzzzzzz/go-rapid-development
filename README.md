@@ -1,4 +1,8 @@
 # go-rapid-development
 go快速开发库
 
-目前建议结合go-lambda库进行使用
+主要功能：
+
+- api开发框架
+- aws相关库
+- 部分小工具

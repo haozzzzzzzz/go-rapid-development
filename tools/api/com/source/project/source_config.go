@@ -25,6 +25,22 @@ func (m *ProjectSource) generateCommonConfig() (err error) {
 		return
 	}
 
+	// log
+	logFilePath := fmt.Sprintf("%s/log.go", configDir)
+	err = ioutil.WriteFile(logFilePath, []byte(logFileText), project.ProjectFileMode)
+	if nil != err {
+		logrus.Errorf("write log file failed. path: %s. error: %s.", logFilePath, err)
+		return
+	}
+
+	// consul
+	consulFilePath := fmt.Sprintf("%s/consul.go", configDir)
+	err = ioutil.WriteFile(consulFilePath, []byte(consulFileText), project.ProjectFileMode)
+	if nil != err {
+		logrus.Errorf("write consul file failed. error: %s.", err)
+		return
+	}
+
 	// env
 	envFilePath := fmt.Sprintf("%s/env.go", configDir)
 	err = ioutil.WriteFile(envFilePath, []byte(envFileText), project.ProjectDirMode)
@@ -49,14 +65,6 @@ func (m *ProjectSource) generateCommonConfig() (err error) {
 		return
 	}
 
-	// log
-	logFilePath := fmt.Sprintf("%s/log.go", configDir)
-	err = ioutil.WriteFile(logFilePath, []byte(logFileText), project.ProjectFileMode)
-	if nil != err {
-		logrus.Errorf("write log file failed. path: %s. error: %s.", logFilePath, err)
-		return
-	}
-
 	// service
 	serviceFilePath := fmt.Sprintf("%s/service.go", configDir)
 	err = ioutil.WriteFile(serviceFilePath, []byte(serviceFileText), project.ProjectFileMode)
@@ -73,6 +81,14 @@ func (m *ProjectSource) generateCommonConfig() (err error) {
 		return
 	}
 
+	// http
+	httpFilePath := fmt.Sprintf("%s/http.go", configDir)
+	err = ioutil.WriteFile(httpFilePath, []byte(httpFileText), project.ProjectFileMode)
+	if nil != err {
+		logrus.Errorf("write http file failed. error: %s.", err)
+		return
+	}
+
 	return
 }
 
@@ -81,11 +97,63 @@ var initFileText = `package config
 func init() {
 	CheckLogConfig()
 	
+	CheckConsulConfig()
 	CheckAWSConfig()
 	CheckEnvConfig()
 	CheckServiceConfig()
 	CheckXRayConfig()
 	CheckSessionConfig()
+	CheckHttpConfig()
+}
+`
+
+var consulFileText = `package config
+
+import (
+	"github.com/go-playground/validator"
+	"github.com/haozzzzzzzz/go-rapid-development/consul"
+	"github.com/haozzzzzzzz/go-rapid-development/utils/yaml"
+	"github.com/sirupsen/logrus"
+)
+
+type ConsulConfigFormat struct {
+	ClientConfig *consul.ClientConfigFormat ` + "`" + `yaml:"client_config" validate:"required,required"` + "`" + `
+	KeyPrefix    string                     ` + "`" + `yaml:"key_prefix" validate:"required"` + "`" + `
+}
+
+var ConsulConfig *ConsulConfigFormat
+var consulClient *consul.Client
+
+func CheckConsulConfig() {
+	if ConsulConfig != nil {
+		return
+	}
+
+	logrus.Info("checking consul config")
+	ConsulConfig = &ConsulConfigFormat{}
+	var err error
+	err = yaml.ReadYamlFromFile("./config/consul.yaml", ConsulConfig)
+	if nil != err {
+		logrus.Fatalf("read consul config failed. %s", err)
+		return
+	}
+
+	err = validator.New().Struct(ConsulConfig)
+	if nil != err {
+		logrus.Fatalf("validate consul config failed. %s", err)
+		return
+	}
+
+	consulClient, err = consul.NewClient(ConsulConfig.ClientConfig)
+	if nil != err {
+		logrus.Fatalf("new consult client failed. error: %s.", err)
+		return
+	}
+}
+
+func GetConsulClient() *consul.Client {
+	CheckConsulConfig()
+	return consulClient
 }
 `
 
@@ -115,9 +183,11 @@ func CheckEnvConfig() {
 		return
 	}
 
+	CheckConsulConfig()
+
 	EnvConfig = &EnvConfigFormat{}
 	var err error
-	err = yaml.ReadYamlFromFile("./config/env.yaml", EnvConfig)
+	err = GetConsulClient().GetYaml(ConsulConfig.KeyPrefix+"/env.yaml", EnvConfig)
 	if nil != err {
 		logrus.Errorf("read env config file failed. %s.", err)
 		return
@@ -157,9 +227,10 @@ func CheckAWSConfig() {
 		return
 	}
 
+	CheckConsulConfig()
 	AWSConfig = &AWSConfigFormat{}
 	var err error
-	err = yaml.ReadYamlFromFile("./config/aws.yaml", AWSConfig)
+	err = GetConsulClient().GetYaml(ConsulConfig.KeyPrefix+"/aws.yaml", AWSConfig)
 	if nil != err {
 		logrus.Fatalf("read aws config file failed. %s", err)
 		return
@@ -214,9 +285,10 @@ func CheckXRayConfig() {
 		return
 	}
 
+	CheckConsulConfig()
 	XRayConfig = &XRayConfigFormat{}
 	var err error
-	err = yaml.ReadYamlFromFile("./config/xray.yaml", XRayConfig)
+	err = GetConsulClient().GetYaml(ConsulConfig.KeyPrefix+"/xray.yaml", XRayConfig)
 	if nil != err {
 		logrus.Fatalf("read xray config failed. %s", err)
 		return
@@ -328,9 +400,11 @@ func CheckServiceConfig() {
 		return
 	}
 
+	CheckConsulConfig()
+
 	ServiceConfig = &ServiceConfigFormat{}
 	var err error
-	err = yaml.ReadYamlFromFile("./config/service.yaml", ServiceConfig)
+	err = GetConsulClient().GetYaml(ConsulConfig.KeyPrefix+"/service.yaml", ServiceConfig)
 	if nil != err {
 		logrus.Fatalf("read service config file failed. %s", err)
 		return
@@ -361,6 +435,27 @@ func CheckSessionConfig() {
 	err = session.InitMetrics(ServiceConfig.MetricsNamespace, AWSEc2InstanceIdentifyDocument.InstanceID)
 	if nil != err {
 		logrus.Fatalf("init session metrics failed. error: %s.", err)
+		return
+	}
+}
+`
+
+var httpFileText = `package config
+
+import (
+	"service/common/http"
+
+	"github.com/sirupsen/logrus"
+)
+
+func CheckHttpConfig() {
+	var err error
+	CheckAWSConfig()
+	CheckServiceConfig()
+
+	err = http.InitMetrics(ServiceConfig.MetricsNamespace, AWSEc2InstanceIdentifyDocument.InstanceID)
+	if nil != err {
+		logrus.Fatalf("init http remote request metrics failed. %s", err)
 		return
 	}
 }

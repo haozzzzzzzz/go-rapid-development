@@ -35,7 +35,7 @@ func (m *ProjectSource) generateCommonStage() (err error) {
 
 func (m *ProjectSource) generateStageFiles(stageDir string, stage project2.Stage) (err error) {
 	stageConfigDir := fmt.Sprintf("%s/%s/config", stageDir, stage)
-	err = os.MkdirAll(stageConfigDir, project2.ProjectDirMode)
+	err = os.MkdirAll(fmt.Sprintf("%s/consul_template", stageConfigDir), project2.ProjectDirMode)
 	if nil != err {
 		logrus.Errorf("make project stage dev dir %q failed. %s.", stageConfigDir, err)
 		return
@@ -94,36 +94,6 @@ func (m *ProjectSource) generateStageFiles(stageDir string, stage project2.Stage
 		return
 	}
 
-	// env.yaml
-	envConfigFilePath := fmt.Sprintf("%s/env.yaml", stageConfigDir)
-	envConfigFileBytes, err := yaml.Marshal(envConfig)
-	if nil != err {
-		logrus.Errorf("yaml marshal env config failed. %s.", err)
-		return
-	}
-
-	err = ioutil.WriteFile(envConfigFilePath, envConfigFileBytes, project2.ProjectFileMode)
-	if nil != err {
-		logrus.Errorf("write env config file %q failed. %s.", envConfigFilePath, err)
-		return
-	}
-
-	// aws.yaml
-	awsConfigFilePath := fmt.Sprintf("%s/aws.yaml", stageConfigDir)
-	err = ioutil.WriteFile(awsConfigFilePath, []byte(awsConfigFileText), project2.ProjectFileMode)
-	if nil != err {
-		logrus.Errorf("write aws config file %q failed. %s.", awsConfigFilePath, err)
-		return
-	}
-
-	// xray.yaml
-	xrayConfigFilePath := fmt.Sprintf("%s/xray.yaml", stageConfigDir)
-	err = ioutil.WriteFile(xrayConfigFilePath, []byte(xrayConfigFileText), project2.ProjectFileMode)
-	if nil != err {
-		logrus.Errorf("write xray config file %q failed. %s.", xrayConfigFilePath, err)
-		return
-	}
-
 	// log.yaml
 	logConfigFilePath := fmt.Sprintf("%s/log.yaml", stageConfigDir)
 	logConfigFileBytes, err := yaml.Marshal(logConfig)
@@ -138,8 +108,46 @@ func (m *ProjectSource) generateStageFiles(stageDir string, stage project2.Stage
 		return
 	}
 
+	// consul.yaml
+	consulConfigFilePath := fmt.Sprintf("%s/consul.yaml", stageConfigDir)
+	err = ioutil.WriteFile(consulConfigFilePath, []byte(consulConfigFileText), project2.ProjectFileMode)
+	if nil != err {
+		logrus.Errorf("write consul config file %q failed. error: %s.", consulConfigFilePath, err)
+		return
+	}
+
+	// env.yaml
+	envConfigFilePath := fmt.Sprintf("%s/consul_template/env.yaml", stageConfigDir)
+	envConfigFileBytes, err := yaml.Marshal(envConfig)
+	if nil != err {
+		logrus.Errorf("yaml marshal env config failed. %s.", err)
+		return
+	}
+
+	err = ioutil.WriteFile(envConfigFilePath, envConfigFileBytes, project2.ProjectFileMode)
+	if nil != err {
+		logrus.Errorf("write env config file %q failed. %s.", envConfigFilePath, err)
+		return
+	}
+
+	// aws.yaml
+	awsConfigFilePath := fmt.Sprintf("%s/consul_template/aws.yaml", stageConfigDir)
+	err = ioutil.WriteFile(awsConfigFilePath, []byte(awsConfigFileText), project2.ProjectFileMode)
+	if nil != err {
+		logrus.Errorf("write aws config file %q failed. %s.", awsConfigFilePath, err)
+		return
+	}
+
+	// xray.yaml
+	xrayConfigFilePath := fmt.Sprintf("%s/consul_template/xray.yaml", stageConfigDir)
+	err = ioutil.WriteFile(xrayConfigFilePath, []byte(xrayConfigFileText), project2.ProjectFileMode)
+	if nil != err {
+		logrus.Errorf("write xray config file %q failed. %s.", xrayConfigFilePath, err)
+		return
+	}
+
 	// service.yaml
-	serviceConfigFilePath := fmt.Sprintf("%s/service.yaml", stageConfigDir)
+	serviceConfigFilePath := fmt.Sprintf("%s/consul_template/service.yaml", stageConfigDir)
 	serviceConfigFileBytes, err := yaml.Marshal(serviceConfig)
 	if nil != err {
 		logrus.Errorf("yaml marshal service config failed. error: %s.", err)
@@ -159,3 +167,6 @@ var awsConfigFileText = `region: ap-south-1`
 var xrayConfigFileText = `daemon_address: "127.0.0.1:3000"
 log_level: "warn"
 service_version: "1.2.3"`
+var consulConfigFileText = `client_config:
+  address: ""
+key_prefix: ""`

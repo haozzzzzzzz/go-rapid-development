@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator"
+	"github.com/haozzzzzzzz/go-rapid-development/tools/goimports"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/file"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/printutil"
 	"github.com/sirupsen/logrus"
@@ -94,8 +95,11 @@ func (m *ApiParser) ScanApi() (apis []*ApiItem, err error) {
 			apiItem.ApiHandlerFunc = objName
 			apiItem.ApiHandlerPackage = packageName
 			relativeDir := filepath.Dir(fileName)
-			relativePackageDir := strings.Replace(relativeDir, path+"/", "", 1)
-			apiItem.RelativePackage = strings.Replace(relativePackageDir, "/", "_", -1)
+			relativePackageDir := strings.Replace(relativeDir, path, "", 1)
+			if relativePackageDir != "" { // 子目录
+				relativePackageDir = strings.Replace(relativePackageDir, "/", "", 1)
+				apiItem.RelativePackage = strings.Replace(relativePackageDir, "/", "_", -1)
+			}
 
 			for _, value := range valueSpec.Values {
 				compositeLit, ok := value.(*ast.CompositeLit)
@@ -315,7 +319,12 @@ func (m *ApiParser) MapApi() (err error) {
 
 	newRoutersFileMiddle := bytes.NewBuffer(nil)
 	for _, apiItem := range apis {
-		str := fmt.Sprintf("    engine.Handle(\"%s\", \"%s\", %s.%s.GinHandler)\n", apiItem.HttpMethod, apiItem.RelativePath, apiItem.RelativePackage, apiItem.ApiHandlerFunc)
+		strHandleFunc := apiItem.ApiHandlerFunc
+		if apiItem.RelativePackage != "" {
+			strHandleFunc = fmt.Sprintf("%s.%s", apiItem.RelativePackage, apiItem.ApiHandlerFunc)
+		}
+
+		str := fmt.Sprintf("    engine.Handle(\"%s\", \"%s\", %s.GinHandler)\n", apiItem.HttpMethod, apiItem.RelativePath, strHandleFunc)
 		newRoutersFileMiddle.Write([]byte(str))
 	}
 
@@ -365,10 +374,10 @@ func (m *ApiParser) MapApi() (err error) {
 		return
 	}
 
-	//logrus.Info("Doing go imports")
-	//// do goimports
-	//goimports.DoGoImports([]string{m.ApiDir}, true)
-	//logrus.Info("Do go imports completed")
+	logrus.Info("Doing go imports")
+	// do goimports
+	goimports.DoGoImports([]string{m.ApiDir}, true)
+	logrus.Info("Do go imports completed")
 
 	// save api.yaml
 	byteYamlApis, err := yaml.Marshal(apis)

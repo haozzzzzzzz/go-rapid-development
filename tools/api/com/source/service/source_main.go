@@ -66,6 +66,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"service/common/operations"
 )
 
 func main() {
@@ -129,8 +130,27 @@ func Run(runParams *RunParams) (err error) {
 	api.BindRouters(engine)
 
 	log.Printf("Running %s on %s:%s\n", serviceName, runParams.Host, runParams.Port)
-
 	address := fmt.Sprintf("%s:%s", runParams.Host, runParams.Port)
+
+	// 注册
+	opTool := &operations.OperationsTool{
+		ServiceName:      constant.ServiceName,
+		MetricsPath:      metricsPath,
+		PrometheusTarget: fmt.Sprintf("%s:%s", config.AWSEc2InstanceIdentifyDocument.PrivateIP, runParams.Port),
+	}
+	err = opTool.RegisterPrometheus()
+	if nil != err {
+		logrus.Errorf("register prometheus failed. %s", err)
+		err = nil // 容错
+	}
+
+	defer func() {
+		err = opTool.UnregisterPrometheus()
+		if nil != err {
+			logrus.Errorf("unregister prometheus failed. %s", err)
+			return
+		}
+	}()
 
 	endless.DefaultReadTimeOut = 10 * time.Second
 	endless.DefaultWriteTimeOut = 10 * time.Second

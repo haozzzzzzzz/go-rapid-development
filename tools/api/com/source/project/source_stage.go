@@ -160,6 +160,14 @@ func (m *ProjectSource) generateStageFiles(stageDir string, stage project2.Stage
 		return
 	}
 
+	// remote_api.yaml
+	remoteApiConfigFilePath := fmt.Sprintf("%s/consul_template/remote_api.yaml", stageConfigDir)
+	err = ioutil.WriteFile(remoteApiConfigFilePath, []byte(remoteApiConfigFileText), project2.ProjectFileMode)
+	if nil != err {
+		logrus.Errorf("write remote api config file %q failed. error: %s.", remoteApiConfigFilePath, err)
+		return
+	}
+
 	return
 }
 
@@ -170,3 +178,5 @@ service_version: "1.2.3"`
 var consulConfigFileText = `client_config:
   address: ""
 key_prefix: ""`
+
+var remoteApiConfigFileText = `operations_rpc_api_url: ""`

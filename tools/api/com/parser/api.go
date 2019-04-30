@@ -1,14 +1,27 @@
-package api
+package parser
 
 type StructDataField struct {
-	Name          string
-	Type          string
-	SubStructData *StructData // 允许多重嵌套
+	Name          string            `json:"name" yaml:"name"`
+	Type          string            `json:"type" yaml:"type"`
+	Tags          map[string]string `json:"tags" yaml:"tags"`
+	SubStructData *StructData       `json:"sub_struct_data" yaml:"sub_struct_data"` // 允许多重嵌套
+}
+
+func NewStructDataField() *StructDataField {
+	return &StructDataField{
+		Tags: make(map[string]string),
+	}
 }
 
 type StructData struct {
-	Name   string
-	Fields []*StructDataField
+	Name   string             `json:"name" yaml:"name"`
+	Fields []*StructDataField `json:"fields" yaml:"fields"`
+}
+
+func NewStructData() *StructData {
+	return &StructData{
+		Fields: make([]*StructDataField, 0),
+	}
 }
 
 type ApiItem struct {

@@ -5,6 +5,7 @@ import (
 )
 
 func TestDokypaySign(t *testing.T) {
+	// 使用dokypay 文档上的测试示例
 	sign := DokypaySign(map[string]interface{}{
 		"amount":      "12.01",
 		"appId":       "1000000126",

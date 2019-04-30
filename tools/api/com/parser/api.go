@@ -1,10 +1,9 @@
 package parser
 
 type StructDataField struct {
-	Name          string            `json:"name" yaml:"name"`
-	Type          string            `json:"type" yaml:"type"`
-	Tags          map[string]string `json:"tags" yaml:"tags"`
-	SubStructData *StructData       `json:"sub_struct_data" yaml:"sub_struct_data"` // 允许多重嵌套
+	Name string            `json:"name" yaml:"name"`
+	Type string            `json:"type" yaml:"type"`
+	Tags map[string]string `json:"tags" yaml:"tags"`
 }
 
 func NewStructDataField() *StructDataField {

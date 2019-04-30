@@ -17,9 +17,12 @@ func TestApiParser_ParseApiFile(t *testing.T) {
 
 	_ = apis
 	for _, item := range apis {
-		fmt.Printf("%#v\n", item.PathData)
-		fmt.Printf("%#v\n", item.QueryData)
+		//fmt.Printf("%#v\n", item.PathData)
+		//fmt.Printf("%#v\n", item.QueryData)
 		fmt.Printf("%#v\n", item.PostData)
-		fmt.Printf("%#v\n", item.RespData)
+		for _, field := range item.PostData.Fields {
+			fmt.Printf("%#v\n", field)
+		}
+		//fmt.Printf("%#v\n", item.RespData)
 	}
 }

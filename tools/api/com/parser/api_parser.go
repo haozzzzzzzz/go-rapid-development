@@ -248,21 +248,31 @@ func ParseStructData(typeSpec *ast.TypeSpec) (structData *StructData) {
 	structData = NewStructData()
 	structData.Name = typeSpec.Name.Name
 	for _, field := range structType.Fields.List {
-		//&ast.Field{Doc:(*ast.CommentGroup)(nil), Names:[]*ast.Ident{(*ast.Ident)(0xc4202b21e0)}, Type:(*ast.Ident)(0xc4202b2200), Tag:(*ast.BasicLit)(0xc4202b2220), Comment:(*ast.CommentGroup)(nil)}
-		structField := NewStructDataField()
-		structField.Name = field.Names[0].Name
-		fieldType := field.Type.(*ast.Ident)
-		structField.Type = fieldType.Name
+		fieldParent := field.Type.(*ast.Ident).Obj
+		if fieldParent != nil { // 复用了其他struct
+			parentStruct := ParseStructData(fieldParent.Decl.(*ast.TypeSpec))
+			for _, pField := range parentStruct.Fields {
+				structData.Fields = append(structData.Fields, pField)
+			}
 
-		tagValue := strings.Replace(field.Tag.Value, "`", "", -1)
-		strPairs := strings.Split(tagValue, " ")
-		for _, pair := range strPairs {
-			pair = strings.Replace(pair, "\"", "", -1)
-			tagPair := strings.Split(pair, ":")
-			structField.Tags[tagPair[0]] = tagPair[1]
+		} else {
+			//&ast.Field{Doc:(*ast.CommentGroup)(nil), Names:[]*ast.Ident{(*ast.Ident)(0xc4202b21e0)}, Type:(*ast.Ident)(0xc4202b2200), Tag:(*ast.BasicLit)(0xc4202b2220), Comment:(*ast.CommentGroup)(nil)}
+			structField := NewStructDataField()
+			structField.Name = field.Names[0].Name
+			fieldType := field.Type.(*ast.Ident)
+			structField.Type = fieldType.Name
+
+			tagValue := strings.Replace(field.Tag.Value, "`", "", -1)
+			strPairs := strings.Split(tagValue, " ")
+			for _, pair := range strPairs {
+				pair = strings.Replace(pair, "\"", "", -1)
+				tagPair := strings.Split(pair, ":")
+				structField.Tags[tagPair[0]] = tagPair[1]
+			}
+
+			structData.Fields = append(structData.Fields, structField)
 		}
 
-		structData.Fields = append(structData.Fields, structField)
 	}
 
 	return

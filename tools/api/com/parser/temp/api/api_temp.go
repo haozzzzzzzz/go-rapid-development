@@ -8,13 +8,17 @@ type Request struct {
 	ReqKey1 string `json:"req_key_1" form:"req_key_1"`
 }
 
+type Field struct {
+	FieldKey1 string `json:"field_key_1" form:"field_key_1"`
+	FieldKey2 string `json:"field_key_2" form:"field_key_2"`
+}
+
 var TestApi ginbuilder.HandleFunc = ginbuilder.HandleFunc{
 	HttpMethod:   "GET",
 	RelativePath: "/test/:name",
 	Handle: func(ctx *ginbuilder.Context) (err error) {
 		// request path data
 		type PathData struct {
-			Request
 			PathKey1 string `json:"path_key_1" form:"path_key_1"`
 			PathKey2 int    `json:"path_key_2" form:"path_key_2"`
 		}
@@ -40,8 +44,10 @@ var TestApi ginbuilder.HandleFunc = ginbuilder.HandleFunc{
 		// request post data
 		type PostData struct {
 			Request
-			PostKey1 string `json:"post_key_1" form:"post_key_1"`
-			PostKey2 int64  `json:"post_key_2" form:"post_key_2"`
+			PostKey1      string                 `json:"post_key_1" form:"post_key_1"`
+			PostKey2      int64                  `json:"post_key_2" form:"post_key_2"`
+			PostFieldKey3 *Field                 `json:"post_field_key_3" form:"post_field_key_3"`
+			PostMapKey4   map[string]interface{} `json:"post_map_key_4" form:"post_map_key_4"`
 		}
 		postData := PostData{}
 		retCode, err = ctx.BindPostData(&postData)

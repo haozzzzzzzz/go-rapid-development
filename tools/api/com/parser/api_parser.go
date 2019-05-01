@@ -239,7 +239,7 @@ func ParseApiFile(fileDir string, fileName string) (apis []*ApiItem, err error) 
 	return
 }
 
-func ParseStructData(typeSpec *ast.TypeSpec) (structData *StructData) {
+func ParseStructData(typeSpec *ast.TypeSpec) (structData *StructType) {
 	structType, ok := typeSpec.Type.(*ast.StructType)
 	if !ok {
 		return
@@ -248,26 +248,49 @@ func ParseStructData(typeSpec *ast.TypeSpec) (structData *StructData) {
 	structData = NewStructData()
 	structData.Name = typeSpec.Name.Name
 	for _, field := range structType.Fields.List {
-		fieldParent := field.Type.(*ast.Ident).Obj
-		if fieldParent != nil { // 复用了其他struct
+		var exprFieldType ast.Expr
+		switch field.Type.(type) {
+		case *ast.StarExpr:
+			exprFieldType = field.Type.(*ast.StarExpr).X
+		default:
+			exprFieldType = field.Type
+		}
+
+		if field.Names == nil { // 复用了其他struct
+			fieldParent := exprFieldType.(*ast.Ident).Obj
 			parentStruct := ParseStructData(fieldParent.Decl.(*ast.TypeSpec))
 			for _, pField := range parentStruct.Fields {
 				structData.Fields = append(structData.Fields, pField)
 			}
 
 		} else {
-			//&ast.Field{Doc:(*ast.CommentGroup)(nil), Names:[]*ast.Ident{(*ast.Ident)(0xc4202b21e0)}, Type:(*ast.Ident)(0xc4202b2200), Tag:(*ast.BasicLit)(0xc4202b2220), Comment:(*ast.CommentGroup)(nil)}
-			structField := NewStructDataField()
-			structField.Name = field.Names[0].Name
-			fieldType := field.Type.(*ast.Ident)
-			structField.Type = fieldType.Name
 
-			tagValue := strings.Replace(field.Tag.Value, "`", "", -1)
-			strPairs := strings.Split(tagValue, " ")
-			for _, pair := range strPairs {
-				pair = strings.Replace(pair, "\"", "", -1)
-				tagPair := strings.Split(pair, ":")
-				structField.Tags[tagPair[0]] = tagPair[1]
+			//&ast.Field{Doc:(*ast.CommentGroup)(nil), Names:[]*ast.Ident{(*ast.Ident)(0xc4202b21e0)}, Type:(*ast.Ident)(0xc4202b2200), Tag:(*ast.BasicLit)(0xc4202b2220), Comment:(*ast.CommentGroup)(nil)}
+			structField := NewField()
+			structField.Name = field.Names[0].Name
+			switch exprFieldType.(type) {
+			case *ast.Ident:
+				fieldType := exprFieldType.(*ast.Ident)
+				structField.Type = fieldType.Name
+
+				tagValue := strings.Replace(field.Tag.Value, "`", "", -1)
+				strPairs := strings.Split(tagValue, " ")
+				for _, pair := range strPairs {
+					pair = strings.Replace(pair, "\"", "", -1)
+					tagPair := strings.Split(pair, ":")
+					structField.Tags[tagPair[0]] = tagPair[1]
+				}
+
+				if fieldType.Obj != nil { // struct
+					structField.Spec = ParseStructData(fieldType.Obj.Decl.(*ast.TypeSpec))
+				}
+
+			case *ast.MapType:
+				fieldType := exprFieldType.(*ast.MapType)
+				mapKey := fieldType.Key.(*ast.Ident).Name
+
+				fmt.Printf("%#v\n", fieldType.Value.(*ast.InterfaceType))
+				_ = mapKey
 			}
 
 			structData.Fields = append(structData.Fields, structField)
@@ -279,8 +302,8 @@ func ParseStructData(typeSpec *ast.TypeSpec) (structData *StructData) {
 }
 
 // TODO
-func parseApiStructData(ident *ast.Ident) (structData *StructData) {
-	structData = &StructData{
+func parseApiStructData(ident *ast.Ident) (structData *StructType) {
+	structData = &StructType{
 		Name: ident.Name,
 	}
 

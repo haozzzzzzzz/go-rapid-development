@@ -239,28 +239,30 @@ func ParseApiFile(fileDir string, fileName string) (apis []*ApiItem, err error) 
 	return
 }
 
-func ParseStructData(typeSpec *ast.TypeSpec) (structData *StructType) {
-	structType, ok := typeSpec.Type.(*ast.StructType)
+// 需要解决调用层级问题
+func parseStructType(typeSpec *ast.TypeSpec, maxLevel int, curLevel int) (structType *StructType) {
+	if curLevel > maxLevel {
+		return
+	}
+
+	specStructType, ok := typeSpec.Type.(*ast.StructType)
 	if !ok {
 		return
 	}
 
-	structData = NewStructData()
-	structData.Name = typeSpec.Name.Name
-	for _, field := range structType.Fields.List {
-		var exprFieldType ast.Expr
-		switch field.Type.(type) {
-		case *ast.StarExpr:
-			exprFieldType = field.Type.(*ast.StarExpr).X
-		default:
-			exprFieldType = field.Type
-		}
+	structType = NewStructType()
+	structType.Name = typeSpec.Name.Name
+	//fmt.Printf("parse_struct_types:%s  max_level: %d cur_level: %d\n", structType.Name, maxLevel, curLevel)
+	for _, field := range specStructType.Fields.List {
+		exprFieldType := rmStarExpr(field.Type)
 
 		if field.Names == nil { // 复用了其他struct
 			fieldParent := exprFieldType.(*ast.Ident).Obj
-			parentStruct := ParseStructData(fieldParent.Decl.(*ast.TypeSpec))
-			for _, pField := range parentStruct.Fields {
-				structData.Fields = append(structData.Fields, pField)
+			parentStruct := parseStructType(fieldParent.Decl.(*ast.TypeSpec), maxLevel, curLevel+1)
+			if parentStruct != nil {
+				for _, pField := range parentStruct.Fields {
+					structType.Fields = append(structType.Fields, pField)
+				}
 			}
 
 		} else {
@@ -268,34 +270,93 @@ func ParseStructData(typeSpec *ast.TypeSpec) (structData *StructType) {
 			//&ast.Field{Doc:(*ast.CommentGroup)(nil), Names:[]*ast.Ident{(*ast.Ident)(0xc4202b21e0)}, Type:(*ast.Ident)(0xc4202b2200), Tag:(*ast.BasicLit)(0xc4202b2220), Comment:(*ast.CommentGroup)(nil)}
 			structField := NewField()
 			structField.Name = field.Names[0].Name
-			switch exprFieldType.(type) {
-			case *ast.Ident:
-				fieldType := exprFieldType.(*ast.Ident)
-				structField.Type = fieldType.Name
 
-				tagValue := strings.Replace(field.Tag.Value, "`", "", -1)
-				strPairs := strings.Split(tagValue, " ")
-				for _, pair := range strPairs {
-					pair = strings.Replace(pair, "\"", "", -1)
-					tagPair := strings.Split(pair, ":")
-					structField.Tags[tagPair[0]] = tagPair[1]
-				}
-
-				if fieldType.Obj != nil { // struct
-					structField.Spec = ParseStructData(fieldType.Obj.Decl.(*ast.TypeSpec))
-				}
-
-			case *ast.MapType:
-				fieldType := exprFieldType.(*ast.MapType)
-				mapKey := fieldType.Key.(*ast.Ident).Name
-
-				fmt.Printf("%#v\n", fieldType.Value.(*ast.InterfaceType))
-				_ = mapKey
+			tagValue := strings.Replace(field.Tag.Value, "`", "", -1)
+			strPairs := strings.Split(tagValue, " ")
+			for _, pair := range strPairs {
+				pair = strings.Replace(pair, "\"", "", -1)
+				tagPair := strings.Split(pair, ":")
+				structField.Tags[tagPair[0]] = tagPair[1]
 			}
 
-			structData.Fields = append(structData.Fields, structField)
+			iType := parseTypeSpec(exprFieldType, maxLevel, curLevel+1)
+			structField.Type = iType.TypeName()
+			structField.TypeSpec = iType
+
+			structType.Fields = append(structType.Fields, structField)
 		}
 
+	}
+
+	return
+}
+
+func rmStarExpr(expr ast.Expr) (newExpr ast.Expr) {
+	switch expr.(type) {
+	case *ast.StarExpr:
+		newExpr = expr.(*ast.StarExpr).X
+
+	default:
+		newExpr = expr
+
+	}
+
+	return
+}
+
+// iType 一定不为nil，即使不向下递归也要返回Name
+func parseTypeSpec(typeExpr ast.Expr, maxLevel int, curLevel int) (iType IType) {
+	typeExpr = rmStarExpr(typeExpr) // 转换引用类型
+
+	//fmt.Printf("parse_type_spec:%s max_level:%d cur_level:%d\n", typeExpr, maxLevel, curLevel)
+
+	switch typeExpr.(type) {
+	case *ast.Ident:
+		ident := typeExpr.(*ast.Ident)
+		if ident.Obj == nil { // 标准类型
+			standType := StandardType(ident.Name)
+			iType = standType
+
+		} else { // 自定义类型
+			structType := NewStructType()
+			structType.Name = ident.Name
+			if curLevel <= maxLevel {
+				parsed := parseStructType(ident.Obj.Decl.(*ast.TypeSpec), maxLevel, curLevel)
+				if parsed != nil {
+					structType = parsed
+				}
+			}
+
+			iType = structType
+		}
+
+	case *ast.MapType:
+		exprMapType := typeExpr.(*ast.MapType)
+		keyName := exprMapType.Key.(*ast.Ident).Name
+		mapType := &MapType{
+			Key: keyName,
+		}
+
+		exprValue := rmStarExpr(exprMapType.Value)
+		if curLevel <= maxLevel {
+			valueType := parseTypeSpec(exprMapType.Value, maxLevel, curLevel)
+			mapType.ValueSpec = valueType
+			mapType.Name = fmt.Sprintf("map[%s]%s", mapType.Key, valueType.TypeName())
+
+		} else {
+			value := "interface{}"
+			switch exprValue.(type) {
+			case *ast.Ident:
+				value = exprValue.(*ast.Ident).Name
+			default:
+				// 如果value的type为map，则设为interface
+			}
+
+			mapType.Name = fmt.Sprintf("map[%s]%s", mapType.Key, value)
+
+		}
+
+		iType = mapType
 	}
 
 	return
@@ -327,7 +388,7 @@ func parseApiStructData(ident *ast.Ident) (structData *StructType) {
 		return
 	}
 
-	structData = ParseStructData(compositeLit.Type.(*ast.Ident).Obj.Decl.(*ast.TypeSpec))
+	structData = parseStructType(compositeLit.Type.(*ast.Ident).Obj.Decl.(*ast.TypeSpec), 3, 1) // api层次最多3层，避免无穷递归
 	return
 }
 

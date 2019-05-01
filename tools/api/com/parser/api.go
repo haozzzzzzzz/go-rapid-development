@@ -1,22 +1,10 @@
 package parser
 
-// struct
-type StructType struct {
-	Name   string   `json:"name" yaml:"name"`
-	Fields []*Field `json:"fields" yaml:"fields"`
-}
-
-func NewStructData() *StructType {
-	return &StructType{
-		Fields: make([]*Field, 0),
-	}
-}
-
 type Field struct {
-	Name string            `json:"name" yaml:"name"`
-	Type string            `json:"type" yaml:"type"`
-	Tags map[string]string `json:"tags" yaml:"tags"`
-	Spec interface{}       `json:"spec" yaml:"spec"`
+	Name     string            `json:"name" yaml:"name"`
+	Type     string            `json:"type" yaml:"type"`
+	Tags     map[string]string `json:"tags" yaml:"tags"`
+	TypeSpec interface{}       `json:"type_spec" form:"type_spec"`
 }
 
 func NewField() *Field {
@@ -25,17 +13,43 @@ func NewField() *Field {
 	}
 }
 
-// map
-type MapType struct {
-	Key   string      `json:"key" yaml:"key"`
-	Value string      `json:"value" yaml:"value"`
-	Spec  interface{} `json:"spec"`
+// type interface
+type IType interface {
+	TypeName() string
 }
 
-// slice
-type SliceData struct {
-	Value string      `json:"value"`
-	Spec  interface{} `json:"spec"`
+// 标准类型
+type StandardType string
+
+func (m StandardType) TypeName() string {
+	return string(m)
+}
+
+// struct
+type StructType struct {
+	Name   string   `json:"name" yaml:"name"`
+	Fields []*Field `json:"fields" yaml:"fields"`
+}
+
+func (m *StructType) TypeName() string {
+	return m.Name
+}
+
+func NewStructType() *StructType {
+	return &StructType{
+		Fields: make([]*Field, 0),
+	}
+}
+
+// map
+type MapType struct {
+	Name      string      `json:"name" yaml:"name"`
+	Key       string      `json:"key" yaml:"key"`
+	ValueSpec interface{} `json:"value_spec" yaml:"value_spec"`
+}
+
+func (m *MapType) TypeName() string {
+	return m.Name
 }
 
 type ApiItem struct {

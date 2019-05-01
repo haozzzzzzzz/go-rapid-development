@@ -2,12 +2,13 @@ package project
 
 import (
 	"fmt"
-	"github.com/haozzzzzzzz/go-rapid-development/utils/yaml"
-	"github.com/sirupsen/logrus"
-	"github.com/pkg/errors"
+	"os"
+
 	"github.com/go-playground/validator"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/file"
-	"os"
+	"github.com/haozzzzzzzz/go-rapid-development/utils/yaml"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 const ProjectFileMode os.FileMode = os.ModePerm ^ 0111
@@ -15,7 +16,7 @@ const ProjectFileMode os.FileMode = os.ModePerm ^ 0111
 const ProjectDirMode os.FileMode = os.ModePerm
 
 type ProjectConfigFormat struct {
-	Name string `json:"name" yaml:"name" validate:"required"`
+	Name       string `json:"name" yaml:"name" validate:"required"`
 	ProjectDir string `json:"project_dir" yaml:"project_dir" validate:"required"`
 }
 
@@ -66,6 +67,6 @@ func (m *Project) Init() (err error) {
 		logrus.Errorf("save project config to file failed. %s.", err)
 		return
 	}
-	
+
 	return
 }

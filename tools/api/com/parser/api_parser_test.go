@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -21,7 +22,7 @@ func TestApiParser_ParseApiFile(t *testing.T) {
 		//fmt.Printf("%#v\n", item.PostData)
 		for _, field := range item.PostData.Fields {
 			if field.Name == "PostFieldKey3" {
-				//fmt.Printf("%#v\n", field.TypeSpec.(*StructType).Fields[1].TypeSpec)
+				fmt.Printf("%#v\n", field.TypeSpec)
 			}
 		}
 		//fmt.Printf("%#v\n", item.RespData)

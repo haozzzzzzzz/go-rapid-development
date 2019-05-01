@@ -14,12 +14,14 @@ import (
 	"sort"
 	"strings"
 
+	"runtime/debug"
+
 	"github.com/go-playground/validator"
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
 	"github.com/haozzzzzzzz/go-rapid-development/tools/goimports"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/file"
 	"github.com/sirupsen/logrus"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 type ApiParser struct {
@@ -47,20 +49,6 @@ func (m *ApiParser) ParseRouter() (err error) {
 }
 
 func (m *ApiParser) ScanApis() (apis []*ApiItem, err error) {
-	fileDir, err := filepath.Abs(m.ApiDir)
-	if nil != err {
-		logrus.Warnf("get absolute file fileDir failed. \n%s.", err)
-		return
-	}
-
-	files, err := file.SearchFileNames(fileDir, func(fileInfo os.FileInfo) bool {
-		fileName := fileInfo.Name()
-		if strings.HasPrefix(fileName, "api_") {
-			return true
-		}
-		return false
-	}, true)
-
 	logrus.Info("Scanning api files...")
 	defer func() {
 		if err == nil {
@@ -68,9 +56,26 @@ func (m *ApiParser) ScanApis() (apis []*ApiItem, err error) {
 		}
 	}()
 
-	sort.Strings(files)
-	for _, fileName := range files {
-		fileApis, errParse := ParseApiFile(fileDir, fileName)
+	apiFileDir, err := filepath.Abs(m.ApiDir)
+	if nil != err {
+		logrus.Warnf("get absolute file apiFileDir failed. \n%s.", err)
+		return
+	}
+
+	// api文件夹中所有的文件
+	fileNames, err := file.SearchFileNames(m.ApiDir, func(fileInfo os.FileInfo) bool {
+		fileName := fileInfo.Name()
+		if strings.HasPrefix(fileName, "api_") {
+			return true
+		}
+		return false
+
+	}, true)
+
+	// 服务源文件
+	sort.Strings(fileNames)
+	for _, fileName := range fileNames {
+		fileApis, errParse := ParseApiFile(apiFileDir, fileName)
 		err = errParse
 		if nil != err {
 			logrus.Errorf("parse api file %q failed. error: %s.", fileName, err)
@@ -83,7 +88,17 @@ func (m *ApiParser) ScanApis() (apis []*ApiItem, err error) {
 	return
 }
 
-func ParseApiFile(fileDir string, fileName string) (apis []*ApiItem, err error) {
+func ParseApiFile(
+	apiFileDir string,
+	fileName string,
+) (apis []*ApiItem, err error) {
+	defer func() {
+		if iRec := recover(); iRec != nil {
+			logrus.Errorf("panic %s. file_name: %s", iRec, fileName)
+			debug.PrintStack()
+		}
+	}()
+
 	fileSet := token.NewFileSet()
 	astFile, errParse := parser.ParseFile(fileSet, fileName, nil, parser.AllErrors)
 	if nil != errParse {
@@ -118,11 +133,11 @@ func ParseApiFile(fileDir string, fileName string) (apis []*ApiItem, err error) 
 		}
 
 		apiItem := new(ApiItem)
-		apiItem.SourceFile = strings.Replace(fileName, fileDir, "", 1)
+		apiItem.SourceFile = strings.Replace(fileName, apiFileDir, "", 1)
 		apiItem.ApiHandlerFunc = objName
 		apiItem.ApiHandlerPackage = packageName
 		relativeDir := filepath.Dir(fileName)
-		relativePackageDir := strings.Replace(relativeDir, fileDir, "", 1)
+		relativePackageDir := strings.Replace(relativeDir, apiFileDir, "", 1)
 		if relativePackageDir != "" { // 子目录
 			relativePackageDir = strings.Replace(relativePackageDir, "/", "", 1)
 			apiItem.RelativePackage = strings.Replace(relativePackageDir, "/", "_", -1)
@@ -254,7 +269,7 @@ func parseStructType(typeSpec *ast.TypeSpec, maxLevel int, curLevel int) (struct
 	structType.Name = typeSpec.Name.Name
 	//fmt.Printf("parse_struct_types:%s  max_level: %d cur_level: %d\n", structType.Name, maxLevel, curLevel)
 	for _, field := range specStructType.Fields.List {
-		exprFieldType := rmStarExpr(field.Type)
+		exprFieldType := convertExpr(field.Type)
 
 		if field.Names == nil { // 复用了其他struct
 			fieldParent := exprFieldType.(*ast.Ident).Obj
@@ -291,10 +306,13 @@ func parseStructType(typeSpec *ast.TypeSpec, maxLevel int, curLevel int) (struct
 	return
 }
 
-func rmStarExpr(expr ast.Expr) (newExpr ast.Expr) {
+func convertExpr(expr ast.Expr) (newExpr ast.Expr) {
 	switch expr.(type) {
 	case *ast.StarExpr:
 		newExpr = expr.(*ast.StarExpr).X
+
+	case *ast.SelectorExpr:
+		newExpr = expr.(*ast.SelectorExpr).Sel
 
 	default:
 		newExpr = expr
@@ -306,7 +324,7 @@ func rmStarExpr(expr ast.Expr) (newExpr ast.Expr) {
 
 // iType 一定不为nil，即使不向下递归也要返回Name
 func parseTypeSpec(typeExpr ast.Expr, maxLevel int, curLevel int) (iType IType) {
-	typeExpr = rmStarExpr(typeExpr) // 转换引用类型
+	typeExpr = convertExpr(typeExpr) // 转换引用类型
 
 	//fmt.Printf("parse_type_spec:%s max_level:%d cur_level:%d\n", typeExpr, maxLevel, curLevel)
 
@@ -337,7 +355,7 @@ func parseTypeSpec(typeExpr ast.Expr, maxLevel int, curLevel int) (iType IType) 
 			Key: keyName,
 		}
 
-		exprValue := rmStarExpr(exprMapType.Value)
+		exprValue := convertExpr(exprMapType.Value)
 		if curLevel <= maxLevel {
 			valueType := parseTypeSpec(exprMapType.Value, maxLevel, curLevel)
 			mapType.ValueSpec = valueType
@@ -357,6 +375,10 @@ func parseTypeSpec(typeExpr ast.Expr, maxLevel int, curLevel int) (iType IType) 
 		}
 
 		iType = mapType
+
+	default:
+		fmt.Printf("parse_type_sepc %#v\n", typeExpr)
+
 	}
 
 	return
@@ -436,6 +458,7 @@ func (m *ApiParser) MapApi() (err error) {
 
 	routersFileName := fmt.Sprintf("%s/routers.go", m.ApiDir)
 	fileTokenSet := token.NewFileSet()
+
 	astFile, err := parser.ParseFile(fileTokenSet, routersFileName, nil, parser.AllErrors)
 	if nil != err {
 		logrus.Errorf("parse routers.go failed. \n%s.", err)

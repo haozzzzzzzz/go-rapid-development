@@ -3,6 +3,7 @@ package task
 import (
 	"context"
 
+	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
 	"github.com/robfig/cron"
 	"github.com/sirupsen/logrus"
 )
@@ -25,6 +26,12 @@ func WrapJob(
 		ctx := jobCtx.Before()
 		defer func() {
 			jobCtx.After(err)
+		}()
+
+		defer func() {
+			if iRecover := recover(); iRecover != nil {
+				err = uerrors.Newf("panic: %s", iRecover)
+			}
 		}()
 
 		err = handler(ctx)

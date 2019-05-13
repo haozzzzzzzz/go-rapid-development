@@ -34,3 +34,7 @@ func NewBackgroundContext(name string) (
 	}
 	return
 }
+
+func NewBackgroudContextWithTimeout(name string) {
+
+}

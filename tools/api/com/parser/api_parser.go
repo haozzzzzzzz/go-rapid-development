@@ -377,7 +377,8 @@ func parseTypeSpec(typeExpr ast.Expr, maxLevel int, curLevel int) (iType IType) 
 		iType = mapType
 
 	default:
-		fmt.Printf("parse_type_sepc %#v\n", typeExpr)
+		fmt.Printf("parse_type_sepc unsupported %#v\n", typeExpr)
+		iType = StandardType("Unsupported")
 
 	}
 
@@ -410,7 +411,16 @@ func parseApiStructData(ident *ast.Ident) (structData *StructType) {
 		return
 	}
 
-	structData = parseStructType(compositeLit.Type.(*ast.Ident).Obj.Decl.(*ast.TypeSpec), 3, 1) // api层次最多3层，避免无穷递归
+	comIdent, ok := compositeLit.Type.(*ast.Ident)
+	if !ok {
+		// TODO 报错 service/src/service/VideoBuddyConfigApi/manage/api/config/api_config_conditiongroupattachment.go
+		structData = NewStructType()
+		structData.Name = "UNSUPPORTED"
+		return
+	}
+
+	typeSpec := comIdent.Obj.Decl.(*ast.TypeSpec)
+	structData = parseStructType(typeSpec, 3, 1) // api层次最多3层，避免无穷递归
 	return
 }
 

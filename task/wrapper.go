@@ -11,6 +11,7 @@ import (
 // cron: github.com/robfig/cron
 
 type IJobContext interface {
+	CanDo() (canDo bool)           // whether can do job or not
 	Before() (ctx context.Context) // before doing job
 	After(err error)               // after doing job
 }
@@ -22,6 +23,10 @@ func WrapJob(
 	handler Handler,
 ) cron.FuncJob {
 	return func() {
+		if !jobCtx.CanDo() {
+			return
+		}
+
 		var err error
 		ctx := jobCtx.Before()
 		defer func() {

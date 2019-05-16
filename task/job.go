@@ -21,12 +21,14 @@ type Checker interface {
 }
 
 type TaskJob struct {
-	StrSpec  string
+	// required
+	Spec     string
 	Schedule cron.Schedule
 
-	TaskName     string
+	TaskName string                                // required
+	Handler  func(ctx context.Context) (err error) // required
+
 	ExecTimeout  time.Duration
-	Handler      func(ctx context.Context) (err error)
 	CheckerMaker func() (checker Checker)
 	Locker       Locker
 }

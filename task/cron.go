@@ -3,6 +3,8 @@ package task
 import (
 	"errors"
 
+	"time"
+
 	"github.com/robfig/cron"
 )
 
@@ -11,8 +13,8 @@ type CronTab struct {
 }
 
 func (m *CronTab) AddTaskJob(job *TaskJob) (err error) {
-	if job.StrSpec != "" {
-		job.Schedule, err = cron.Parse(job.StrSpec)
+	if job.Spec != "" {
+		job.Schedule, err = cron.Parse(job.Spec)
 		if err != nil {
 			return err
 		}
@@ -25,4 +27,14 @@ func (m *CronTab) AddTaskJob(job *TaskJob) (err error) {
 
 	m.Schedule(job.Schedule, job)
 	return
+}
+
+func New() *CronTab {
+	return NewWithLocation(time.Now().Location())
+}
+
+func NewWithLocation(location *time.Location) *CronTab {
+	return &CronTab{
+		Cron: *cron.NewWithLocation(location),
+	}
 }

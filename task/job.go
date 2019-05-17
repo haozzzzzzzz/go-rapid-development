@@ -11,7 +11,7 @@ import (
 )
 
 type Locker interface {
-	LockTask(taskName string) (success bool)
+	LockTask(taskName string, expire time.Duration) (success bool)
 	UnlockTask(taskName string) (success bool)
 }
 
@@ -36,7 +36,7 @@ type TaskJob struct {
 func (m *TaskJob) DoJob() (err error) {
 	// lock
 	if m.Locker != nil {
-		if !m.Locker.LockTask(m.TaskName) {
+		if !m.Locker.LockTask(m.TaskName, m.ExecTimeout) {
 			return
 		}
 

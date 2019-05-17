@@ -11,7 +11,7 @@ import (
 )
 
 type Locker interface {
-	LockTask(taskName string, expire time.Duration) (success bool)
+	LockTask(taskName string, execTimeout time.Duration) (success bool)
 	UnlockTask(taskName string) (success bool)
 }
 

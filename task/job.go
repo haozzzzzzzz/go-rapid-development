@@ -11,8 +11,8 @@ import (
 )
 
 type Locker interface {
-	Lock(taskName string) (success bool)
-	Unlock(taskName string) (success bool)
+	LockTask(taskName string) (success bool)
+	UnlockTask(taskName string) (success bool)
 }
 
 type Checker interface {
@@ -36,12 +36,12 @@ type TaskJob struct {
 func (m *TaskJob) DoJob() (err error) {
 	// lock
 	if m.Locker != nil {
-		if !m.Locker.Lock(m.TaskName) {
+		if !m.Locker.LockTask(m.TaskName) {
 			return
 		}
 
 		defer func() {
-			success := m.Locker.Unlock(m.TaskName)
+			success := m.Locker.UnlockTask(m.TaskName)
 			if !success {
 				logrus.Errorf("task Locker unlock failed. error: %s.", err)
 			}

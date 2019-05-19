@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -197,6 +198,25 @@ func (m *Client) BatchGetItem(input *dynamodb.BatchGetItemInput) (output *dynamo
 }
 
 // put item
+func (m *Client) PubItemObj(tableName string, obj interface{}) (output *dynamodb.PutItemOutput, err error) {
+	attributes, err := dynamodbattribute.MarshalMap(obj)
+	if nil != err {
+		logrus.Errorf("marshal attribute maps failed. error: %s.", err)
+		return
+	}
+
+	output, err = m.PutItem(&dynamodb.PutItemInput{
+		TableName: aws.String(tableName),
+		Item:      attributes,
+	})
+	if nil != err {
+		logrus.Errorf("put item failed. error: %s.", err)
+		return
+	}
+
+	return
+}
+
 func (m *Client) PutItem(input *dynamodb.PutItemInput) (output *dynamodb.PutItemOutput, err error) {
 	checker := m.CommandChecker()
 	if checker != nil {

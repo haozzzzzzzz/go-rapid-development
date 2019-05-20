@@ -183,6 +183,25 @@ func (m *Client) GetItem(input *dynamodb.GetItemInput) (output *dynamodb.GetItem
 	return
 }
 
+func (m *Client) GetItemObj(input *dynamodb.GetItemInput, obj interface{}) (err error) {
+	output, err := m.GetItem(input)
+	if nil != err && err != ErrNoRows {
+		logrus.Errorf("dyndb get item failed. error: %s.", err)
+		return
+	}
+
+	if err == ErrNoRows {
+		return
+	}
+
+	err = dynamodbattribute.UnmarshalMap(output.Item, obj)
+	if nil != err {
+		logrus.Errorf("dynamodbattribute unmarshal failed. error: %s.", err)
+		return
+	}
+	return
+}
+
 // 批量获取
 func (m *Client) BatchGetItem(input *dynamodb.BatchGetItemInput) (output *dynamodb.BatchGetItemOutput, err error) {
 	checker := m.CommandChecker()

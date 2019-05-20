@@ -217,7 +217,7 @@ func (m *Client) BatchGetItem(input *dynamodb.BatchGetItemInput) (output *dynamo
 }
 
 // put item
-func (m *Client) PubItemObj(tableName string, obj interface{}) (output *dynamodb.PutItemOutput, err error) {
+func (m *Client) PutItemObj(tableName string, obj interface{}) (output *dynamodb.PutItemOutput, err error) {
 	attributes, err := dynamodbattribute.MarshalMap(obj)
 	if nil != err {
 		logrus.Errorf("marshal attribute maps failed. error: %s.", err)

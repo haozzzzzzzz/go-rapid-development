@@ -323,7 +323,10 @@ func parseType(t types.Type) (iType IType) {
 			tagValue := strings.Replace(tStructType.Tag(i), "`", "", -1)
 			strPairs := strings.Split(tagValue, " ")
 			for _, pair := range strPairs {
-				pair = strings.Replace(pair, "\"", "", -1)
+				if pair == "" {
+					continue
+				}
+
 				tagPair := strings.Split(pair, ":")
 				field.Tags[tagPair[0]] = tagPair[1]
 			}

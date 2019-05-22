@@ -148,7 +148,6 @@ func ParseApis(
 				SourceFile:        fileName,
 				ApiHandlerFunc:    objName,
 				ApiHandlerPackage: astFile.Name.Name,
-				RoutersImports:    make(map[string]string),
 			}
 
 			relativeDir := filepath.Dir(fileName)
@@ -159,7 +158,7 @@ func ParseApis(
 			}
 
 			if apiItem.RelativePackage != "" {
-				apiItem.RoutersImports[apiItem.RelativePackage] = "" // TODO imports
+				apiItem.PackagePath = relativeDir
 			}
 
 			for _, value := range valueSpec.Values { // 遍历属性

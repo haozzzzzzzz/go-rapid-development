@@ -16,11 +16,33 @@ var TestRequest ginbuilder.HandleFunc = ginbuilder.HandleFunc{
 	HttpMethod:   "POST",
 	RelativePath: "/test_request",
 	Handle: func(ctx *ginbuilder.Context) (err error) {
+		// request path data
+		type PathData struct {
+			Day string `json:"day" form:"day"`
+		}
+		pathData := PathData{}
+		retCode, err := ctx.BindPathData(&pathData)
+		if err != nil {
+			ctx.Errorf(retCode, "verify  path data failed. %s.", err)
+			return
+		}
+
+		// request query data
+		type QueryData struct {
+			Key string `json:"key" form:"key"`
+		}
+		queryData := QueryData{}
+		retCode, err = ctx.BindQueryData(&queryData)
+		if err != nil {
+			ctx.Errorf(retCode, "verify  query data failed. %s.", err)
+			return
+		}
+
 		// request post data
 		type PostData struct {
 			ArrayType []struct {
 				SubArrayType []string `json:"sub_array_type" form:"sub_array_type"`
-			} `json:"array_type" form:"array_type"`
+			} `json:"arrays_type" form:"array_type"`
 			//Inter          interface{}         `json:"inter" form:"inter"`
 			PostDataField1 *PostDataField      `json:"post_data_field_1" form:"post_data_field_1"`
 			PostDataField2 []*PostDataField    `json:"post_data_field_2" form:"post_data_field_2"`
@@ -36,7 +58,7 @@ var TestRequest ginbuilder.HandleFunc = ginbuilder.HandleFunc{
 			PostDataField10 map[string]*model.Model2 `json:"post_data_field_10" form:"post_data_field_10"`
 		}
 		postData := PostData{}
-		retCode, err := ctx.BindPostData(&postData)
+		retCode, err = ctx.BindPostData(&postData)
 		if err != nil {
 			ctx.Errorf(retCode, "verify  post data failed. %s.", err)
 			return

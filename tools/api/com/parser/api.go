@@ -115,10 +115,10 @@ func (m *InterfaceType) TypeName() string {
 }
 
 type ApiItem struct {
-	ApiHandlerFunc    string            `validate:"required" json:"api_handler_func" yaml:"api_handler_func"`
-	ApiHandlerPackage string            `validate:"required" json:"api_handler_package_func" yaml:"api_handler_package_func"`
-	SourceFile        string            `validate:"required" json:"source_file" yaml:"source_file"`
-	RoutersImports    map[string]string `validate:"required" json:"routers_imports" yaml:"routers_imports"`
+	ApiHandlerFunc    string `validate:"required" json:"api_handler_func" yaml:"api_handler_func"`
+	ApiHandlerPackage string `validate:"required" json:"api_handler_package_func" yaml:"api_handler_package_func"`
+	SourceFile        string `validate:"required" json:"source_file" yaml:"source_file"`
+	PackagePath       string `json:"package_path" yaml:"package_path"`
 
 	HttpMethod      string      `validate:"required" json:"http_method" yaml:"http_method"`
 	RelativePath    string      `validate:"required" json:"relative_path" yaml:"relative_path"`

@@ -1,14 +1,14 @@
 package parser
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 
-	"go/ast"
-	"go/parser"
-	"go/token"
 	"sort"
+
+	"os"
+
+	"strings"
 
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
 	"github.com/haozzzzzzzz/go-rapid-development/tools/goimports"
@@ -71,59 +71,88 @@ func (m *ApiParser) MapApi(apis []*ApiItem) (err error) {
 		}
 	}()
 
-	newRoutersFileMiddle := bytes.NewBuffer(nil)
+	// binding routers
+	// add imports
+	importsMap := make(map[string]string) // package -> alias
+	_ = importsMap
+
+	goPath := os.Getenv("GOPATH")
+	goPaths := strings.Split(goPath, ":")
+	for _, subGoPath := range goPaths {
+		for _, apiItem := range apis {
+			if strings.Contains(apiItem.PackagePath, subGoPath) {
+				relPath := strings.Replace(apiItem.PackagePath, subGoPath+"/src/", "", -1)
+				if relPath != "" {
+					importsMap[relPath] = apiItem.RelativePackage
+				}
+			}
+		}
+	}
+
+	strImports := make([]string, 0)
+	for relPath, alias := range importsMap {
+		var str string
+		if alias == "" {
+			str = fmt.Sprintf("    %q", relPath)
+		} else {
+			str = fmt.Sprintf("    %s %q", alias, relPath)
+		}
+		strImports = append(strImports, str)
+	}
+
+	strRouters := make([]string, 0)
 	for _, apiItem := range apis {
 		strHandleFunc := apiItem.ApiHandlerFunc
 		if apiItem.RelativePackage != "" {
 			strHandleFunc = fmt.Sprintf("%s.%s", apiItem.RelativePackage, apiItem.ApiHandlerFunc)
 		}
 
-		str := fmt.Sprintf("    engine.Handle(\"%s\", \"%s\", %s.GinHandler)\n", apiItem.HttpMethod, apiItem.RelativePath, strHandleFunc)
-		newRoutersFileMiddle.Write([]byte(str))
+		str := fmt.Sprintf("    engine.Handle(\"%s\", \"%s\", %s.GinHandler)", apiItem.HttpMethod, apiItem.RelativePath, strHandleFunc)
+		strRouters = append(strRouters, str)
+
 	}
 
 	routersFileName := fmt.Sprintf("%s/routers.go", m.ApiDir)
-	fileTokenSet := token.NewFileSet()
+	//fileTokenSet := token.NewFileSet()
+	//
+	//astFile, err := parser.ParseFile(fileTokenSet, routersFileName, nil, parser.AllErrors)
+	//if nil != err {
+	//	logrus.Errorf("parse routers.go failed. \n%s.", err)
+	//	return
+	//}
+	//
+	//var lBrace, rBrace token.Pos
+	//for _, scopeObject := range astFile.Scope.Objects {
+	//
+	//	if scopeObject.Name == "BindRouters" {
+	//		bindRoutersFuncDecl, ok := scopeObject.Decl.(*ast.FuncDecl)
+	//		if !ok {
+	//			continue
+	//		}
+	//
+	//		lBrace = bindRoutersFuncDecl.Body.Lbrace
+	//		rBrace = bindRoutersFuncDecl.Body.Rbrace
+	//	}
+	//}
+	//
+	//lBracePos := fileTokenSet.Position(lBrace)
+	//rBracePos := fileTokenSet.Position(rBrace)
+	//
+	//byteRoutersFile, err := ioutil.ReadFile(routersFileName)
+	//if nil != err {
+	//	logrus.Warnf("read routers file failed. \n%s.", err)
+	//	return
+	//}
+	//
+	//newRoutersFileLeft := byteRoutersFile[0:lBracePos.Offset]
+	//newRoutersFileRight := byteRoutersFile[rBracePos.Offset+1:]
 
-	astFile, err := parser.ParseFile(fileTokenSet, routersFileName, nil, parser.AllErrors)
-	if nil != err {
-		logrus.Errorf("parse routers.go failed. \n%s.", err)
-		return
-	}
+	//	newRoutersFileText := fmt.Sprintf(`%s {
+	//%s    return
+	//}%s`, string(newRoutersFileLeft), newRoutersFileMiddle.String(), string(newRoutersFileRight))
 
-	var lBrace, rBrace token.Pos
-	for _, scopeObject := range astFile.Scope.Objects {
-		if scopeObject.Name != "BindRouters" {
-			continue
-		}
-
-		bindRoutersFuncDecl, ok := scopeObject.Decl.(*ast.FuncDecl)
-		if !ok {
-			continue
-		}
-
-		lBrace = bindRoutersFuncDecl.Body.Lbrace
-		rBrace = bindRoutersFuncDecl.Body.Rbrace
-
-	}
-
-	lBracePos := fileTokenSet.Position(lBrace)
-	rBracePos := fileTokenSet.Position(rBrace)
-
-	byteRoutersFile, err := ioutil.ReadFile(routersFileName)
-	if nil != err {
-		logrus.Warnf("read routers file failed. \n%s.", err)
-		return
-	}
-
-	newRoutersFileLeft := byteRoutersFile[0:lBracePos.Offset]
-	newRoutersFileRight := byteRoutersFile[rBracePos.Offset+1:]
-
-	newRoutersFileText := fmt.Sprintf(`%s {
-%s    return
-}%s`, string(newRoutersFileLeft), newRoutersFileMiddle.String(), string(newRoutersFileRight))
-
-	err = ioutil.WriteFile(routersFileName, []byte(newRoutersFileText), 0644)
+	newRoutersText := fmt.Sprintf(routersFileText, strings.Join(strImports, "\n"), strings.Join(strRouters, "\ns"))
+	err = ioutil.WriteFile(routersFileName, []byte(newRoutersText), 0644)
 	if nil != err {
 		logrus.Errorf("write new routers file failed. \n%s.", err)
 		return
@@ -149,3 +178,16 @@ func (m *ApiParser) MapApi(apis []*ApiItem) (err error) {
 
 	return
 }
+
+var routersFileText = `package api
+import (
+"github.com/gin-gonic/gin"
+%s
+)
+
+// 注意：BindRouters函数体内不能自定义添加任何声明，由api compile命令生成api绑定声明
+func BindRouters(engine *gin.Engine) (err error) {
+%s
+	return
+}
+`

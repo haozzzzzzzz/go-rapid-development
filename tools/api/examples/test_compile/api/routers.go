@@ -2,7 +2,7 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/haozzzzzzzz/go-rapid-development/tools/api/examples/test_compile/api/request"
+	request "github.com/haozzzzzzzz/go-rapid-development/tools/api/examples/test_compile/api/request"
 )
 
 // 注意：BindRouters函数体内不能自定义添加任何声明，由api compile命令生成api绑定声明

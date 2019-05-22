@@ -1,13 +1,34 @@
 - api_handler_func: TestRequest
   api_handler_package_func: request
   source_file: /Users/hao/Documents/Projects/XunLei/video_buddy_service/src/github.com/haozzzzzzzz/go-rapid-development/tools/api/examples/test_compile/api/request/api_request.go
-  routers_imports:
-    request: ""
+  package_path: /Users/hao/Documents/Projects/XunLei/video_buddy_service/src/github.com/haozzzzzzzz/go-rapid-development/tools/api/examples/test_compile/api/request
   http_method: POST
   relative_path: /test_request
   relative_package: request
-  path_data: null
-  query_data: null
+  path_data:
+    type_class: struct
+    name: PathData
+    fields:
+    - name: Day
+      type_name: string
+      tags:
+        form: day
+        json: day
+      typespec:
+        type_class: basic
+        name: string
+  query_data:
+    type_class: struct
+    name: QueryData
+    fields:
+    - name: Key
+      type_name: string
+      tags:
+        form: key
+        json: key
+      typespec:
+        type_class: basic
+        name: string
   post_data:
     type_class: struct
     name: PostData
@@ -16,7 +37,7 @@
       type_name: '[]struct'
       tags:
         form: array_type
-        json: array_type
+        json: arrays_type
       typespec:
         type_class: array
         name: '[]struct'

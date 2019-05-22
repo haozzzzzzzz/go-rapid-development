@@ -1,0 +1,29 @@
+- api_handler_func: TestRequest
+  api_handler_package_func: request
+  source_file: /request/api_request.go
+  http_method: POST
+  relative_path: /test_request
+  relative_package: request
+  path_data: null
+  query_data: null
+  post_data:
+    type_class: struct
+    name: PostData
+    fields:
+    - name: PostDataField5
+      type_name: OtherFilePostData1
+      tags:
+        form: post_data_field_5
+        json: post_data_field_5
+      typespec:
+        type_class: standard
+        name: OtherFilePostData1
+    - name: PostDataField6
+      type_name: string
+      tags:
+        form: post_data_field_6
+        json: post_data_field_6
+      typespec:
+        type_class: standard
+        name: string
+  response_data: null

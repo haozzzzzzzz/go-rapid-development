@@ -2,7 +2,7 @@ package parser
 
 type Field struct {
 	Name     string            `json:"name" yaml:"name"`
-	Type     string            `json:"type" yaml:"type"`
+	TypeName string            `json:"type_name" yaml:"type_name"`
 	Tags     map[string]string `json:"tags" yaml:"tags"`
 	TypeSpec interface{}       `json:"type_spec" form:"type_spec"`
 }
@@ -18,17 +18,35 @@ type IType interface {
 	TypeName() string
 }
 
+// 类型分类
+const TypeClassStandardType = "standard"
+const TypeClassStructType = "struct"
+const TypeClassMapType = "map"
+const TypeClassArrayType = "array"
+const TypeClassInterfaceType = "interface"
+
 // 标准类型
-type StandardType string
+type StandardType struct {
+	TypeClass string `json:"type_class" yaml:"type_class"`
+	Name      string `json:"name" yaml:"name"`
+}
 
 func (m StandardType) TypeName() string {
-	return string(m)
+	return string(m.Name)
+}
+
+func NewStandardType(name string) *StandardType {
+	return &StandardType{
+		Name:      name,
+		TypeClass: TypeClassStandardType,
+	}
 }
 
 // struct
 type StructType struct {
-	Name   string   `json:"name" yaml:"name"`
-	Fields []*Field `json:"fields" yaml:"fields"`
+	TypeClass string   `json:"type_class" yaml:"type_class"`
+	Name      string   `json:"name" yaml:"name"`
+	Fields    []*Field `json:"fields" yaml:"fields"`
 }
 
 func (m *StructType) TypeName() string {
@@ -37,12 +55,15 @@ func (m *StructType) TypeName() string {
 
 func NewStructType() *StructType {
 	return &StructType{
-		Fields: make([]*Field, 0),
+		TypeClass: TypeClassStructType,
+		Name:      TypeClassStructType,
+		Fields:    make([]*Field, 0),
 	}
 }
 
 // map
 type MapType struct {
+	TypeClass string      `json:"type_class" yaml:"type_class"`
 	Name      string      `json:"name" yaml:"name"`
 	Key       string      `json:"key" yaml:"key"`
 	ValueSpec interface{} `json:"value_spec" yaml:"value_spec"`
@@ -50,6 +71,47 @@ type MapType struct {
 
 func (m *MapType) TypeName() string {
 	return m.Name
+}
+
+func NewMapType() *MapType {
+	return &MapType{
+		TypeClass: TypeClassMapType,
+		Name:      TypeClassMapType,
+	}
+}
+
+// array
+type ArrayType struct {
+	TypeClass string      `json:"type_class" yaml:"type_class"`
+	Name      string      `json:"name" yaml:"name"`
+	EltName   string      `json:"elt_name" yaml:"elt_name"`
+	EltSpec   interface{} `json:"elt_spec" yaml:"elt_spec"`
+}
+
+func (m *ArrayType) TypeName() string {
+	return m.Name
+}
+
+func NewArrayType() *ArrayType {
+	return &ArrayType{
+		TypeClass: TypeClassArrayType,
+		Name:      TypeClassArrayType,
+	}
+}
+
+// interface
+type InterfaceType struct {
+	TypeClass string `json:"type_class" yaml:"type_class"`
+}
+
+func NewInterfaceType() *InterfaceType {
+	return &InterfaceType{
+		TypeClass: TypeClassInterfaceType,
+	}
+}
+
+func (m *InterfaceType) TypeName() string {
+	return m.TypeClass
 }
 
 type ApiItem struct {

@@ -254,8 +254,8 @@ func ParseApiFile(
 	return
 }
 
-// 需要解决调用层级问题
-func parseStructType(typeSpec *ast.TypeSpec, maxLevel int, curLevel int) (structType *StructType) {
+// struct 声明
+func parseStructTypeSpec(typeSpec *ast.TypeSpec, maxLevel int, curLevel int) (structType *StructType) {
 	if curLevel > maxLevel {
 		return
 	}
@@ -267,16 +267,23 @@ func parseStructType(typeSpec *ast.TypeSpec, maxLevel int, curLevel int) (struct
 
 	structType = NewStructType()
 	structType.Name = typeSpec.Name.Name
+
+	structType.Fields = parseStructExpr(specStructType, maxLevel, curLevel)
+	return
+}
+
+func parseStructExpr(specStructType *ast.StructType, maxLevel int, curLevel int) (fields []*Field) {
+	fields = make([]*Field, 0)
 	//fmt.Printf("parse_struct_types:%s  max_level: %d cur_level: %d\n", structType.Name, maxLevel, curLevel)
 	for _, field := range specStructType.Fields.List {
 		exprFieldType := convertExpr(field.Type)
 
 		if field.Names == nil { // 复用了其他struct
 			fieldParent := exprFieldType.(*ast.Ident).Obj
-			parentStruct := parseStructType(fieldParent.Decl.(*ast.TypeSpec), maxLevel, curLevel+1)
+			parentStruct := parseStructTypeSpec(fieldParent.Decl.(*ast.TypeSpec), maxLevel, curLevel+1)
 			if parentStruct != nil {
 				for _, pField := range parentStruct.Fields {
-					structType.Fields = append(structType.Fields, pField)
+					fields = append(fields, pField)
 				}
 			}
 
@@ -295,10 +302,10 @@ func parseStructType(typeSpec *ast.TypeSpec, maxLevel int, curLevel int) (struct
 			}
 
 			iType := parseTypeSpec(exprFieldType, maxLevel, curLevel+1)
-			structField.Type = iType.TypeName()
+			structField.TypeName = iType.TypeName()
 			structField.TypeSpec = iType
 
-			structType.Fields = append(structType.Fields, structField)
+			fields = append(fields, structField)
 		}
 
 	}
@@ -324,22 +331,21 @@ func convertExpr(expr ast.Expr) (newExpr ast.Expr) {
 
 // iType 一定不为nil，即使不向下递归也要返回Name
 func parseTypeSpec(typeExpr ast.Expr, maxLevel int, curLevel int) (iType IType) {
-	typeExpr = convertExpr(typeExpr) // 转换引用类型
+	fmt.Printf("parse_type_spec:%#v max_level:%d cur_level:%d\n", typeExpr, maxLevel, curLevel)
 
-	//fmt.Printf("parse_type_spec:%s max_level:%d cur_level:%d\n", typeExpr, maxLevel, curLevel)
+	typeExpr = convertExpr(typeExpr) // 转换为引用类型
+
+	iType = NewStandardType("Unsupported")
 
 	switch typeExpr.(type) {
 	case *ast.Ident:
 		ident := typeExpr.(*ast.Ident)
-		if ident.Obj == nil { // 标准类型
-			standType := StandardType(ident.Name)
-			iType = standType
 
-		} else { // 自定义类型
+		if ident.Obj != nil { // 页面内定义的类型
 			structType := NewStructType()
 			structType.Name = ident.Name
 			if curLevel <= maxLevel {
-				parsed := parseStructType(ident.Obj.Decl.(*ast.TypeSpec), maxLevel, curLevel)
+				parsed := parseStructTypeSpec(ident.Obj.Decl.(*ast.TypeSpec), maxLevel, curLevel)
 				if parsed != nil {
 					structType = parsed
 				}
@@ -348,14 +354,31 @@ func parseTypeSpec(typeExpr ast.Expr, maxLevel int, curLevel int) (iType IType) 
 			iType = structType
 		}
 
+		if ident.Obj == nil { // 标准基本类型 int、string等
+			standType := NewStandardType(ident.Name)
+			iType = standType
+
+		} else { // 其他包定义的struct
+
+		}
+
+	case *ast.StructType: // 匿名struct type
+		exprStructType := typeExpr.(*ast.StructType)
+		structType := NewStructType()
+		if curLevel <= maxLevel {
+			structType.Fields = parseStructExpr(exprStructType, maxLevel, curLevel)
+		}
+
+		iType = structType
+
 	case *ast.MapType:
 		exprMapType := typeExpr.(*ast.MapType)
 		keyName := exprMapType.Key.(*ast.Ident).Name
-		mapType := &MapType{
-			Key: keyName,
-		}
+		mapType := NewMapType()
+		mapType.Key = keyName
 
 		exprValue := convertExpr(exprMapType.Value)
+
 		if curLevel <= maxLevel {
 			valueType := parseTypeSpec(exprMapType.Value, maxLevel, curLevel)
 			mapType.ValueSpec = valueType
@@ -376,9 +399,32 @@ func parseTypeSpec(typeExpr ast.Expr, maxLevel int, curLevel int) (iType IType) 
 
 		iType = mapType
 
+	case *ast.ArrayType:
+		exprArrType := typeExpr.(*ast.ArrayType)
+		exprArrElt := convertExpr(exprArrType.Elt) // 数组元素类型
+		arrType := NewArrayType()
+
+		if curLevel <= maxLevel {
+			eltType := parseTypeSpec(exprArrElt, maxLevel, curLevel)
+			arrType.EltSpec = eltType
+			arrType.EltName = eltType.TypeName()
+
+		} else {
+			switch exprArrElt.(type) {
+			case *ast.Ident:
+				arrType.EltName = exprArrElt.(*ast.Ident).Name
+			}
+		}
+
+		arrType.Name = fmt.Sprintf("[]%s", arrType.EltName)
+
+		iType = arrType
+
+	case *ast.InterfaceType:
+		iType = NewInterfaceType()
+
 	default:
 		fmt.Printf("parse_type_sepc unsupported %#v\n", typeExpr)
-		iType = StandardType("Unsupported")
 
 	}
 
@@ -420,7 +466,7 @@ func parseApiStructData(ident *ast.Ident) (structData *StructType) {
 	}
 
 	typeSpec := comIdent.Obj.Decl.(*ast.TypeSpec)
-	structData = parseStructType(typeSpec, 3, 1) // api层次最多3层，避免无穷递归
+	structData = parseStructTypeSpec(typeSpec, 3, 1) // api层次最多3层，避免无穷递归
 	return
 }
 

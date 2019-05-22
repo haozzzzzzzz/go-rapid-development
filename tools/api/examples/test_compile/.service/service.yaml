@@ -1,0 +1,4 @@
+name: test_compile
+service_dir: /Users/hao/Documents/Projects/XunLei/video_buddy_service/src/github.com/haozzzzzzzz/go-rapid-development/tools/api/examples/test_compile
+description: api service
+type: app

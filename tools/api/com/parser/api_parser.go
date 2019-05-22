@@ -113,45 +113,7 @@ func (m *ApiParser) MapApi(apis []*ApiItem) (err error) {
 	}
 
 	routersFileName := fmt.Sprintf("%s/routers.go", m.ApiDir)
-	//fileTokenSet := token.NewFileSet()
-	//
-	//astFile, err := parser.ParseFile(fileTokenSet, routersFileName, nil, parser.AllErrors)
-	//if nil != err {
-	//	logrus.Errorf("parse routers.go failed. \n%s.", err)
-	//	return
-	//}
-	//
-	//var lBrace, rBrace token.Pos
-	//for _, scopeObject := range astFile.Scope.Objects {
-	//
-	//	if scopeObject.Name == "BindRouters" {
-	//		bindRoutersFuncDecl, ok := scopeObject.Decl.(*ast.FuncDecl)
-	//		if !ok {
-	//			continue
-	//		}
-	//
-	//		lBrace = bindRoutersFuncDecl.Body.Lbrace
-	//		rBrace = bindRoutersFuncDecl.Body.Rbrace
-	//	}
-	//}
-	//
-	//lBracePos := fileTokenSet.Position(lBrace)
-	//rBracePos := fileTokenSet.Position(rBrace)
-	//
-	//byteRoutersFile, err := ioutil.ReadFile(routersFileName)
-	//if nil != err {
-	//	logrus.Warnf("read routers file failed. \n%s.", err)
-	//	return
-	//}
-	//
-	//newRoutersFileLeft := byteRoutersFile[0:lBracePos.Offset]
-	//newRoutersFileRight := byteRoutersFile[rBracePos.Offset+1:]
-
-	//	newRoutersFileText := fmt.Sprintf(`%s {
-	//%s    return
-	//}%s`, string(newRoutersFileLeft), newRoutersFileMiddle.String(), string(newRoutersFileRight))
-
-	newRoutersText := fmt.Sprintf(routersFileText, strings.Join(strImports, "\n"), strings.Join(strRouters, "\ns"))
+	newRoutersText := fmt.Sprintf(routersFileText, strings.Join(strImports, "\n"), strings.Join(strRouters, "\n"))
 	err = ioutil.WriteFile(routersFileName, []byte(newRoutersText), 0644)
 	if nil != err {
 		logrus.Errorf("write new routers file failed. \n%s.", err)

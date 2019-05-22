@@ -6,7 +6,7 @@ import (
 )
 
 func TestApiParser_ParseApiFile(t *testing.T) {
-	apis, err := ParseApiFile(
+	apis, err := ParseApis(
 		"/Users/hao/Documents/Projects/XunLei/video_buddy_service/src/github.com/haozzzzzzzz/go-rapid-development/tools/api/com/parser/temp",
 		"/Users/hao/Documents/Projects/XunLei/video_buddy_service/src/github.com/haozzzzzzzz/go-rapid-development/tools/api/com/parser/temp/api/api_temp.go",
 	)

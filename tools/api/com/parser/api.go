@@ -4,7 +4,7 @@ type Field struct {
 	Name     string            `json:"name" yaml:"name"`
 	TypeName string            `json:"type_name" yaml:"type_name"`
 	Tags     map[string]string `json:"tags" yaml:"tags"`
-	TypeSpec interface{}       `json:"type_spec" form:"type_spec"`
+	TypeSpec IType             `json:"type_spec" form:"type_spec"`
 }
 
 func NewField() *Field {
@@ -19,26 +19,26 @@ type IType interface {
 }
 
 // 类型分类
-const TypeClassStandardType = "standard"
+const TypeClassBasicType = "basic"
 const TypeClassStructType = "struct"
 const TypeClassMapType = "map"
 const TypeClassArrayType = "array"
 const TypeClassInterfaceType = "interface"
 
 // 标准类型
-type StandardType struct {
+type BasicType struct {
 	TypeClass string `json:"type_class" yaml:"type_class"`
 	Name      string `json:"name" yaml:"name"`
 }
 
-func (m StandardType) TypeName() string {
+func (m BasicType) TypeName() string {
 	return string(m.Name)
 }
 
-func NewStandardType(name string) *StandardType {
-	return &StandardType{
+func NewBasicType(name string) *BasicType {
+	return &BasicType{
 		Name:      name,
-		TypeClass: TypeClassStandardType,
+		TypeClass: TypeClassBasicType,
 	}
 }
 
@@ -63,10 +63,10 @@ func NewStructType() *StructType {
 
 // map
 type MapType struct {
-	TypeClass string      `json:"type_class" yaml:"type_class"`
-	Name      string      `json:"name" yaml:"name"`
-	Key       string      `json:"key" yaml:"key"`
-	ValueSpec interface{} `json:"value_spec" yaml:"value_spec"`
+	TypeClass string `json:"type_class" yaml:"type_class"`
+	Name      string `json:"name" yaml:"name"`
+	KeySpec   IType  `json:"key" yaml:"key"`
+	ValueSpec IType  `json:"value_spec" yaml:"value_spec"`
 }
 
 func (m *MapType) TypeName() string {
@@ -82,10 +82,10 @@ func NewMapType() *MapType {
 
 // array
 type ArrayType struct {
-	TypeClass string      `json:"type_class" yaml:"type_class"`
-	Name      string      `json:"name" yaml:"name"`
-	EltName   string      `json:"elt_name" yaml:"elt_name"`
-	EltSpec   interface{} `json:"elt_spec" yaml:"elt_spec"`
+	TypeClass string `json:"type_class" yaml:"type_class"`
+	Name      string `json:"name" yaml:"name"`
+	EltName   string `json:"elt_name" yaml:"elt_name"`
+	EltSpec   IType  `json:"elt_spec" yaml:"elt_spec"`
 }
 
 func (m *ArrayType) TypeName() string {
@@ -115,14 +115,16 @@ func (m *InterfaceType) TypeName() string {
 }
 
 type ApiItem struct {
-	ApiHandlerFunc    string      `validate:"required" json:"api_handler_func" yaml:"api_handler_func"`
-	ApiHandlerPackage string      `validate:"required" json:"api_handler_package_func" yaml:"api_handler_package_func"`
-	SourceFile        string      `validate:"required" json:"source_file" yaml:"source_file"`
-	HttpMethod        string      `validate:"required" json:"http_method" yaml:"http_method"`
-	RelativePath      string      `validate:"required" json:"relative_path" yaml:"relative_path"`
-	RelativePackage   string      `json:"relative_package" yaml:"relative_package"`
-	PathData          *StructType `json:"path_data" yaml:"path_data"`
-	QueryData         *StructType `json:"query_data" yaml:"query_data"`
-	PostData          *StructType `json:"post_data" yaml:"post_data"`
-	RespData          *StructType `json:"response_data" yaml:"response_data"`
+	ApiHandlerFunc    string            `validate:"required" json:"api_handler_func" yaml:"api_handler_func"`
+	ApiHandlerPackage string            `validate:"required" json:"api_handler_package_func" yaml:"api_handler_package_func"`
+	SourceFile        string            `validate:"required" json:"source_file" yaml:"source_file"`
+	RoutersImports    map[string]string `validate:"required" json:"routers_imports" yaml:"routers_imports"`
+
+	HttpMethod      string      `validate:"required" json:"http_method" yaml:"http_method"`
+	RelativePath    string      `validate:"required" json:"relative_path" yaml:"relative_path"`
+	RelativePackage string      `json:"relative_package" yaml:"relative_package"`
+	PathData        *StructType `json:"path_data" yaml:"path_data"`
+	QueryData       *StructType `json:"query_data" yaml:"query_data"`
+	PostData        *StructType `json:"post_data" yaml:"post_data"`
+	RespData        *StructType `json:"response_data" yaml:"response_data"`
 }

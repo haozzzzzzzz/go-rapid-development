@@ -14,6 +14,7 @@ func SearchFileNames(
 	filter func(fileInfo os.FileInfo) bool,
 	recurse bool,
 ) (result []string, err error) {
+	result = make([]string, 0)
 	files, err := ioutil.ReadDir(dir)
 	if nil != err {
 		logrus.Errorf("read directory %q files failed.", dir)
@@ -31,7 +32,6 @@ func SearchFileNames(
 			}
 
 			result = append(result, subFiles...)
-			continue
 		}
 
 		if filter == nil || filter(fileInfo) {

@@ -24,7 +24,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (m *ApiParser) ScanApis() (apis []*ApiItem, err error) {
+func (m *ApiParser) ScanApis(
+	parseRequestData bool, // 如果parseRequestData会有点慢
+) (apis []*ApiItem, err error) {
 	apis = make([]*ApiItem, 0)
 	logrus.Info("Scan api files...")
 	defer func() {
@@ -53,7 +55,7 @@ func (m *ApiParser) ScanApis() (apis []*ApiItem, err error) {
 
 	// 服务源文件
 	for _, subApiDir := range subApiDir {
-		subApis, errParse := ParseApis(apiDir, subApiDir)
+		subApis, errParse := ParseApis(apiDir, subApiDir, parseRequestData)
 		err = errParse
 		if nil != err {
 			logrus.Errorf("parse api file dir %q failed. error: %s.", subApiDir, err)
@@ -69,6 +71,7 @@ func (m *ApiParser) ScanApis() (apis []*ApiItem, err error) {
 func ParseApis(
 	rootDir string,
 	fileDir string,
+	parseRequestData bool,
 ) (apis []*ApiItem, err error) {
 	apis = make([]*ApiItem, 0)
 	defer func() {
@@ -97,26 +100,6 @@ func ParseApis(
 			astFileMap[fileName] = file
 		}
 	}
-
-	typesConf := types.Config{
-		Importer: importer.For("source", nil),
-	}
-
-	info := &types.Info{
-		Scopes:     make(map[ast.Node]*types.Scope),
-		Defs:       make(map[*ast.Ident]types.Object),
-		Uses:       make(map[*ast.Ident]types.Object),
-		Types:      make(map[ast.Expr]types.TypeAndValue),
-		Implicits:  make(map[ast.Node]types.Object),
-		Selections: make(map[*ast.SelectorExpr]*types.Selection),
-		InitOrder:  make([]*types.Initializer, 0),
-	}
-	pkg, err := typesConf.Check(fileDir, fileSet, astFiles, info)
-	if nil != err {
-		logrus.Errorf("check types failed. error: %s.", err)
-		return
-	}
-	_ = pkg
 
 	for _, astFile := range astFiles { // 遍历语法树
 		apiPosFile := fileSet.File(astFile.Pos())
@@ -213,6 +196,34 @@ func ParseApis(
 					if ok {
 						switch keyIdent.Name {
 						case "Handle":
+							if parseRequestData == false {
+								break
+							}
+
+							// types
+							typesConf := types.Config{
+								Importer: importer.For("source", nil),
+								//Importer: importer.Default(),
+							}
+
+							info := &types.Info{
+								Scopes:     make(map[ast.Node]*types.Scope),
+								Defs:       make(map[*ast.Ident]types.Object),
+								Uses:       make(map[*ast.Ident]types.Object),
+								Types:      make(map[ast.Expr]types.TypeAndValue),
+								Implicits:  make(map[ast.Node]types.Object),
+								Selections: make(map[*ast.SelectorExpr]*types.Selection),
+								InitOrder:  make([]*types.Initializer, 0),
+							}
+							pkg, errCheck := typesConf.Check(fileDir, fileSet, astFiles, info)
+							err = errCheck
+							if nil != err {
+								logrus.Errorf("check types failed. error: %s.", err)
+								return
+							}
+							_ = pkg
+
+							// parse request data
 							funcBody := funcLit.Body
 							for _, funcStmt := range funcBody.List {
 								switch funcStmt.(type) {

@@ -30,23 +30,25 @@ func NewApiParser(service *project.Service) *ApiParser {
 	}
 }
 
-func (m *ApiParser) ParseRouter() (err error) {
-	apis, err := m.ScanApis()
+func (m *ApiParser) ParseRouter(
+	parseRequestData bool,
+) (err error) {
+	apis, err := m.ScanApis(parseRequestData)
 	if nil != err {
 		logrus.Errorf("Scan api failed. \n%s.", err)
 		return
 	}
 
-	err = m.MapApi(apis)
+	err = m.GenerateRoutersSourceFile(apis)
 	if nil != err {
-		logrus.Errorf("mapping api failed. %s.", err)
+		logrus.Errorf("map api failed. %s.", err)
 		return
 	}
 
 	return
 }
 
-func (m *ApiParser) MapApi(apis []*ApiItem) (err error) {
+func (m *ApiParser) GenerateRoutersSourceFile(apis []*ApiItem) (err error) {
 	// sort api
 	apiUriKeys := make([]string, 0)
 	mapApi := make(map[string]*ApiItem)
@@ -64,7 +66,7 @@ func (m *ApiParser) MapApi(apis []*ApiItem) (err error) {
 		apis = append(apis, mapApi[apiUriKey])
 	}
 
-	logrus.Info("Mapping apis ...")
+	logrus.Info("Map apis ...")
 	defer func() {
 		if err == nil {
 			logrus.Info("Map apis completed")
@@ -124,6 +126,16 @@ func (m *ApiParser) MapApi(apis []*ApiItem) (err error) {
 	// do goimports
 	goimports.DoGoImports([]string{m.ApiDir}, true)
 	logrus.Info("Do go imports completed")
+	return
+}
+
+func (m *ApiParser) SaveApisToFile(apis []*ApiItem) (err error) {
+	logrus.Info("Save apis ...")
+	defer func() {
+		if err == nil {
+			logrus.Info("Save apis completed")
+		}
+	}()
 
 	// save api.yaml
 	byteYamlApis, err := yaml.Marshal(apis)
@@ -137,7 +149,6 @@ func (m *ApiParser) MapApi(apis []*ApiItem) (err error) {
 		logrus.Errorf("write apis.yaml failed. \n%s.", err)
 		return
 	}
-
 	return
 }
 

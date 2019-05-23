@@ -1,5 +1,9 @@
 package uexcel
 
+import (
+	"fmt"
+)
+
 const NumChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 func X(iX int) (x string) {
@@ -7,4 +11,8 @@ func X(iX int) (x string) {
 		x = string(NumChars[iX])
 	}
 	return
+}
+
+func Axis(x int, y int) (axis string) {
+	return fmt.Sprintf("%s%d", X(x), y)
 }

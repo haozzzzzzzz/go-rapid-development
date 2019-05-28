@@ -112,7 +112,7 @@ func (m *Context) BindQueryData(queryData interface{}) (retCode *code.ApiCode, e
 }
 
 func (m *Context) BindPostData(postData interface{}) (retCode *code.ApiCode, err error) {
-	err = m.GinContext.MustBindWith(postData, binding.JSON)
+	err = m.GinContext.ShouldBindWith(postData, binding.JSON)
 	if err != nil {
 		retCode = code.CodeErrorPostParams.Clone()
 		validateErrors, ok := err.(validator.ValidationErrors)
@@ -128,7 +128,7 @@ func (m *Context) BindPostData(postData interface{}) (retCode *code.ApiCode, err
 
 // form-urlencoded
 func (m *Context) BindPostForm(postData interface{}) (err error) {
-	err = m.GinContext.MustBindWith(postData, binding.FormPost)
+	err = m.GinContext.ShouldBindWith(postData, binding.FormPost)
 	if nil != err {
 		return
 	}

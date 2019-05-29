@@ -1,21 +1,31 @@
 package parser
 
 import (
-	"fmt"
-	"io/ioutil"
 	"os"
+	"text/template"
+
+	"bytes"
+
+	"io/ioutil"
 
 	"github.com/sirupsen/logrus"
 )
 
 func CreateApiSource(apiItem *ApiItem) (err error) {
-	newApiText := fmt.Sprintf(apiText,
-		apiItem.ApiHandlerPackage,
-		apiItem.ApiHandlerFunc,
-		apiItem.HttpMethod,
-		apiItem.RelativePath)
+	templ, err := template.New(apiItem.ApiHandlerFunc).Parse(apiText)
+	if nil != err {
+		logrus.Errorf("new api source template failed failed. error: %s.", err)
+		return
+	}
 
-	err = ioutil.WriteFile(apiItem.SourceFile, []byte(newApiText), os.ModePerm)
+	buf := bytes.NewBuffer(nil)
+	err = templ.Execute(buf, apiItem)
+	if nil != err {
+		logrus.Errorf("execute template failed. error: %s.", err)
+		return
+	}
+
+	err = ioutil.WriteFile(apiItem.SourceFile, buf.Bytes(), os.ModePerm)
 	if nil != err {
 		logrus.Errorf("write api file failed. %s", err)
 		return
@@ -24,7 +34,7 @@ func CreateApiSource(apiItem *ApiItem) (err error) {
 	return
 }
 
-var apiText = `package %s
+var apiText = `package {{.ApiHandlerPackage}}
 
 import (
 	"fmt"
@@ -33,9 +43,12 @@ import (
 	"github.com/haozzzzzzzz/go-rapid-development/web/ginbuilder"
 )
 
-var %s ginbuilder.HandleFunc = ginbuilder.HandleFunc{
-	HttpMethod:   "%s",
-	RelativePath: "%s",
+var {{.ApiHandlerFunc}} ginbuilder.HandleFunc = ginbuilder.HandleFunc{
+	HttpMethod:   "{{.HttpMethod}}",
+	RelativePaths: []string{
+		{{range .RelativePaths}}{{.}},
+		{{end}}
+	},
 	Handle: func(ctx *ginbuilder.Context) (err error) {
 		ctx.SuccessReturn(map[string]interface{}{
 			"info": "hello, world",

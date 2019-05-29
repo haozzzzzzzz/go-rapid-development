@@ -74,3 +74,15 @@ var TestRequest ginbuilder.HandleFunc = ginbuilder.HandleFunc{
 		return
 	},
 }
+
+var TestPaths ginbuilder.HandleFunc = ginbuilder.HandleFunc{
+	HttpMethod: "GET",
+	RelativePaths: []string{
+		"/api/test_paths_1",
+		"/api/test_paths_2",
+	},
+	Handle: func(ctx *ginbuilder.Context) (err error) {
+		ctx.Success()
+		return
+	},
+}

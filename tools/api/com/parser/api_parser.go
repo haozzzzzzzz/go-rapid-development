@@ -48,23 +48,28 @@ func (m *ApiParser) ParseRouter(
 	return
 }
 
+func (m *ApiParser) apiUrlKey(uri string, method string) string {
+	return fmt.Sprintf("%s_%s", uri, method)
+}
+
 func (m *ApiParser) GenerateRoutersSourceFile(apis []*ApiItem) (err error) {
 	// sort api
-	apiUriKeys := make([]string, 0)
+	sortedApiUriKeys := make([]string, 0)
 	mapApi := make(map[string]*ApiItem)
 	for _, oneApi := range apis {
-		uriKey := fmt.Sprintf("%s_%s", oneApi.RelativePath, oneApi.HttpMethod)
-		apiUriKeys = append(apiUriKeys, uriKey)
-		mapApi[uriKey] = oneApi
+		if oneApi.RelativePaths == nil {
+			continue
+		}
+
+		for _, relPath := range oneApi.RelativePaths {
+			uriKey := m.apiUrlKey(relPath, oneApi.HttpMethod)
+			sortedApiUriKeys = append(sortedApiUriKeys, uriKey)
+			mapApi[uriKey] = oneApi
+		}
+
 	}
 
-	sort.Strings(apiUriKeys)
-
-	// new order apis
-	apis = make([]*ApiItem, 0)
-	for _, apiUriKey := range apiUriKeys {
-		apis = append(apis, mapApi[apiUriKey])
-	}
+	sort.Strings(sortedApiUriKeys)
 
 	logrus.Info("Map apis ...")
 	defer func() {
@@ -81,7 +86,7 @@ func (m *ApiParser) GenerateRoutersSourceFile(apis []*ApiItem) (err error) {
 	goPath := os.Getenv("GOPATH")
 	goPaths := strings.Split(goPath, ":")
 	for _, subGoPath := range goPaths {
-		for _, apiItem := range apis {
+		for _, apiItem := range mapApi {
 			if strings.Contains(apiItem.PackagePath, subGoPath) {
 				relPath := strings.Replace(apiItem.PackagePath, subGoPath+"/src/", "", -1)
 				if relPath != "" {
@@ -103,14 +108,21 @@ func (m *ApiParser) GenerateRoutersSourceFile(apis []*ApiItem) (err error) {
 	}
 
 	strRouters := make([]string, 0)
-	for _, apiItem := range apis {
+	for _, uriKey := range sortedApiUriKeys {
+		apiItem := mapApi[uriKey]
 		strHandleFunc := apiItem.ApiHandlerFunc
 		if apiItem.RelativePackage != "" {
 			strHandleFunc = fmt.Sprintf("%s.%s", apiItem.RelativePackage, apiItem.ApiHandlerFunc)
 		}
 
-		str := fmt.Sprintf("    engine.Handle(\"%s\", \"%s\", %s.GinHandler)", apiItem.HttpMethod, apiItem.RelativePath, strHandleFunc)
-		strRouters = append(strRouters, str)
+		for _, uri := range apiItem.RelativePaths {
+			if uriKey != m.apiUrlKey(uri, apiItem.HttpMethod) {
+				continue
+			}
+
+			str := fmt.Sprintf("    engine.Handle(\"%s\", \"%s\", %s.GinHandler)", apiItem.HttpMethod, uri, strHandleFunc)
+			strRouters = append(strRouters, str)
+		}
 
 	}
 
@@ -122,7 +134,7 @@ func (m *ApiParser) GenerateRoutersSourceFile(apis []*ApiItem) (err error) {
 		return
 	}
 
-	logrus.Info("Doing go imports")
+	logrus.Info("Do go imports ...")
 	// do goimports
 	goimports.DoGoImports([]string{m.ApiDir}, true)
 	logrus.Info("Do go imports completed")

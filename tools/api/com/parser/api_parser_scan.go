@@ -131,6 +131,7 @@ func ParseApis(
 				SourceFile:        fileName,
 				ApiHandlerFunc:    objName,
 				ApiHandlerPackage: astFile.Name.Name,
+				RelativePaths:     make([]string, 0),
 			}
 
 			relativeDir := filepath.Dir(fileName)
@@ -162,104 +163,223 @@ func ParseApis(
 						continue
 					}
 
-					// property
-					valueLit, ok := keyValueExpr.Value.(*ast.BasicLit)
-					if ok {
-						value := strings.Replace(valueLit.Value, "\"", "", -1)
-						switch keyIdent.Name {
-						case "HttpMethod":
-							switch value {
-							case "GET":
-							case "POST":
-							case "PUT":
-							case "PATCH":
-							case "HEAD":
-							case "OPTIONS":
-							case "DELETE":
-							case "CONNECT":
-							case "TRACE":
-							default:
-								err = errors.New(fmt.Sprintf("unsupported http method : %s", value))
-								logrus.Errorf("mapping unsupported api failed. %s.", err)
-								return
-							}
-							apiItem.HttpMethod = value
-
-						case "RelativePath":
-							apiItem.RelativePath = value
-
+					//fmt.Printf("%s %#v \n", keyIdent.Name, keyValueExpr.Value)
+					switch keyIdent.Name {
+					case "HttpMethod":
+						valueLit, ok := keyValueExpr.Value.(*ast.BasicLit)
+						if !ok {
+							break
 						}
-					}
 
-					// handle func
-					funcLit, ok := keyValueExpr.Value.(*ast.FuncLit)
-					if ok {
-						switch keyIdent.Name {
-						case "Handle":
-							if parseRequestData == false {
-								break
+						value := strings.Replace(valueLit.Value, "\"", "", -1)
+						switch value {
+						case "GET", "POST", "PUT", "PATCH", "HEAD", "OPTIONS", "DELETE", "CONNECT", "TRACE":
+						default:
+							err = errors.New(fmt.Sprintf("unsupported http method : %s", value))
+							logrus.Errorf("mapping unsupported api failed. %s.", err)
+							return
+						}
+
+						apiItem.HttpMethod = value
+
+					case "RelativePath": // 废弃
+						valueLit, ok := keyValueExpr.Value.(*ast.BasicLit)
+						if !ok {
+							break
+						}
+
+						value := strings.Replace(valueLit.Value, "\"", "", -1)
+						apiItem.RelativePaths = append(apiItem.RelativePaths, value)
+
+					case "RelativePaths":
+						compLit, ok := keyValueExpr.Value.(*ast.CompositeLit)
+						if !ok {
+							break
+						}
+
+						for _, elt := range compLit.Elts {
+							basicLit, ok := elt.(*ast.BasicLit)
+							if !ok {
+								continue
 							}
 
-							// types
-							typesConf := types.Config{
-								Importer: importer.For("source", nil),
-								//Importer: importer.Default(),
-							}
+							value := strings.Replace(basicLit.Value, "\"", "", -1)
+							apiItem.RelativePaths = append(apiItem.RelativePaths, value)
+						}
 
-							info := &types.Info{
-								Scopes:     make(map[ast.Node]*types.Scope),
-								Defs:       make(map[*ast.Ident]types.Object),
-								Uses:       make(map[*ast.Ident]types.Object),
-								Types:      make(map[ast.Expr]types.TypeAndValue),
-								Implicits:  make(map[ast.Node]types.Object),
-								Selections: make(map[*ast.SelectorExpr]*types.Selection),
-								InitOrder:  make([]*types.Initializer, 0),
-							}
-							pkg, errCheck := typesConf.Check(fileDir, fileSet, astFiles, info)
-							err = errCheck
-							if nil != err {
-								logrus.Errorf("check types failed. error: %s.", err)
-								return
-							}
-							_ = pkg
+					case "Handle":
+						funcLit, ok := keyValueExpr.Value.(*ast.FuncLit)
+						if !ok {
+							break
+						}
 
-							// parse request data
-							funcBody := funcLit.Body
-							for _, funcStmt := range funcBody.List {
-								switch funcStmt.(type) {
-								case *ast.AssignStmt:
-									assignStmt := funcStmt.(*ast.AssignStmt)
-									lhs := assignStmt.Lhs
-									rhs := assignStmt.Rhs
+						if parseRequestData == false {
+							break
+						}
 
-									_ = lhs
-									_ = rhs
+						// types
+						typesConf := types.Config{
+							Importer: importer.For("source", nil),
+							//Importer: importer.Default(),
+						}
 
-									for _, expr := range lhs {
-										ident, ok := expr.(*ast.Ident)
-										if !ok {
-											continue
-										}
+						info := &types.Info{
+							Scopes:     make(map[ast.Node]*types.Scope),
+							Defs:       make(map[*ast.Ident]types.Object),
+							Uses:       make(map[*ast.Ident]types.Object),
+							Types:      make(map[ast.Expr]types.TypeAndValue),
+							Implicits:  make(map[ast.Node]types.Object),
+							Selections: make(map[*ast.SelectorExpr]*types.Selection),
+							InitOrder:  make([]*types.Initializer, 0),
+						}
+						pkg, errCheck := typesConf.Check(fileDir, fileSet, astFiles, info)
+						err = errCheck
+						if nil != err {
+							logrus.Errorf("check types failed. error: %s.", err)
+							return
+						}
+						_ = pkg
 
-										switch ident.Name {
-										case "pathData":
-											apiItem.PathData = parseApiRequest(ident, info)
-										case "queryData":
-											apiItem.QueryData = parseApiRequest(ident, info)
-										case "postData":
-											apiItem.PostData = parseApiRequest(ident, info)
-										case "respData":
-											apiItem.RespData = parseApiRequest(ident, info)
-										}
+						// parse request data
+						funcBody := funcLit.Body
+						for _, funcStmt := range funcBody.List {
+							switch funcStmt.(type) {
+							case *ast.AssignStmt:
+								assignStmt := funcStmt.(*ast.AssignStmt)
+								lhs := assignStmt.Lhs
+								rhs := assignStmt.Rhs
+
+								_ = lhs
+								_ = rhs
+
+								for _, expr := range lhs {
+									ident, ok := expr.(*ast.Ident)
+									if !ok {
+										continue
 									}
 
-								case *ast.ReturnStmt:
-
+									switch ident.Name {
+									case "pathData":
+										apiItem.PathData = parseApiRequest(ident, info)
+									case "queryData":
+										apiItem.QueryData = parseApiRequest(ident, info)
+									case "postData":
+										apiItem.PostData = parseApiRequest(ident, info)
+									case "respData":
+										apiItem.RespData = parseApiRequest(ident, info)
+									}
 								}
 
+							case *ast.ReturnStmt:
+
 							}
+
 						}
+
 					}
+
+					//// property
+					//valueLit, ok := keyValueExpr.Value.(*ast.BasicLit)
+					//if ok {
+					//	value := strings.Replace(valueLit.Value, "\"", "", -1)
+					//	switch keyIdent.Name {
+					//	case "HttpMethod":
+					//		switch value {
+					//		case "GET":
+					//		case "POST":
+					//		case "PUT":
+					//		case "PATCH":
+					//		case "HEAD":
+					//		case "OPTIONS":
+					//		case "DELETE":
+					//		case "CONNECT":
+					//		case "TRACE":
+					//		default:
+					//			err = errors.New(fmt.Sprintf("unsupported http method : %s", value))
+					//			logrus.Errorf("mapping unsupported api failed. %s.", err)
+					//			return
+					//		}
+					//		apiItem.HttpMethod = value
+					//
+					//	case "RelativePath":
+					//		apiItem.RelativePaths = append(apiItem.RelativePaths, value)
+					//
+					//	case "RelativePaths":
+					//		fmt.Printf("aha")
+					//
+					//	}
+					//
+					//}
+					//
+					//// handle func
+					//funcLit, ok := keyValueExpr.Value.(*ast.FuncLit)
+					//if ok {
+					//	switch keyIdent.Name {
+					//	case "Handle":
+					//		if parseRequestData == false {
+					//			break
+					//		}
+					//
+					//		// types
+					//		typesConf := types.Config{
+					//			Importer: importer.For("source", nil),
+					//			//Importer: importer.Default(),
+					//		}
+					//
+					//		info := &types.Info{
+					//			Scopes:     make(map[ast.Node]*types.Scope),
+					//			Defs:       make(map[*ast.Ident]types.Object),
+					//			Uses:       make(map[*ast.Ident]types.Object),
+					//			Types:      make(map[ast.Expr]types.TypeAndValue),
+					//			Implicits:  make(map[ast.Node]types.Object),
+					//			Selections: make(map[*ast.SelectorExpr]*types.Selection),
+					//			InitOrder:  make([]*types.Initializer, 0),
+					//		}
+					//		pkg, errCheck := typesConf.Check(fileDir, fileSet, astFiles, info)
+					//		err = errCheck
+					//		if nil != err {
+					//			logrus.Errorf("check types failed. error: %s.", err)
+					//			return
+					//		}
+					//		_ = pkg
+					//
+					//		// parse request data
+					//		funcBody := funcLit.Body
+					//		for _, funcStmt := range funcBody.List {
+					//			switch funcStmt.(type) {
+					//			case *ast.AssignStmt:
+					//				assignStmt := funcStmt.(*ast.AssignStmt)
+					//				lhs := assignStmt.Lhs
+					//				rhs := assignStmt.Rhs
+					//
+					//				_ = lhs
+					//				_ = rhs
+					//
+					//				for _, expr := range lhs {
+					//					ident, ok := expr.(*ast.Ident)
+					//					if !ok {
+					//						continue
+					//					}
+					//
+					//					switch ident.Name {
+					//					case "pathData":
+					//						apiItem.PathData = parseApiRequest(ident, info)
+					//					case "queryData":
+					//						apiItem.QueryData = parseApiRequest(ident, info)
+					//					case "postData":
+					//						apiItem.PostData = parseApiRequest(ident, info)
+					//					case "respData":
+					//						apiItem.RespData = parseApiRequest(ident, info)
+					//					}
+					//				}
+					//
+					//			case *ast.ReturnStmt:
+					//
+					//			}
+					//
+					//		}
+					//	}
+					//}
 
 				}
 			}

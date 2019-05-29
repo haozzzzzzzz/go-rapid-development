@@ -11,9 +11,10 @@ import (
 )
 
 type HandleFunc struct {
-	HttpMethod   string
-	RelativePath string
-	Handle       func(ctx *Context) (err error)
+	HttpMethod    string
+	RelativePath  string   // 单个
+	RelativePaths []string // 多个
+	Handle        func(ctx *Context) (err error)
 }
 
 func (m *HandleFunc) GinHandler(ginCtx *gin.Context) {
@@ -68,7 +69,7 @@ func (m *HandleFunc) GinHandler(ginCtx *gin.Context) {
 	}()
 
 	if ctx.Session != nil {
-		ctx.Session.BeforeHandle(ctx, m.HttpMethod, m.RelativePath)
+		ctx.Session.BeforeHandle(ctx, m.HttpMethod, ginCtx.Request.URL.Path)
 	}
 
 	err = m.Handle(ctx)

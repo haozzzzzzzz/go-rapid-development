@@ -12,7 +12,7 @@ import (
 
 type HandleFunc struct {
 	HttpMethod    string
-	RelativePath  string   // 单个
+	RelativePath  string   // 单个。废弃
 	RelativePaths []string // 多个
 	Handle        func(ctx *Context) (err error)
 }

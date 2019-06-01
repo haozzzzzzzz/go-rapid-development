@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator"
+	"github.com/haozzzzzzzz/go-rapid-development/api/request"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/file"
 	"github.com/sirupsen/logrus"
 )
@@ -85,7 +86,7 @@ func ParseApis(
 
 	// 检索目录下所有的文件
 	astFiles := make([]*ast.File, 0)
-	pkgs, err := parser.ParseDir(fileSet, fileDir, nil, parser.AllErrors)
+	pkgs, err := parser.ParseDir(fileSet, fileDir, nil, parser.AllErrors|parser.ParseComments)
 	if nil != err {
 		logrus.Errorf("parser parse dir failed. error: %s.", err)
 		return
@@ -173,7 +174,15 @@ func ParseApis(
 
 						value := strings.Replace(valueLit.Value, "\"", "", -1)
 						switch value {
-						case "GET", "POST", "PUT", "PATCH", "HEAD", "OPTIONS", "DELETE", "CONNECT", "TRACE":
+						case request.METHOD_GET,
+							request.METHOD_POST,
+							request.METHOD_PUT,
+							request.METHOD_PATCH,
+							request.METHOD_HEAD,
+							request.METHOD_OPTIONS,
+							request.METHOD_DELETE,
+							request.METHOD_CONNECT,
+							request.METHOD_TRACE:
 						default:
 							err = errors.New(fmt.Sprintf("unsupported http method : %s", value))
 							logrus.Errorf("mapping unsupported api failed. %s.", err)
@@ -213,6 +222,7 @@ func ParseApis(
 							break
 						}
 
+						// if parse request data
 						if parseRequestData == false {
 							break
 						}
@@ -260,13 +270,13 @@ func ParseApis(
 
 									switch ident.Name {
 									case "pathData":
-										apiItem.PathData = parseApiRequest(ident, info)
+										apiItem.PathData = parseApiRequest(info, ident)
 									case "queryData":
-										apiItem.QueryData = parseApiRequest(ident, info)
+										apiItem.QueryData = parseApiRequest(info, ident)
 									case "postData":
-										apiItem.PostData = parseApiRequest(ident, info)
+										apiItem.PostData = parseApiRequest(info, ident)
 									case "respData":
-										apiItem.RespData = parseApiRequest(ident, info)
+										apiItem.RespData = parseApiRequest(info, ident)
 									}
 								}
 
@@ -277,109 +287,6 @@ func ParseApis(
 						}
 
 					}
-
-					//// property
-					//valueLit, ok := keyValueExpr.Value.(*ast.BasicLit)
-					//if ok {
-					//	value := strings.Replace(valueLit.Value, "\"", "", -1)
-					//	switch keyIdent.Name {
-					//	case "HttpMethod":
-					//		switch value {
-					//		case "GET":
-					//		case "POST":
-					//		case "PUT":
-					//		case "PATCH":
-					//		case "HEAD":
-					//		case "OPTIONS":
-					//		case "DELETE":
-					//		case "CONNECT":
-					//		case "TRACE":
-					//		default:
-					//			err = errors.New(fmt.Sprintf("unsupported http method : %s", value))
-					//			logrus.Errorf("mapping unsupported api failed. %s.", err)
-					//			return
-					//		}
-					//		apiItem.HttpMethod = value
-					//
-					//	case "RelativePath":
-					//		apiItem.RelativePaths = append(apiItem.RelativePaths, value)
-					//
-					//	case "RelativePaths":
-					//		fmt.Printf("aha")
-					//
-					//	}
-					//
-					//}
-					//
-					//// handle func
-					//funcLit, ok := keyValueExpr.Value.(*ast.FuncLit)
-					//if ok {
-					//	switch keyIdent.Name {
-					//	case "Handle":
-					//		if parseRequestData == false {
-					//			break
-					//		}
-					//
-					//		// types
-					//		typesConf := types.Config{
-					//			Importer: importer.For("source", nil),
-					//			//Importer: importer.Default(),
-					//		}
-					//
-					//		info := &types.Info{
-					//			Scopes:     make(map[ast.Node]*types.Scope),
-					//			Defs:       make(map[*ast.Ident]types.Object),
-					//			Uses:       make(map[*ast.Ident]types.Object),
-					//			Types:      make(map[ast.Expr]types.TypeAndValue),
-					//			Implicits:  make(map[ast.Node]types.Object),
-					//			Selections: make(map[*ast.SelectorExpr]*types.Selection),
-					//			InitOrder:  make([]*types.Initializer, 0),
-					//		}
-					//		pkg, errCheck := typesConf.Check(fileDir, fileSet, astFiles, info)
-					//		err = errCheck
-					//		if nil != err {
-					//			logrus.Errorf("check types failed. error: %s.", err)
-					//			return
-					//		}
-					//		_ = pkg
-					//
-					//		// parse request data
-					//		funcBody := funcLit.Body
-					//		for _, funcStmt := range funcBody.List {
-					//			switch funcStmt.(type) {
-					//			case *ast.AssignStmt:
-					//				assignStmt := funcStmt.(*ast.AssignStmt)
-					//				lhs := assignStmt.Lhs
-					//				rhs := assignStmt.Rhs
-					//
-					//				_ = lhs
-					//				_ = rhs
-					//
-					//				for _, expr := range lhs {
-					//					ident, ok := expr.(*ast.Ident)
-					//					if !ok {
-					//						continue
-					//					}
-					//
-					//					switch ident.Name {
-					//					case "pathData":
-					//						apiItem.PathData = parseApiRequest(ident, info)
-					//					case "queryData":
-					//						apiItem.QueryData = parseApiRequest(ident, info)
-					//					case "postData":
-					//						apiItem.PostData = parseApiRequest(ident, info)
-					//					case "respData":
-					//						apiItem.RespData = parseApiRequest(ident, info)
-					//					}
-					//				}
-					//
-					//			case *ast.ReturnStmt:
-					//
-					//			}
-					//
-					//		}
-					//	}
-					//}
 
 				}
 			}
@@ -398,8 +305,8 @@ func ParseApis(
 }
 
 func parseApiRequest(
-	astIdent *ast.Ident,
 	info *types.Info,
+	astIdent *ast.Ident,
 ) (dataType *StructType) {
 	identType := info.Defs[astIdent]
 	typeVar, ok := identType.(*types.Var)
@@ -407,7 +314,7 @@ func parseApiRequest(
 		return
 	}
 
-	iType := parseType(typeVar.Type())
+	iType := parseType(info, typeVar.Type())
 	if iType != nil {
 		dataType, _ = iType.(*StructType)
 	}
@@ -415,7 +322,10 @@ func parseApiRequest(
 	return
 }
 
-func parseType(t types.Type) (iType IType) {
+func parseType(
+	info *types.Info,
+	t types.Type,
+) (iType IType) {
 	iType = NewBasicType("Unsupported")
 
 	switch t.(type) {
@@ -423,11 +333,11 @@ func parseType(t types.Type) (iType IType) {
 		iType = NewBasicType(t.(*types.Basic).Name())
 
 	case *types.Pointer:
-		iType = parseType(t.(*types.Pointer).Elem())
+		iType = parseType(info, t.(*types.Pointer).Elem())
 
 	case *types.Named:
 		tNamed := t.(*types.Named)
-		iType = parseType(tNamed.Underlying())
+		iType = parseType(info, tNamed.Underlying())
 
 		// 如果是structType
 		structType, ok := iType.(*StructType)
@@ -441,6 +351,9 @@ func parseType(t types.Type) (iType IType) {
 
 		tStructType := t.(*types.Struct)
 
+		typeAstExpr := FindAstExprFromInfoTypes(info, t)
+		astStructType := typeAstExpr.(*ast.StructType)
+
 		numFields := tStructType.NumFields()
 		for i := 0; i < numFields; i++ {
 			field := NewField()
@@ -448,6 +361,21 @@ func parseType(t types.Type) (iType IType) {
 			tField := tStructType.Field(i)
 			if !tField.Exported() {
 				continue
+			}
+
+			astField := astStructType.Fields.List[i]
+
+			// 注释
+			if astField.Doc != nil && len(astField.Doc.List) > 0 {
+				for _, comment := range astField.Doc.List {
+					field.Description += RemoveCommentStartEndToken(comment.Text) + ";"
+				}
+			}
+
+			if astField.Comment != nil && len(astField.Comment.List) > 0 {
+				for _, comment := range astField.Comment.List {
+					field.Description += RemoveCommentStartEndToken(comment.Text) + ";"
+				}
 			}
 
 			// tags
@@ -459,12 +387,12 @@ func parseType(t types.Type) (iType IType) {
 				}
 
 				tagPair := strings.Split(pair, ":")
-				field.Tags[tagPair[0]] = tagPair[1]
+				field.Tags[tagPair[0]] = strings.Replace(tagPair[1], "\"", "", -1)
 			}
 
 			// definition
 			field.Name = tField.Name()
-			fieldType := parseType(tField.Type())
+			fieldType := parseType(info, tField.Type())
 			field.TypeName = fieldType.TypeName()
 			field.TypeSpec = fieldType
 
@@ -476,7 +404,7 @@ func parseType(t types.Type) (iType IType) {
 
 	case *types.Slice:
 		arrType := NewArrayType()
-		eltType := parseType(t.(*types.Slice).Elem())
+		eltType := parseType(info, t.(*types.Slice).Elem())
 		arrType.EltSpec = eltType
 		arrType.EltName = eltType.TypeName()
 		arrType.Name = fmt.Sprintf("[]%s", eltType.TypeName())
@@ -486,8 +414,8 @@ func parseType(t types.Type) (iType IType) {
 	case *types.Map:
 		mapType := NewMapType()
 		tMap := t.(*types.Map)
-		mapType.ValueSpec = parseType(tMap.Elem())
-		mapType.KeySpec = parseType(tMap.Key())
+		mapType.ValueSpec = parseType(info, tMap.Elem())
+		mapType.KeySpec = parseType(info, tMap.Key())
 		mapType.Name = fmt.Sprintf("map[%s]%s", mapType.KeySpec.TypeName(), mapType.ValueSpec.TypeName())
 
 		iType = mapType
@@ -515,5 +443,24 @@ func convertExpr(expr ast.Expr) (newExpr ast.Expr) {
 
 	}
 
+	return
+}
+
+//var stop bool
+
+func FindAstExprFromInfoTypes(info *types.Info, t types.Type) (expr ast.Expr) {
+	for tExpr, tType := range info.Types {
+		if t == tType.Type {
+			expr = tExpr
+		}
+	}
+	return
+}
+
+func RemoveCommentStartEndToken(text string) (newText string) {
+	newText = strings.Replace(text, "//", "", 1)
+	newText = strings.Replace(newText, "/*", "", 1)
+	newText = strings.Replace(newText, "*/", "", 1)
+	newText = strings.TrimSpace(newText)
 	return
 }

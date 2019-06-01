@@ -1,0 +1,84 @@
+- api_handler_func: BookUpdate
+  api_handler_package_func: book
+  source_file: /Users/hao/Documents/Projects/XunLei/video_buddy_service/src/github.com/haozzzzzzzz/go-rapid-development/tools/api/examples/test_doc/app/api/book/api_book.go
+  package_path: /Users/hao/Documents/Projects/XunLei/video_buddy_service/src/github.com/haozzzzzzzz/go-rapid-development/tools/api/examples/test_doc/app/api/book
+  http_method: POST
+  relative_path:
+  - /api/book/update/:book_id
+  relative_package: book
+  path_data:
+    type_class: struct
+    name: PathData
+    fields:
+    - name: BookId
+      type_name: string
+      tags:
+        binding: required
+        form: book_id
+        json: book_id
+      typespec:
+        type_class: basic
+        name: string
+      description: book id;
+    description: ""
+  query_data:
+    type_class: struct
+    name: QueryData
+    fields:
+    - name: Operator
+      type_name: string
+      tags:
+        binding: required
+        form: operator
+        json: operator
+      typespec:
+        type_class: basic
+        name: string
+      description: operator name中午;
+    description: ""
+  post_data:
+    type_class: struct
+    name: PostData
+    fields:
+    - name: BookName
+      type_name: string
+      tags:
+        binding: required
+        form: book_name
+        json: book_name
+      typespec:
+        type_class: basic
+        name: string
+      description: book name;
+    description: ""
+  response_data:
+    type_class: struct
+    name: ResponseData
+    fields:
+    - name: BookId
+      type_name: string
+      tags:
+        json: book_id
+      typespec:
+        type_class: basic
+        name: string
+      description: book id;
+    - name: BookName
+      type_name: string
+      tags:
+        json: book_name
+      typespec:
+        type_class: basic
+        name: string
+      description: book name;
+    - name: Operator
+      type_name: string
+      tags:
+        json: operator
+      typespec:
+        type_class: basic
+        name: string
+      description: operator name;
+    description: ""
+  summary: ""
+  description: ""

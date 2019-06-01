@@ -1,0 +1,3 @@
+client_config:
+  address: "127.0.0.1:8500"
+key_prefix: "dev/service/test_doc"

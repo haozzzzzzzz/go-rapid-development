@@ -89,6 +89,14 @@ func (m *ProjectSource) generateCommonConfig() (err error) {
 		return
 	}
 
+	// remote api
+	remoteApiFilePath := fmt.Sprintf("%s/remote_api.go", configDir)
+	err = ioutil.WriteFile(remoteApiFilePath, []byte(remoteApiFileText), project.ProjectFileMode)
+	if nil != err {
+		logrus.Errorf("write remote api file failed. error: %s.", err)
+		return
+	}
+
 	return
 }
 
@@ -104,6 +112,7 @@ func init() {
 	CheckXRayConfig()
 	CheckSessionConfig()
 	CheckHttpConfig()
+	CheckRemoteApiConfig()
 }
 `
 
@@ -163,7 +172,6 @@ import (
 	"fmt"
 
 	"github.com/go-playground/validator"
-	"github.com/haozzzzzzzz/go-rapid-development/utils/yaml"
 	"github.com/sirupsen/logrus"
 )
 
@@ -210,7 +218,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/go-playground/validator"
 	"github.com/haozzzzzzzz/go-rapid-development/aws/ec2"
-	"github.com/haozzzzzzzz/go-rapid-development/utils/yaml"
 	"github.com/sirupsen/logrus"
 )
 
@@ -263,7 +270,6 @@ var xrayFileText = `package config
 
 import (
 	"github.com/go-playground/validator"
-	"github.com/haozzzzzzzz/go-rapid-development/utils/yaml"
 	"github.com/sirupsen/logrus"
 
 	"github.com/aws/aws-xray-sdk-go/xray"
@@ -385,7 +391,6 @@ var serviceFileText = `package config
 
 import (
 	"github.com/go-playground/validator"
-	"github.com/haozzzzzzzz/go-rapid-development/utils/yaml"
 	"github.com/sirupsen/logrus"
 )
 
@@ -467,7 +472,6 @@ import (
 	"service/common/proxy/operations_api"
 
 	"github.com/go-playground/validator"
-	"github.com/haozzzzzzzz/go-rapid-development/utils/yaml"
 	"github.com/sirupsen/logrus"
 )
 

@@ -1,10 +1,28 @@
 package parser
 
+import (
+	"fmt"
+	"strings"
+)
+
 type Field struct {
-	Name     string            `json:"name" yaml:"name"`
-	TypeName string            `json:"type_name" yaml:"type_name"`
-	Tags     map[string]string `json:"tags" yaml:"tags"`
-	TypeSpec IType             `json:"type_spec" form:"type_spec"`
+	Name        string            `json:"name" yaml:"name"`
+	TypeName    string            `json:"type_name" yaml:"type_name"`
+	Tags        map[string]string `json:"tags" yaml:"tags"`
+	TypeSpec    IType             `json:"type_spec" form:"type_spec"`
+	Description string            `json:"description" form:"description"`
+}
+
+func (m *Field) TagJson() (name string) {
+	return m.Tags["json"]
+}
+
+func (m *Field) Required() (required bool) {
+	strBind := m.Tags["binding"]
+	if strings.Contains(strBind, "required") {
+		required = true
+	}
+	return
 }
 
 func NewField() *Field {
@@ -44,9 +62,10 @@ func NewBasicType(name string) *BasicType {
 
 // struct
 type StructType struct {
-	TypeClass string   `json:"type_class" yaml:"type_class"`
-	Name      string   `json:"name" yaml:"name"`
-	Fields    []*Field `json:"fields" yaml:"fields"`
+	TypeClass   string   `json:"type_class" yaml:"type_class"`
+	Name        string   `json:"name" yaml:"name"`
+	Fields      []*Field `json:"fields" yaml:"fields"`
+	Description string   `json:"description" yaml:"description"`
 }
 
 func (m *StructType) TypeName() string {
@@ -127,4 +146,11 @@ type ApiItem struct {
 	QueryData       *StructType `json:"query_data" yaml:"query_data"`
 	PostData        *StructType `json:"post_data" yaml:"post_data"`
 	RespData        *StructType `json:"response_data" yaml:"response_data"`
+
+	Summary     string `json:"summary" yaml:"summary"`
+	Description string `json:"description" yaml:"description"`
+}
+
+func (m *ApiItem) PackageFuncName() string {
+	return fmt.Sprintf("%s.%s", m.RelativePackage, m.ApiHandlerFunc)
 }

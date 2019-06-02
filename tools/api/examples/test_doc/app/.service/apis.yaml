@@ -82,3 +82,59 @@
     description: ""
   summary: ""
   description: ""
+- api_handler_func: BookInfo
+  api_handler_package_func: book
+  source_file: /Users/hao/Documents/Projects/XunLei/video_buddy_service/src/github.com/haozzzzzzzz/go-rapid-development/tools/api/examples/test_doc/app/api/book/api_book.go
+  package_path: /Users/hao/Documents/Projects/XunLei/video_buddy_service/src/github.com/haozzzzzzzz/go-rapid-development/tools/api/examples/test_doc/app/api/book
+  http_method: GET
+  relative_path:
+  - /api/book/info/:book_id
+  relative_package: book
+  path_data:
+    type_class: struct
+    name: PathData
+    fields:
+    - name: BookId
+      type_name: string
+      tags:
+        binding: required
+        form: book_id
+        json: book_id
+      typespec:
+        type_class: basic
+        name: string
+      description: 书本ID
+    description: ""
+  query_data: null
+  post_data: null
+  response_data:
+    type_class: struct
+    name: ResponseData
+    fields:
+    - name: BookId
+      type_name: string
+      tags:
+        json: book_id
+      typespec:
+        type_class: basic
+        name: string
+      description: 书本ID
+    - name: BookName
+      type_name: string
+      tags:
+        json: book_name
+      typespec:
+        type_class: basic
+        name: string
+      description: 书本名称
+    - name: PublishTime
+      type_name: int64
+      tags:
+        json: publish_time
+      typespec:
+        type_class: basic
+        name: int64
+      description: 发布时间
+    description: ""
+  summary: ""
+  description: ""

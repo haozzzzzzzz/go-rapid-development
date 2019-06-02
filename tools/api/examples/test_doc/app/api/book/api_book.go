@@ -1,6 +1,8 @@
 package book
 
 import (
+	"time"
+
 	"github.com/haozzzzzzzz/go-rapid-development/web/ginbuilder"
 )
 
@@ -54,6 +56,41 @@ var BookUpdate ginbuilder.HandleFunc = ginbuilder.HandleFunc{
 			BookId:   pathData.BookId,
 			BookName: postData.BookName,
 			Operator: queryData.Operator,
+		}
+
+		ctx.SuccessReturn(respData)
+		return
+	},
+}
+
+var BookInfo ginbuilder.HandleFunc = ginbuilder.HandleFunc{
+	HttpMethod: "GET",
+	RelativePaths: []string{
+		"/api/book/info/:book_id",
+	},
+	Handle: func(ctx *ginbuilder.Context) (err error) {
+		// request path data
+		type PathData struct {
+			BookId string `json:"book_id" form:"book_id" binding:"required"` // 书本ID
+
+		}
+		pathData := PathData{}
+		retCode, err := ctx.BindPathData(&pathData)
+		if err != nil {
+			ctx.Errorf(retCode, "verify  path data failed. %s.", err)
+			return
+		}
+
+		// response data
+		type ResponseData struct {
+			BookId      string `json:"book_id"`      // 书本ID
+			BookName    string `json:"book_name"`    // 书本名称
+			PublishTime int64  `json:"publish_time"` // 发布时间
+		}
+		respData := &ResponseData{
+			BookId:      pathData.BookId,
+			BookName:    "xxx从入门到放弃",
+			PublishTime: time.Now().Unix(),
 		}
 
 		ctx.SuccessReturn(respData)

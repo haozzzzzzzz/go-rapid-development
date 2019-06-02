@@ -123,14 +123,17 @@ func (m *SwaggerSpec) parseApi(path string, api *ApiItem) (err error) {
 		operation.Parameters = append(operation.Parameters, *body)
 	}
 
+	// response data
+	successResponse := spec.Response{}
+	successResponse.Description = "success"
+	if api.RespData != nil {
+		successResponse.Schema = ITypeToSwaggerSchema(SuccessResponseStructType(api.RespData))
+	}
+
 	operation.Responses = &spec.Responses{
 		ResponsesProps: spec.ResponsesProps{
 			StatusCodeResponses: map[int]spec.Response{
-				200: {
-					ResponseProps: spec.ResponseProps{
-						Description: "success",
-					},
-				},
+				200: successResponse,
 			},
 		},
 	}

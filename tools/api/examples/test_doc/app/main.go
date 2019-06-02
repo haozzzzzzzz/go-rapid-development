@@ -20,6 +20,7 @@ import (
 	"service/common/operations"
 
 	"github.com/fvbock/endless"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/haozzzzzzzz/go-rapid-development/aws/xray"
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/examples/test_doc/common/config"
@@ -69,6 +70,11 @@ func Run(runParams *RunParams) (err error) {
 	}
 
 	engine := ginbuilder.DefaultEngine()
+
+	// 开启跨域
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowAllOrigins = true
+	engine.Use(cors.New(corsConfig))
 
 	// bind xray
 	engine.Use(xray.XRayGinMiddleware(serviceName))

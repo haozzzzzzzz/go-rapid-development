@@ -368,13 +368,20 @@ func parseType(
 			// 注释
 			if astField.Doc != nil && len(astField.Doc.List) > 0 {
 				for _, comment := range astField.Doc.List {
-					field.Description += RemoveCommentStartEndToken(comment.Text) + ";"
+					if field.Description != "" {
+						field.Description += "; "
+					}
+
+					field.Description += RemoveCommentStartEndToken(comment.Text)
 				}
 			}
 
 			if astField.Comment != nil && len(astField.Comment.List) > 0 {
 				for _, comment := range astField.Comment.List {
-					field.Description += RemoveCommentStartEndToken(comment.Text) + ";"
+					if field.Description != "" {
+						field.Description += "; "
+					}
+					field.Description += RemoveCommentStartEndToken(comment.Text)
 				}
 			}
 

@@ -154,3 +154,49 @@ type ApiItem struct {
 func (m *ApiItem) PackageFuncName() string {
 	return fmt.Sprintf("%s.%s", m.RelativePackage, m.ApiHandlerFunc)
 }
+
+// 成功返回结构
+//type Response struct {
+//	ReturnCode uint32      `json:"ret"`
+//	Message    string      `json:"msg"`
+//	Data       interface{} `json:"data"`
+//}
+func SuccessResponseStructType(
+	respData *StructType,
+) (successResp *StructType) {
+	successResp = &StructType{
+		TypeClass:   TypeClassStructType,
+		Name:        "SuccessResponse",
+		Description: "api success response",
+		Fields: []*Field{
+			{
+				Name:        "ReturnCode",
+				TypeName:    "uint32",
+				Description: "result code",
+				Tags: map[string]string{
+					"json": "ret",
+				},
+				TypeSpec: NewBasicType("uint32"),
+			},
+			{
+				Name:        "Message",
+				TypeName:    "string",
+				Description: "result message",
+				Tags: map[string]string{
+					"json": "msg",
+				},
+				TypeSpec: NewBasicType("string"),
+			},
+			{
+				Name:        "Data",
+				TypeName:    respData.TypeName(),
+				Description: "result data",
+				Tags: map[string]string{
+					"json": "data",
+				},
+				TypeSpec: respData,
+			},
+		},
+	}
+	return
+}

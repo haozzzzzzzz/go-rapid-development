@@ -19,7 +19,7 @@
       typespec:
         type_class: basic
         name: string
-      description: book id;
+      description: book id
     description: ""
   query_data:
     type_class: struct
@@ -34,7 +34,7 @@
       typespec:
         type_class: basic
         name: string
-      description: operator name中午;
+      description: operator name中午
     description: ""
   post_data:
     type_class: struct
@@ -49,7 +49,7 @@
       typespec:
         type_class: basic
         name: string
-      description: book name;
+      description: book name
     description: ""
   response_data:
     type_class: struct
@@ -62,7 +62,7 @@
       typespec:
         type_class: basic
         name: string
-      description: book id;
+      description: book id
     - name: BookName
       type_name: string
       tags:
@@ -70,7 +70,7 @@
       typespec:
         type_class: basic
         name: string
-      description: book name;
+      description: book name
     - name: Operator
       type_name: string
       tags:
@@ -78,7 +78,7 @@
       typespec:
         type_class: basic
         name: string
-      description: operator name;
+      description: operator name
     description: ""
   summary: ""
   description: ""

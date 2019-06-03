@@ -80,8 +80,7 @@ func Run(runParams *RunParams) (err error) {
 	engine.Use(xray.XRayGinMiddleware(serviceName))
 
 	// bind prometheus
-	// TODO 需要添加前缀
-	metricsPath := "/api/__/metrics"
+	metricsPath := "/api/test_doc/metrics"
 	engine.GET(metricsPath, func(context *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {

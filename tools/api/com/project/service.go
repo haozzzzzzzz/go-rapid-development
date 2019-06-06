@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"path/filepath"
+
 	"github.com/go-playground/validator"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/file"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/yaml"
@@ -57,6 +59,12 @@ func (m *Service) Load(serviceDir string) (err error) {
 func (m *Service) Init() (err error) {
 	if m.Config == nil {
 		err = errors.New("empty config")
+		return
+	}
+
+	m.Config.ServiceDir, err = filepath.Abs(m.Config.ServiceDir)
+	if nil != err {
+		logrus.Errorf("get service dir failed. error: %s.", err)
 		return
 	}
 

@@ -110,6 +110,12 @@ var (
 		Message: "verify post form params failed",
 	}
 
+	// 请求参数不匹配
+	CodeErrorRequestParamNotMatch = &ApiCode{
+		Code:    1014,
+		Message: "request params not match",
+	}
+
 	// proxy
 	CodeErrorProxyFailed = &ApiCode{
 		Code:    1100,

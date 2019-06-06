@@ -11,8 +11,8 @@ type ClientConfigFormat struct {
 	Driver             string        `json:"driver" yaml:"driver" validate:"required"`
 	Address            string        `json:"address" yaml:"address" validate:"required"`
 	Source             string        `json:"source" yaml:"source" validate:"required"`
-	MaxIdle            int           `json:"max_idle" yaml:"max_idle" validate:"required"`
-	MaxOpen            int           `json:"max_open" yaml:"max_open" validate:"required"`
+	MaxIdle            int           `json:"max_idle" yaml:"max_idle"`
+	MaxOpen            int           `json:"max_open" yaml:"max_open"`
 	MaxLifetimeSeconds time.Duration `json:"max_lifetime_seconds" yaml:"max_lifetime_seconds" validate:"required"`
 }
 

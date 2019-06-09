@@ -252,10 +252,30 @@ func ITypeToSwaggerSchema(iType IType) (schema *spec.Schema) {
 			schema.Properties[jsonName] = *fieldSchema
 		}
 
+	case *MapType:
+		mapType := iType.(*MapType)
+		schema.Type = []string{"object"}
+		schema.AdditionalProperties = &spec.SchemaOrBool{}
+
+		schema.AdditionalProperties.Schema = ITypeToSwaggerSchema(mapType.ValueSpec)
+
+	case *ArrayType:
+		arrayType := iType.(*ArrayType)
+		schema.Type = []string{"array"}
+		schema.Items = &spec.SchemaOrArray{}
+		schema.Items.Schema = ITypeToSwaggerSchema(arrayType.EltSpec)
+
+	case *InterfaceType:
+		//interType := iType.(*InterfaceType)
+		schema.Type = []string{"object"}
+
 	case *BasicType:
 		basicType := iType.(*BasicType)
 		schemaType := BasicTypeTransformSchemaType(basicType.Name)
 		schema.Type = []string{schemaType}
+
+	default:
+		fmt.Println("unsported itype for swagger schema")
 	}
 
 	return

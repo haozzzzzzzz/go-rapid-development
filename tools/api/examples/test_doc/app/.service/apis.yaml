@@ -50,6 +50,89 @@
         type_class: basic
         name: string
       description: book name
+    - name: ExtraData
+      type_name: map[string]ExtraDataItem
+      tags:
+        binding: required
+        form: extra_data
+        json: extra_data
+      typespec:
+        type_class: map
+        name: map[string]ExtraDataItem
+        key:
+          type_class: basic
+          name: string
+        value_spec:
+          type_class: struct
+          name: ExtraDataItem
+          fields:
+          - name: Field1
+            type_name: string
+            tags:
+              binding: required
+              form: field_1
+              json: field_1
+            typespec:
+              type_class: basic
+              name: string
+            description: ""
+          - name: Field2
+            type_name: int64
+            tags:
+              binding: required
+              form: field_2
+              json: field_2
+            typespec:
+              type_class: basic
+              name: int64
+            description: ""
+          description: ""
+      description: ""
+    - name: Items
+      type_name: '[]ExtraDataItem'
+      tags:
+        binding: required
+        form: items
+        json: items
+      typespec:
+        type_class: array
+        name: '[]ExtraDataItem'
+        elt_name: ExtraDataItem
+        elt_spec:
+          type_class: struct
+          name: ExtraDataItem
+          fields:
+          - name: Field1
+            type_name: string
+            tags:
+              binding: required
+              form: field_1
+              json: field_1
+            typespec:
+              type_class: basic
+              name: string
+            description: ""
+          - name: Field2
+            type_name: int64
+            tags:
+              binding: required
+              form: field_2
+              json: field_2
+            typespec:
+              type_class: basic
+              name: int64
+            description: ""
+          description: ""
+      description: ""
+    - name: InterfaceField
+      type_name: interface
+      tags:
+        binding: required
+        form: interface_field
+        json: interface_field
+      typespec:
+        type_class: interface
+      description: ""
     description: ""
   response_data:
     type_class: struct

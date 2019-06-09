@@ -7,6 +7,11 @@ import (
 )
 
 // 更新书本信息
+type ExtraDataItem struct {
+	Field1 string `json:"field_1" form:"field_1" binding:"required"`
+	Field2 int64  `json:"field_2" form:"field_2" binding:"required"`
+}
+
 var BookUpdate ginbuilder.HandleFunc = ginbuilder.HandleFunc{
 	HttpMethod: "POST",
 	RelativePaths: []string{
@@ -37,7 +42,10 @@ var BookUpdate ginbuilder.HandleFunc = ginbuilder.HandleFunc{
 
 		// request post data
 		type PostData struct {
-			BookName string `json:"book_name" form:"book_name" binding:"required"` //book name
+			BookName       string                   `json:"book_name" form:"book_name" binding:"required"` //book name
+			ExtraData      map[string]ExtraDataItem `json:"extra_data" form:"extra_data" binding:"required"`
+			Items          []ExtraDataItem          `json:"items" form:"items" binding:"required"`
+			InterfaceField interface{}              `json:"interface_field" form:"interface_field" binding:"required"`
 		}
 		postData := PostData{}
 		retCode, err = ctx.BindPostData(&postData)

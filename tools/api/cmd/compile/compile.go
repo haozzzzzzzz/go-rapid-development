@@ -38,7 +38,7 @@ func CommandApiCompile() *cobra.Command {
 
 			// api parser
 			apiParser := parser.NewApiParser(service)
-			apis, err := apiParser.ScanApis(false)
+			apis, err := apiParser.ScanApis(false, false)
 			if nil != err {
 				logrus.Errorf("Scan api failed. \n%s.", err)
 				return
@@ -64,6 +64,7 @@ func GenerateApiDoc() *cobra.Command {
 	var host string
 	var version string
 	var contactName string
+	var importSource bool
 	var cmd = &cobra.Command{
 		Use:   "doc",
 		Short: "api doc generate",
@@ -89,7 +90,7 @@ func GenerateApiDoc() *cobra.Command {
 
 			// api parser
 			apiParser := parser.NewApiParser(service)
-			apis, err := apiParser.ScanApis(true)
+			apis, err := apiParser.ScanApis(true, importSource)
 			if nil != err {
 				logrus.Errorf("Scan api failed. \n%s.", err)
 				return
@@ -126,5 +127,6 @@ func GenerateApiDoc() *cobra.Command {
 	flags.StringVarP(&host, "host", "H", "", "api host")
 	flags.StringVarP(&version, "version", "v", "1.0", "api version")
 	flags.StringVarP(&contactName, "contact_name", "c", "", "contact name")
+	flags.BoolVarP(&importSource, "import_source", "s", false, "import source")
 	return cmd
 }

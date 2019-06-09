@@ -27,6 +27,7 @@ import (
 
 func (m *ApiParser) ScanApis(
 	parseRequestData bool, // 如果parseRequestData会有点慢
+	importSource bool, // parseRequestData=true时，生效
 ) (apis []*ApiItem, err error) {
 	apis = make([]*ApiItem, 0)
 	logrus.Info("Scan api files...")
@@ -56,7 +57,7 @@ func (m *ApiParser) ScanApis(
 
 	// 服务源文件
 	for _, subApiDir := range subApiDir {
-		subApis, errParse := ParseApis(apiDir, subApiDir, parseRequestData)
+		subApis, errParse := ParseApis(apiDir, subApiDir, parseRequestData, importSource)
 		err = errParse
 		if nil != err {
 			logrus.Errorf("parse api file dir %q failed. error: %s.", subApiDir, err)
@@ -73,6 +74,7 @@ func ParseApis(
 	rootDir string,
 	fileDir string,
 	parseRequestData bool,
+	importSource bool,
 ) (apis []*ApiItem, err error) {
 	apis = make([]*ApiItem, 0)
 	defer func() {
@@ -228,9 +230,11 @@ func ParseApis(
 						}
 
 						// types
-						typesConf := types.Config{
-							Importer: importer.For("source", nil),
-							//Importer: importer.Default(),
+						typesConf := types.Config{}
+						if importSource {
+							typesConf.Importer = importer.For("source", nil)
+						} else {
+							typesConf.Importer = importer.Default()
 						}
 
 						info := &types.Info{

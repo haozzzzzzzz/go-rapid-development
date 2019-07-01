@@ -164,6 +164,12 @@ var (
 		Message: "db query no records",
 	}
 
+	// 记录已存在
+	CodeErrorDBRecordExists = &ApiCode{
+		Code:    2006,
+		Message: "db record exists",
+	}
+
 	// redis错误
 	CodeErrorRedis = &ApiCode{
 		Code:    2100,

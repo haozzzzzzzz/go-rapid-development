@@ -1,5 +1,9 @@
 package utime
 
+import (
+	"github.com/haozzzzzzzz/go-rapid-development/utils/num"
+)
+
 type TimeRange struct {
 	StartTime int64 `json:"start_time" yaml:"start_time" validate:"required"`
 	EndTime   int64 `json:"end_time" yaml:"end_time" validate:"required"`
@@ -23,5 +27,37 @@ func (m *TimeRange) TimeState(t int64) (state int) {
 			state = TimeRangeStateOver
 		}
 	}
+	return
+}
+
+func (m *TimeRange) ToIntRange() *num.IntRange {
+	return &num.IntRange{
+		Min: m.StartTime,
+		Max: m.EndTime,
+	}
+}
+
+func NewTimeRangeFromIntRange(r *num.IntRange) *TimeRange {
+	return &TimeRange{
+		StartTime: r.Min,
+		EndTime:   r.Max,
+	}
+}
+
+func IntersectTimeRange(
+	r1 *TimeRange,
+	r2 *TimeRange,
+) (isIntersect bool, sub *TimeRange) {
+	isIntersect, ir := num.IntRangeIntersectRange(
+		r1.ToIntRange(),
+		r2.ToIntRange(),
+	)
+
+	if !isIntersect {
+		return
+	}
+
+	sub = NewTimeRangeFromIntRange(ir)
+
 	return
 }

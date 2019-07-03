@@ -26,3 +26,26 @@ func IntersectIntRange(
 	}
 	return
 }
+
+func IntRangeIntersectRange(
+	r1 *IntRange,
+	r2 *IntRange,
+) (isIntersect bool, sub *IntRange) {
+	isIntersect = IntersectIntRange(r1, r2)
+	if !isIntersect {
+		return
+	}
+
+	sub = &IntRange{}
+	sub.Min = r1.Min
+	if sub.Min < r2.Min {
+		sub.Min = r2.Min
+	}
+
+	sub.Max = r1.Max
+	if sub.Max > r2.Max {
+		sub.Max = r2.Max
+	}
+
+	return
+}

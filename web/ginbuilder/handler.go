@@ -5,6 +5,8 @@ import (
 
 	"net/http"
 
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/uruntime"
@@ -69,7 +71,11 @@ func (m *HandleFunc) GinHandler(ginCtx *gin.Context) {
 	}()
 
 	if ctx.Session != nil {
-		ctx.Session.BeforeHandle(ctx, m.HttpMethod, ginCtx.Request.URL.Path)
+		uri := ginCtx.Request.URL.Path
+		for _, param := range ginCtx.Params {
+			uri = strings.Replace(uri, param.Value, ":"+param.Key, 1)
+		}
+		ctx.Session.BeforeHandle(ctx, m.HttpMethod, uri)
 	}
 
 	err = m.Handle(ctx)

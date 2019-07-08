@@ -5,6 +5,7 @@ import (
 
 	"net/http"
 
+	"fmt"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -72,9 +73,23 @@ func (m *HandleFunc) GinHandler(ginCtx *gin.Context) {
 
 	if ctx.Session != nil {
 		uri := ginCtx.Request.URL.Path
-		for _, param := range ginCtx.Params {
-			uri = strings.Replace(uri, param.Value, ":"+param.Key, 1)
+		relPaths := m.RelativePaths
+		if len(relPaths) == 0 && m.RelativePath != "" {
+			relPaths = []string{m.RelativePath}
 		}
+
+		for _, relPath := range relPaths {
+			tempPath := relPath
+			for _, param := range ginCtx.Params {
+				tempPath = strings.Replace(tempPath, fmt.Sprintf(":%s", param.Key), param.Value, -1)
+			}
+
+			if strings.Contains(uri, tempPath) {
+				uri = relPath
+				break
+			}
+		}
+
 		ctx.Session.BeforeHandle(ctx, m.HttpMethod, uri)
 	}
 

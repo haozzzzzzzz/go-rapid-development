@@ -71,15 +71,17 @@ const TradeStatusTimeout string = "timeout"
 const TradeStatusCancel string = "cancel"
 
 type PayoutAsyncNotifyPostData struct {
-	TradeNo     string `json:"tradeNo" form:"tradeNo" structs:"tradeNo" binding:"required"`
-	MerTransNo  string `json:"merTransNo" form:"merTransNo" structs:"merTransNo" binding:"required"`
-	Currency    string `json:"currency" form:"currency" structs:"currency" binding:"required"`
-	Amount      string `json:"amount" form:"amount" structs:"amount" binding:"required"`
-	TotalFee    string `json:"totalFee" form:"totalFee" structs:"totalFee" binding:"required"`
-	TradeStatus string `json:"tradeStatus" form:"tradeStatus" structs:"tradeStatus" binding:"required"`
-	CreateTime  string `json:"createTime" form:"createTime" structs:"createTime" binding:"required"` // 北京时间 GMT +8
-	UpdateTime  string `json:"updateTime" form:"updateTime" structs:"updateTime" binding:"required"` // 北京时间
-	Sign        string `json:"sign" form:"sign" structs:"sign" binding:"required"`
+	ResultCode  string `json:"result_code" form:"result_code" structs:"resultCode" mapstructure:"resultCode"`
+	Message     string `json:"message" form:"message" structs:"message" mapstructure:"message"`
+	TradeNo     string `json:"tradeNo" form:"tradeNo" structs:"tradeNo" mapstructure:"tradeNo" binding:"required"`
+	MerTransNo  string `json:"merTransNo" form:"merTransNo" structs:"merTransNo" mapstructure:"merTransNo" binding:"required"`
+	Currency    string `json:"currency" form:"currency" structs:"currency" mapstructure:"currency" binding:"required"`
+	Amount      string `json:"amount" form:"amount" structs:"amount" mapstructure:"amount" binding:"required"`
+	TotalFee    string `json:"totalFee" form:"totalFee" structs:"totalFee" mapstructure:"totalFee" binding:"required"`
+	TradeStatus string `json:"tradeStatus" form:"tradeStatus" structs:"tradeStatus" mapstructure:"tradeStatus" binding:"required"`
+	CreateTime  string `json:"createTime" form:"createTime" structs:"createTime" mapstructure:"createTime" binding:"required"` // 北京时间 GMT +8
+	UpdateTime  string `json:"updateTime" form:"updateTime" structs:"updateTime" mapstructure:"updateTime" binding:"required"` // 北京时间
+	Sign        string `json:"sign" form:"sign" structs:"sign" mapstructure:"sign" binding:"required"`
 }
 
 type PayoutRequestData struct {
@@ -221,6 +223,6 @@ func (m *Dokypay) PayoutResponseResultSign(data *PayoutResponseResult) string {
 	return DokypaySign(structs.Map(data), m.AppKey)
 }
 
-func (m *Dokypay) PayoutAsyncNotifyPostDataSign(data *PayoutAsyncNotifyPostData) string {
-	return DokypaySign(structs.Map(data), m.AppKey)
+func (m *Dokypay) PayoutAsyncNotifyPostDataSign(data map[string]interface{}) string {
+	return DokypaySign(data, m.AppKey)
 }

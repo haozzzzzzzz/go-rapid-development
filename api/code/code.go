@@ -116,6 +116,12 @@ var (
 		Message: "request params not match",
 	}
 
+	// 需要授权
+	CodeErrorAuthRequired = &ApiCode{
+		Code:    1015,
+		Message: "require auth",
+	}
+
 	// proxy
 	CodeErrorProxyFailed = &ApiCode{
 		Code:    1100,

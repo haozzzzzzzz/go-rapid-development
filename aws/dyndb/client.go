@@ -306,3 +306,18 @@ func (m *Client) UpdateItem(
 	output, err = m.DB.UpdateItemWithContext(m.Ctx, input)
 	return
 }
+
+func (m *Client) TransactWriteItems(
+	input *dynamodb.TransactWriteItemsInput,
+) (output *dynamodb.TransactWriteItemsOutput, err error) {
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, input)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	output, err = m.DB.TransactWriteItems(input)
+	return
+}

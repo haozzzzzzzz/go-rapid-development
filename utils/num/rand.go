@@ -2,7 +2,12 @@ package num
 
 import (
 	"math/rand"
+	"time"
 )
+
+func init() {
+	rand.Seed(time.Now().Unix())
+}
 
 //[min, max)
 func RandInt64(min, max int64) int64 {

@@ -71,15 +71,15 @@ func (m *ApiParser) ScanApis(
 }
 
 func ParseApis(
-	rootDir string,
-	fileDir string,
+	apiRootDir string,
+	apiPackageDir string,
 	parseRequestData bool,
 	importSource bool,
 ) (apis []*ApiItem, err error) {
 	apis = make([]*ApiItem, 0)
 	defer func() {
 		if iRec := recover(); iRec != nil {
-			logrus.Errorf("panic %s. api_dir: %s", iRec, fileDir)
+			logrus.Errorf("panic %s. api_dir: %s", iRec, apiPackageDir)
 			debug.PrintStack()
 		}
 	}()
@@ -88,7 +88,7 @@ func ParseApis(
 
 	// 检索目录下所有的文件
 	astFiles := make([]*ast.File, 0)
-	pkgs, err := parser.ParseDir(fileSet, fileDir, nil, parser.AllErrors|parser.ParseComments)
+	pkgs, err := parser.ParseDir(fileSet, apiPackageDir, nil, parser.AllErrors|parser.ParseComments)
 	if nil != err {
 		logrus.Errorf("parser parse dir failed. error: %s.", err)
 		return
@@ -102,6 +102,37 @@ func ParseApis(
 			astFiles = append(astFiles, pkgFile)
 			astFileMap[fileName] = pkgFile
 		}
+	}
+
+	// types
+	info := &types.Info{
+		Scopes:     make(map[ast.Node]*types.Scope),
+		Defs:       make(map[*ast.Ident]types.Object),
+		Uses:       make(map[*ast.Ident]types.Object),
+		Types:      make(map[ast.Expr]types.TypeAndValue),
+		Implicits:  make(map[ast.Node]types.Object),
+		Selections: make(map[*ast.SelectorExpr]*types.Selection),
+		InitOrder:  make([]*types.Initializer, 0),
+	}
+	if parseRequestData {
+		typesConf := types.Config{
+			DisableUnusedImportCheck: true,
+		}
+		if importSource {
+			typesConf.Importer = importer.For("source", nil)
+		} else {
+			typesConf.Importer = importer.Default()
+		}
+
+		pkg, errCheck := typesConf.Check(apiPackageDir, fileSet, astFiles, info)
+		err = errCheck
+		if nil != err {
+			logrus.Errorf("check types failed. error: %s.", err)
+			return
+		}
+		_ = pkg
+
+		// imported
 	}
 
 	for _, astFile := range astFiles { // 遍历语法树
@@ -138,7 +169,7 @@ func ParseApis(
 			}
 
 			relativeDir := filepath.Dir(fileName)
-			relativePackageDir := strings.Replace(relativeDir, rootDir, "", 1)
+			relativePackageDir := strings.Replace(relativeDir, apiRootDir, "", 1)
 			if relativePackageDir != "" { // 子目录
 				relativePackageDir = strings.Replace(relativePackageDir, "/", "", 1)
 				apiItem.RelativePackage = strings.Replace(relativePackageDir, "/", "_", -1)
@@ -228,31 +259,6 @@ func ParseApis(
 						if parseRequestData == false {
 							break
 						}
-
-						// types
-						typesConf := types.Config{}
-						if importSource {
-							typesConf.Importer = importer.For("source", nil)
-						} else {
-							typesConf.Importer = importer.Default()
-						}
-
-						info := &types.Info{
-							Scopes:     make(map[ast.Node]*types.Scope),
-							Defs:       make(map[*ast.Ident]types.Object),
-							Uses:       make(map[*ast.Ident]types.Object),
-							Types:      make(map[ast.Expr]types.TypeAndValue),
-							Implicits:  make(map[ast.Node]types.Object),
-							Selections: make(map[*ast.SelectorExpr]*types.Selection),
-							InitOrder:  make([]*types.Initializer, 0),
-						}
-						pkg, errCheck := typesConf.Check(fileDir, fileSet, astFiles, info)
-						err = errCheck
-						if nil != err {
-							logrus.Errorf("check types failed. error: %s.", err)
-							return
-						}
-						_ = pkg
 
 						// parse request data
 						funcBody := funcLit.Body

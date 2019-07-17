@@ -7,6 +7,9 @@ import (
 
 	"io/ioutil"
 
+	"bytes"
+	"encoding/json"
+
 	"github.com/go-openapi/spec"
 	"github.com/haozzzzzzzz/go-rapid-development/api/request"
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
@@ -192,7 +195,21 @@ func (m *SwaggerSpec) SaveToFile(fileName string) (err error) {
 }
 
 func (m *SwaggerSpec) Output() (output []byte, err error) {
-	return m.Swagger.MarshalJSON()
+	output, err = m.Swagger.MarshalJSON()
+	if nil != err {
+		logrus.Errorf("swagger marshal json failed. error: %s.", err)
+		return
+	}
+
+	var buf bytes.Buffer
+	err = json.Indent(&buf, output, "", "\t")
+	if nil != err {
+		logrus.Errorf("json indent swagger json bytes failed. error: %s.", err)
+		return
+	}
+
+	output = buf.Bytes()
+	return
 }
 
 // query、path基础类型参数

@@ -98,9 +98,9 @@ func ParseApis(
 	astFileMap := make(map[string]*ast.File)
 	for pkgName, pkg := range pkgs {
 		_ = pkgName
-		for fileName, file := range pkg.Files {
-			astFiles = append(astFiles, file)
-			astFileMap[fileName] = file
+		for fileName, pkgFile := range pkg.Files {
+			astFiles = append(astFiles, pkgFile)
+			astFileMap[fileName] = pkgFile
 		}
 	}
 
@@ -355,8 +355,10 @@ func parseType(
 
 		tStructType := t.(*types.Struct)
 
-		typeAstExpr := FindAstExprFromInfoTypes(info, t)
-		astStructType := typeAstExpr.(*ast.StructType)
+		typeAstExpr := FindAstExprFromInfoTypes(info, t) // 有时候找不到定义，可能是项目外的定义
+		if typeAstExpr == nil {
+			logrus.Warnf("cannot found expr of type: %s", tStructType.String())
+		}
 
 		numFields := tStructType.NumFields()
 		for i := 0; i < numFields; i++ {
@@ -367,26 +369,36 @@ func parseType(
 				continue
 			}
 
-			astField := astStructType.Fields.List[i]
+			if typeAstExpr != nil { // 找到声明
 
-			// 注释
-			if astField.Doc != nil && len(astField.Doc.List) > 0 {
-				for _, comment := range astField.Doc.List {
-					if field.Description != "" {
-						field.Description += "; "
-					}
-
-					field.Description += RemoveCommentStartEndToken(comment.Text)
+				astStructType, ok := typeAstExpr.(*ast.StructType)
+				if !ok {
+					logrus.Printf("parse struct type failed. expr: %s, type: %#v\n\n\n\n\n", typeAstExpr, tStructType)
+					return
 				}
-			}
 
-			if astField.Comment != nil && len(astField.Comment.List) > 0 {
-				for _, comment := range astField.Comment.List {
-					if field.Description != "" {
-						field.Description += "; "
+				astField := astStructType.Fields.List[i]
+
+				// 注释
+				if astField.Doc != nil && len(astField.Doc.List) > 0 {
+					for _, comment := range astField.Doc.List {
+						if field.Description != "" {
+							field.Description += "; "
+						}
+
+						field.Description += RemoveCommentStartEndToken(comment.Text)
 					}
-					field.Description += RemoveCommentStartEndToken(comment.Text)
 				}
+
+				if astField.Comment != nil && len(astField.Comment.List) > 0 {
+					for _, comment := range astField.Comment.List {
+						if field.Description != "" {
+							field.Description += "; "
+						}
+						field.Description += RemoveCommentStartEndToken(comment.Text)
+					}
+				}
+
 			}
 
 			// tags
@@ -458,13 +470,15 @@ func convertExpr(expr ast.Expr) (newExpr ast.Expr) {
 }
 
 //var stop bool
-
+// expr匹配类型
 func FindAstExprFromInfoTypes(info *types.Info, t types.Type) (expr ast.Expr) {
 	for tExpr, tType := range info.Types {
 		if t == tType.Type {
 			expr = tExpr
+			break
 		}
 	}
+
 	return
 }
 

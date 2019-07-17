@@ -57,7 +57,7 @@ func (m *ApiParser) ScanApis(
 
 	// 服务源文件
 	for _, subApiDir := range subApiDir {
-		subApis, errParse := ParseApis(apiDir, subApiDir, parseRequestData, importSource)
+		subApis, errParse := ParseApis(m.GoPaths, apiDir, subApiDir, parseRequestData, importSource)
 		err = errParse
 		if nil != err {
 			logrus.Errorf("parse api file dir %q failed. error: %s.", subApiDir, err)
@@ -71,6 +71,7 @@ func (m *ApiParser) ScanApis(
 }
 
 func ParseApis(
+	goPaths []string,
 	apiRootDir string,
 	apiPackageDir string,
 	parseRequestData bool,
@@ -88,7 +89,8 @@ func ParseApis(
 
 	// 检索目录下所有的文件
 	astFiles := make([]*ast.File, 0)
-	pkgs, err := parser.ParseDir(fileSet, apiPackageDir, nil, parser.AllErrors|parser.ParseComments)
+	parseMode := parser.AllErrors | parser.ParseComments
+	pkgs, err := parser.ParseDir(fileSet, apiPackageDir, nil, parseMode)
 	if nil != err {
 		logrus.Errorf("parser parse dir failed. error: %s.", err)
 		return
@@ -115,9 +117,7 @@ func ParseApis(
 		InitOrder:  make([]*types.Initializer, 0),
 	}
 	if parseRequestData {
-		typesConf := types.Config{
-			DisableUnusedImportCheck: true,
-		}
+		typesConf := types.Config{}
 		if importSource {
 			typesConf.Importer = importer.For("source", nil)
 		} else {
@@ -133,6 +133,45 @@ func ParseApis(
 		_ = pkg
 
 		// imported
+		impPaths := make(map[string]bool)
+		for fileName, pkgFile := range astFileMap {
+			_ = fileName
+			for _, fileImport := range pkgFile.Imports {
+				impPath := strings.Replace(fileImport.Path.Value, "\"", "", -1)
+				for _, goPath := range goPaths {
+					absPath := fmt.Sprintf("%s/src/%s", goPath, impPath)
+					if file.PathExists(absPath) {
+						impPaths[absPath] = true
+					}
+				}
+			}
+		}
+
+		for impPath, _ := range impPaths {
+			tempFileSet := token.NewFileSet()
+			tempAstFiles := make([]*ast.File, 0)
+
+			tempPkgs, errParse := parser.ParseDir(tempFileSet, impPath, nil, parseMode)
+			err = errParse
+			if nil != err {
+				logrus.Errorf("parser parse dir failed. error: %s.", err)
+				return
+			}
+
+			for pkgName, pkg := range tempPkgs {
+				_ = pkgName
+				for _, pkgFile := range pkg.Files {
+					tempAstFiles = append(tempAstFiles, pkgFile)
+				}
+			}
+
+			_, err = typesConf.Check(impPath, tempFileSet, tempAstFiles, info)
+			if nil != err {
+				logrus.Errorf("check imported package failed. path: %s, error: %s.", impPath, err)
+				return
+			}
+
+		}
 	}
 
 	for _, astFile := range astFiles { // 遍历语法树
@@ -197,7 +236,6 @@ func ParseApis(
 						continue
 					}
 
-					//fmt.Printf("%s %#v \n", keyIdent.Name, keyValueExpr.Value)
 					switch keyIdent.Name {
 					case "HttpMethod":
 						valueLit, ok := keyValueExpr.Value.(*ast.BasicLit)
@@ -327,6 +365,8 @@ func parseApiRequest(
 	iType := parseType(info, typeVar.Type())
 	if iType != nil {
 		dataType, _ = iType.(*StructType)
+	} else {
+		logrus.Warnf("parse api request nill: %#v\n", typeVar)
 	}
 
 	return
@@ -361,7 +401,7 @@ func parseType(
 
 		tStructType := t.(*types.Struct)
 
-		typeAstExpr := FindAstExprFromInfoTypes(info, t) // 有时候找不到定义，可能是项目外的定义
+		typeAstExpr := FindStructAstExprFromInfoTypes(info, tStructType)
 		if typeAstExpr == nil {
 			logrus.Warnf("cannot found expr of type: %s", tStructType.String())
 		}
@@ -476,13 +516,40 @@ func convertExpr(expr ast.Expr) (newExpr ast.Expr) {
 }
 
 //var stop bool
-// expr匹配类型
-func FindAstExprFromInfoTypes(info *types.Info, t types.Type) (expr ast.Expr) {
+// struct expr匹配类型
+func FindStructAstExprFromInfoTypes(info *types.Info, t *types.Struct) (expr ast.Expr) {
 	for tExpr, tType := range info.Types {
-		if t == tType.Type {
+		tStruct, ok := tType.Type.(*types.Struct)
+		if !ok {
+			continue
+		}
+
+		if t == tStruct { // 同一组astFiles生成的Types，内存中对象匹配成功
 			expr = tExpr
 			break
 		}
+
+		if t.String() == tStruct.String() { // 如果是不同的astFiles生成的Types，可能astFile1中没有这个类型信息，但是另外一组astFiles导入到info里，这是同一个类型，内存对象不一样，但是整体结构是一样的
+			expr = tExpr
+			break
+		}
+
+		if tStruct.NumFields() == t.NumFields() {
+			numFields := tStruct.NumFields()
+			notMatch := false
+			for i := 0; i < numFields; i++ {
+				if tStruct.Tag(i) != t.Tag(i) || tStruct.Field(i).Name() != t.Field(i).Name() {
+					notMatch = true
+					break
+				}
+			}
+
+			if notMatch == false {
+				expr = tExpr
+				break
+			}
+		}
+
 	}
 
 	return

@@ -6,9 +6,9 @@ import (
 
 	"sort"
 
-	"os"
-
 	"strings"
+
+	"os"
 
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
 	"github.com/haozzzzzzzz/go-rapid-development/tools/goimports"
@@ -20,13 +20,16 @@ type ApiParser struct {
 	Service    *project.Service
 	ServiceDir string
 	ApiDir     string
+	GoPaths    []string
 }
 
 func NewApiParser(service *project.Service) *ApiParser {
+	goPath := os.Getenv("GOPATH")
 	return &ApiParser{
 		Service:    service,
 		ServiceDir: service.Config.ServiceDir,
 		ApiDir:     fmt.Sprintf("%s/api", service.Config.ServiceDir),
+		GoPaths:    strings.Split(goPath, ":"),
 	}
 }
 
@@ -84,8 +87,7 @@ func (m *ApiParser) GenerateRoutersSourceFile(apis []*ApiItem) (err error) {
 	importsMap := make(map[string]string) // package -> alias
 	_ = importsMap
 
-	goPath := os.Getenv("GOPATH")
-	goPaths := strings.Split(goPath, ":")
+	goPaths := m.GoPaths
 	for _, subGoPath := range goPaths {
 		for _, apiItem := range mapApi {
 			if strings.Contains(apiItem.PackagePath, subGoPath) {

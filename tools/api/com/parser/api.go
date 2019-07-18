@@ -72,6 +72,10 @@ func (m *StructType) TypeName() string {
 	return m.Name
 }
 
+func (m *StructType) AddFields(filed *Field) {
+	m.Fields = append(m.Fields, filed)
+}
+
 func NewStructType() *StructType {
 	return &StructType{
 		TypeClass: TypeClassStructType,

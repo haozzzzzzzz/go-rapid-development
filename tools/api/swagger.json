@@ -12,5 +12,115 @@
 		},
 		"version": "1.0"
 	},
-	"paths": {}
+	"host": "127.0.0.1",
+	"paths": {
+		"/hello_world": {
+			"get": {
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"application/json"
+				],
+				"operationId": ".-/hello_world",
+				"parameters": [
+					{
+						"type": "string",
+						"description": "姓名",
+						"name": "name",
+						"in": "query",
+						"required": true
+					},
+					{
+						"name": "struct",
+						"in": "body",
+						"required": true,
+						"schema": {
+							"type": "object",
+							"properties": {
+								"location": {
+									"description": "地址",
+									"type": "integer",
+									"required": [
+										"location"
+									]
+								}
+							}
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "success",
+						"schema": {
+							"type": "object",
+							"properties": {
+								"data": {
+									"description": "result data",
+									"type": "object",
+									"properties": {
+										"a": {
+											"description": "这个是a",
+											"type": "integer"
+										},
+										"b": {
+											"description": "这个是b",
+											"type": "integer"
+										},
+										"c": {
+											"description": "这个是c",
+											"type": "object",
+											"properties": {
+												"d": {
+													"description": "这个是d",
+													"type": "integer"
+												}
+											}
+										},
+										"f": {
+											"description": "这个是f",
+											"type": "array",
+											"required": [
+												"f"
+											],
+											"items": {
+												"type": "string"
+											}
+										},
+										"g": {
+											"description": "这个是g",
+											"type": "array",
+											"required": [
+												"g"
+											],
+											"items": {
+												"type": "object",
+												"properties": {
+													"h": {
+														"description": "这个是h",
+														"type": "integer",
+														"required": [
+															"h"
+														]
+													}
+												}
+											}
+										}
+									}
+								},
+								"msg": {
+									"description": "result message",
+									"type": "string"
+								},
+								"ret": {
+									"description": "result code",
+									"type": "integer"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 }

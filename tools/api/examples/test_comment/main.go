@@ -9,7 +9,19 @@ package test_comment
 		"name": "姓名|string|required"
 	},
 	"post_data": {
-		"location": "地址|string|required"
+		"age": "年龄|string|required",
+		"nicknames": ["string"],
+		"__nicknames": "别名|array",
+		"contacts": [
+			{
+				"location": "地址|string|required"
+			}
+		],
+		"__contacts": "联系方式|array|required",
+		"info": {
+			"has_dog": "是否养了狗|array"
+		},
+		"__info": "其他信息|object|required"
 	},
 	"resp_data": {
 	    "a": "这个是a|int",

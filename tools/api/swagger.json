@@ -38,12 +38,51 @@
 						"schema": {
 							"type": "object",
 							"properties": {
-								"location": {
-									"description": "地址",
+								"age": {
+									"description": "年龄",
 									"type": "integer",
 									"required": [
-										"location"
+										"age"
 									]
+								},
+								"contacts": {
+									"description": "联系方式",
+									"type": "array",
+									"required": [
+										"contacts"
+									],
+									"items": {
+										"type": "object",
+										"properties": {
+											"location": {
+												"description": "地址",
+												"type": "integer",
+												"required": [
+													"location"
+												]
+											}
+										}
+									}
+								},
+								"info": {
+									"description": "其他信息",
+									"type": "object",
+									"required": [
+										"info"
+									],
+									"properties": {
+										"has_dog": {
+											"description": "是否养了狗",
+											"type": "integer"
+										}
+									}
+								},
+								"nicknames": {
+									"description": "别名",
+									"type": "array",
+									"items": {
+										"type": "string"
+									}
 								}
 							}
 						}

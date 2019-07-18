@@ -84,14 +84,59 @@ func GenerateApiDoc() *cobra.Command {
 
 func GenerateCommentDoc() (cmd *cobra.Command) {
 	var dir string
+	var outputPath string
+	var host string
 	cmd = &cobra.Command{
 		Use:   "com_doc",
 		Short: "generate open api doc from comment",
 		Run: func(cmd *cobra.Command, args []string) {
+			var err error
+			if dir == "" || outputPath == "" {
+				logrus.Errorf("invalid params")
+				return
+			}
+
+			dir, err = filepath.Abs(dir)
+			if nil != err {
+				logrus.Errorf("get abs dir failed. dir: %s, error: %s.", dir, err)
+				return
+			}
+
+			outputPath, err = filepath.Abs(outputPath)
+			if nil != err {
+				logrus.Errorf("get abs output path failed. error: %s.", err)
+				return
+			}
+
+			title, description, version, contact, apis, err := parser.ParseApisFromComments(dir)
+			if nil != err {
+				logrus.Errorf("parse failed. error: %s.", err)
+				return
+			}
+
+			swaggerSpec := parser.NewSwaggerSpec()
+			swaggerSpec.Info(
+				title,
+				description,
+				version,
+				contact,
+			)
+			swaggerSpec.Host(host)
+			swaggerSpec.Apis(apis)
+			swaggerSpec.Schemes([]string{"http", "https"})
+			err = swaggerSpec.ParseApis()
+			err = swaggerSpec.SaveToFile(outputPath)
+			if nil != err {
+				logrus.Errorf("save swagger spec to file failed. error: %s.", err)
+				return
+			}
+
 			return
 		},
 	}
 	flags := cmd.Flags()
 	flags.StringVarP(&dir, "dir", "d", "./", "search directory")
+	flags.StringVarP(&outputPath, "output", "o", "./swagger.json", "swagger json output path")
+	flags.StringVarP(&host, "host", "H", "", "host")
 	return
 }

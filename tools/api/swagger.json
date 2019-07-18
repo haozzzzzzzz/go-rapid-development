@@ -1,0 +1,16 @@
+{
+	"schemes": [
+		"http",
+		"https"
+	],
+	"swagger": "2.0",
+	"info": {
+		"description": "api service description",
+		"title": "api service name",
+		"contact": {
+			"name": "contact"
+		},
+		"version": "1.0"
+	},
+	"paths": {}
+}

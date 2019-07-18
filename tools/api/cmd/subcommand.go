@@ -12,4 +12,5 @@ func init() {
 	rootCmd.AddCommand(compile.CommandApiCompile())
 	rootCmd.AddCommand(imports.CommandApiImports())
 	rootCmd.AddCommand(compile.GenerateApiDoc())
+	rootCmd.AddCommand(compile.GenerateCommentDoc())
 }

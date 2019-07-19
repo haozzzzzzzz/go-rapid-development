@@ -207,15 +207,17 @@ func ParseApis(
 				RelativePaths:     make([]string, 0),
 			}
 
-			relativeDir := filepath.Dir(fileName)
-			relativePackageDir := strings.Replace(relativeDir, apiRootDir, "", 1)
-			if relativePackageDir != "" { // 子目录
-				relativePackageDir = strings.Replace(relativePackageDir, "/", "", 1)
-				apiItem.RelativePackage = strings.Replace(relativePackageDir, "/", "_", -1)
+			fileDir := filepath.Dir(fileName)
+
+			// 设置相对api文件夹的relative path
+			pkgDir := strings.Replace(fileDir, apiRootDir, "", 1)
+			if pkgDir != "" { // 子目录
+				pkgDir = strings.Replace(pkgDir, "/", "", 1)
+				apiItem.RelativePackage = strings.Replace(pkgDir, "/", "_", -1)
 			}
 
 			if apiItem.RelativePackage != "" {
-				apiItem.PackagePath = relativeDir
+				apiItem.PackagePath = fileDir
 			}
 
 			for _, value := range valueSpec.Values { // 遍历属性

@@ -12,7 +12,6 @@
 		},
 		"version": "1.0"
 	},
-	"host": "127.0.0.1",
 	"paths": {
 		"/hello_world": {
 			"get": {
@@ -22,7 +21,7 @@
 				"produces": [
 					"application/json"
 				],
-				"operationId": ".-/hello_world",
+				"operationId": "GET-/hello_world",
 				"parameters": [
 					{
 						"type": "string",

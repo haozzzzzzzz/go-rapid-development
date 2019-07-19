@@ -138,18 +138,18 @@ func (m *InterfaceType) TypeName() string {
 }
 
 type ApiItem struct {
-	ApiHandlerFunc    string `validate:"required" json:"api_handler_func" yaml:"api_handler_func"`
-	ApiHandlerPackage string `validate:"required" json:"api_handler_package_func" yaml:"api_handler_package_func"`
-	SourceFile        string `validate:"required" json:"source_file" yaml:"source_file"`
-	PackagePath       string `json:"package_path" yaml:"package_path"`
+	ApiHandlerFunc    string `validate:"required" json:"api_handler_func" yaml:"api_handler_func"`       // handler 函数名
+	ApiHandlerPackage string `validate:"required" json:"api_handler_package" yaml:"api_handler_package"` // handler 所在的包名
+	SourceFile        string `validate:"required" json:"source_file" yaml:"source_file"`                 // 源码
+	PackagePath       string `json:"package_path" yaml:"package_path"`                                   // 包所在的路径
+	RelativePackage   string `json:"relative_package" yaml:"relative_package"`
 
-	HttpMethod      string      `validate:"required" json:"http_method" yaml:"http_method"`
-	RelativePaths   []string    `validate:"required" json:"relative_path" yaml:"relative_path"`
-	RelativePackage string      `json:"relative_package" yaml:"relative_package"`
-	PathData        *StructType `json:"path_data" yaml:"path_data"`
-	QueryData       *StructType `json:"query_data" yaml:"query_data"`
-	PostData        *StructType `json:"post_data" yaml:"post_data"`
-	RespData        *StructType `json:"response_data" yaml:"response_data"`
+	HttpMethod    string      `validate:"required" json:"http_method" yaml:"http_method"`
+	RelativePaths []string    `validate:"required" json:"relative_path" yaml:"relative_path"`
+	PathData      *StructType `json:"path_data" yaml:"path_data"`
+	QueryData     *StructType `json:"query_data" yaml:"query_data"`
+	PostData      *StructType `json:"post_data" yaml:"post_data"`
+	RespData      *StructType `json:"response_data" yaml:"response_data"`
 
 	Summary     string `json:"summary" yaml:"summary"`
 	Description string `json:"description" yaml:"description"`

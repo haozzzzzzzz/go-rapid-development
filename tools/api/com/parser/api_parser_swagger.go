@@ -1,3 +1,6 @@
+/**
+This package parses api items to swagger specification
+*/
 package parser
 
 import (
@@ -43,42 +46,40 @@ func (m *SwaggerSpec) ParseApis() (
 		}
 	}()
 
-	swag := lswagger.NewSwagger()
 	for _, api := range m.apis {
 		paths := api.RelativePaths
-		for _, path := range paths {
-			// 将gin url path上的:变量转换成swagger的{变量}
-			subPaths := strings.Split(path, "/")
-			for i, subPath := range subPaths {
-				if strings.HasPrefix(subPath, ":") {
-					subPath = strings.Replace(subPath, ":", "", 1)
-					subPath = fmt.Sprintf("{%s}", subPath)
-					subPaths[i] = subPath
-				}
-			}
-
-			path = strings.Join(subPaths, "/")
+		for _, path := range paths { // if api has handler with multi paths, gen spec for each path
 			err = m.parseApi(path, api)
 			if nil != err {
 				logrus.Errorf("swagger spec parse api failed. error: %s.", err)
 				return
 			}
-
 		}
 	}
 
-	_ = swag
 	return
 }
 
 func (m *SwaggerSpec) parseApi(path string, api *ApiItem) (err error) {
+	// transform gin-style url path params "/:param" to swagger-style url param "{param}"
+	subPaths := strings.Split(path, "/")
+	for i, subPath := range subPaths {
+		if strings.HasPrefix(subPath, ":") {
+			subPath = strings.Replace(subPath, ":", "", 1)
+			subPath = fmt.Sprintf("{%s}", subPath)
+			subPaths[i] = subPath
+		}
+	}
+
+	path = strings.Join(subPaths, "/")
+
 	pathItem := &spec.PathItem{}
 	operation := &spec.Operation{}
 	operation.Consumes = []string{request.MIME_JSON}
 	operation.Produces = []string{request.MIME_JSON}
 	operation.Summary = api.Summary
 	operation.Description = api.Description
-	operation.ID = fmt.Sprintf("%s-%s", api.PackageFuncName(), path)
+	operation.ID = fmt.Sprintf("%s-%s", api.HttpMethod, path)
 	operation.Parameters = make([]spec.Parameter, 0)
 
 	// https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#pathsObject
@@ -146,18 +147,22 @@ func (m *SwaggerSpec) parseApi(path string, api *ApiItem) (err error) {
 	return
 }
 
+// set apis for building swagger spec
 func (m *SwaggerSpec) Apis(apis []*ApiItem) {
 	m.apis = apis
 }
 
+// set swagger host params
 func (m *SwaggerSpec) Host(host string) {
 	m.Swagger.Host = host
 }
 
+// set swagger schemes params
 func (m *SwaggerSpec) Schemes(schemes []string) {
 	m.Swagger.Schemes = schemes
 }
 
+// set swagger info params
 func (m *SwaggerSpec) Info(
 	title string,
 	description string,
@@ -178,6 +183,7 @@ func (m *SwaggerSpec) Info(
 	return
 }
 
+// save swagger spec to file
 func (m *SwaggerSpec) SaveToFile(fileName string) (err error) {
 	out, err := m.Output()
 	if nil != err {
@@ -194,6 +200,7 @@ func (m *SwaggerSpec) SaveToFile(fileName string) (err error) {
 	return
 }
 
+// output swagger spec bytes
 func (m *SwaggerSpec) Output() (output []byte, err error) {
 	output, err = m.Swagger.MarshalJSON()
 	if nil != err {
@@ -221,17 +228,18 @@ func FieldBasicParameter(in string, field *Field) (parameter *spec.Parameter) {
 	parameter.Required = field.Required()
 	switch field.TypeSpec.(type) {
 	case *BasicType:
-		parameter.Type = BasicTypeTransformSchemaType(field.TypeName)
+		parameter.Type = BasicTypeToSwaggerSchemaType(field.TypeName)
 
 	default:
-		parameter.Type = BasicTypeTransformSchemaType(field.TypeName)
+		parameter.Type = BasicTypeToSwaggerSchemaType(field.TypeName)
 
 	}
 
 	return
 }
 
-func BasicTypeTransformSchemaType(fieldType string) (swagType string) {
+// transform basic type to swagger schema type
+func BasicTypeToSwaggerSchemaType(fieldType string) (swagType string) {
 	switch fieldType {
 	case "string":
 		swagType = "string"
@@ -288,7 +296,7 @@ func ITypeToSwaggerSchema(iType IType) (schema *spec.Schema) {
 
 	case *BasicType:
 		basicType := iType.(*BasicType)
-		schemaType := BasicTypeTransformSchemaType(basicType.Name)
+		schemaType := BasicTypeToSwaggerSchemaType(basicType.Name)
 		schema.Type = []string{schemaType}
 
 	default:

@@ -16,6 +16,10 @@ import (
 
 	"fmt"
 
+	"go/ast"
+
+	"path/filepath"
+
 	"github.com/haozzzzzzzz/go-rapid-development/utils/file"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
 	"github.com/sirupsen/logrus"
@@ -72,7 +76,11 @@ func ParseApisFromPkgComment(pkgDir string) (apis []*ApiItem, err error) {
 		for _, astFile := range pkg.Files {
 			for _, commentGroup := range astFile.Comments {
 				for _, comment := range commentGroup.List {
-					tempApis, errParse := ParseApisFromPkgCommentText(comment.Text)
+					tempApis, errParse := ParseApisFromPkgCommentText(
+						fileSet,
+						astFile,
+						comment,
+					)
 					err = errParse
 					if nil != err {
 						logrus.Errorf("parse apis from pkg comment text failed. text: %s, error: %s.", comment.Text, err)
@@ -87,7 +95,11 @@ func ParseApisFromPkgComment(pkgDir string) (apis []*ApiItem, err error) {
 	return
 }
 
-func ParseApisFromPkgCommentText(text string) (apis []*ApiItem, err error) {
+func ParseApisFromPkgCommentText(
+	fileSet *token.FileSet,
+	astFile *ast.File,
+	comment *ast.Comment,
+) (apis []*ApiItem, err error) {
 	apis = make([]*ApiItem, 0)
 
 	docReg, err := regexp.Compile(`(?si:@api_doc_start(.*?)@api_doc_end)`)
@@ -96,12 +108,15 @@ func ParseApisFromPkgCommentText(text string) (apis []*ApiItem, err error) {
 		return
 	}
 
-	arrStrs := docReg.FindAllStringSubmatch(text, -1)
+	arrStrs := docReg.FindAllStringSubmatch(comment.Text, -1)
 	strJsons := make([]string, 0)
 	for _, strs := range arrStrs {
 		strJsons = append(strJsons, strs[1])
 	}
 
+	tokenFile := fileSet.File(astFile.Pos())
+	fileName := tokenFile.Name()
+	fileDir := filepath.Dir(fileName)
 	for _, strJson := range strJsons {
 		tempApiItem, errParse := parseCommentTextToApi(strJson)
 		err = errParse
@@ -110,9 +125,15 @@ func ParseApisFromPkgCommentText(text string) (apis []*ApiItem, err error) {
 			return
 		}
 
-		if tempApiItem != nil {
-			apis = append(apis, tempApiItem)
+		if tempApiItem == nil {
+			continue
 		}
+
+		tempApiItem.ApiHandlerPackage = astFile.Name.Name
+		tempApiItem.SourceFile = fileName
+		tempApiItem.PackagePath = fileDir
+
+		apis = append(apis, tempApiItem)
 	}
 
 	return

@@ -43,13 +43,13 @@ func (m *Client) Ping() (err error) {
 	return
 }
 
-func (m *Client) QueryRowx(query string, args ...interface{}) (row *sqlx.Row, err error) {
+func (m *Client) QueryRowx(query string, args ...interface{}) (row *sqlx.Row) {
 	// checker
 	checker := m.CommandChecker()
 	if checker != nil {
 		checker.Before(m, query, args...)
 		defer func() {
-			checker.After(err)
+			checker.After(nil)
 		}()
 	}
 

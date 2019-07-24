@@ -6,6 +6,7 @@ import (
 
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/haozzzzzzzz/go-rapid-development/aws/xray"
 	"github.com/sirupsen/logrus"
@@ -50,4 +51,29 @@ func TestClient_TableExists(t *testing.T) {
 	}
 
 	fmt.Println(exists)
+}
+
+func TestClient_GetItem(t *testing.T) {
+	var err error
+	ctx, _, cancel := xray.NewBackgroundContext("test")
+	defer func() {
+		cancel(err)
+	}()
+
+	client := NewClient(db, ctx)
+	_, err = client.GetItem(&dynamodb.GetItemInput{
+		TableName: aws.String("dev_simple_store"),
+		Key: map[string]*dynamodb.AttributeValue{
+			"hk_type": {
+				S: aws.String("commodity_order_excel"),
+			},
+			"rk_id": {
+				S: aws.String("2"),
+			},
+		},
+	})
+	if nil != err {
+		t.Error(err)
+		return
+	}
 }

@@ -68,3 +68,7 @@ func CommonDateFormat(t time.Time) string {
 func DateStringFormat(t time.Time) string {
 	return t.Format("2006-01-02")
 }
+
+func DateStringFormatCompact(t time.Time) string {
+	return t.Format("20060102")
+}

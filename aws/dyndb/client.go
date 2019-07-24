@@ -30,6 +30,13 @@ type Client struct {
 	CommandCheckerMaker CommandCheckerMaker
 }
 
+func NewClient(db *dynamodb.DynamoDB, ctx context.Context) *Client {
+	return &Client{
+		DB:  db,
+		Ctx: ctx,
+	}
+}
+
 func (m *Client) CommandChecker() CommandChecker {
 	if m.CommandCheckerMaker == nil {
 		return nil

@@ -5,7 +5,7 @@ import (
 
 	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
 	"github.com/hashicorp/consul/api"
-	"github.com/hashicorp/consul/watch"
+	"github.com/hashicorp/consul/api/watch"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )

@@ -10,7 +10,7 @@ require (
 	github.com/fatih/structs v1.1.0
 	github.com/fvbock/endless v0.0.0-20170109170031-447134032cb6
 	github.com/gin-contrib/cors v1.3.0
-	github.com/gin-gonic/gin v1.4.0
+	github.com/gin-gonic/gin v1.4.1-0.20190727010637-461df9320ac2
 	github.com/go-logfmt/logfmt v0.4.0 // indirect
 	github.com/go-openapi/spec v0.19.2
 	github.com/go-playground/locales v0.12.1 // indirect
@@ -32,7 +32,6 @@ require (
 	github.com/satori/go.uuid v1.2.1-0.20181028125025-b2ce2384e17b
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.5
-	github.com/spf13/viper v1.4.0
 	github.com/streadway/amqp v0.0.0-20190404075320-75d898a42a94
 	golang.org/x/image v0.0.0-20190703141733-d6a02ce849c9
 	golang.org/x/net v0.0.0-20190724013045-ca1201d0de80

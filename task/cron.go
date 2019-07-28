@@ -5,16 +5,20 @@ import (
 
 	"time"
 
-	"github.com/robfig/cron"
+	"github.com/robfig/cron/v3"
 )
 
 type CronTab struct {
 	cron.Cron
 }
 
+var defaultParser = cron.NewParser(
+	cron.Second | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.DowOptional | cron.Descriptor,
+)
+
 func (m *CronTab) AddTaskJob(job *TaskJob) (err error) {
 	if job.Spec != "" {
-		job.Schedule, err = cron.Parse(job.Spec)
+		job.Schedule, err = defaultParser.Parse(job.Spec)
 		if err != nil {
 			return err
 		}
@@ -35,6 +39,6 @@ func New() *CronTab {
 
 func NewWithLocation(location *time.Location) *CronTab {
 	return &CronTab{
-		Cron: *cron.NewWithLocation(location),
+		Cron: *cron.New(cron.WithLocation(location)),
 	}
 }

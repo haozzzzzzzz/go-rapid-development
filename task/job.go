@@ -6,7 +6,7 @@ import (
 
 	"github.com/haozzzzzzzz/go-rapid-development/aws/xray"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
-	"github.com/robfig/cron"
+	"github.com/robfig/cron/v3"
 	"github.com/sirupsen/logrus"
 )
 

@@ -2,6 +2,7 @@ package consul
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"testing"
 
 	"time"
@@ -98,4 +99,34 @@ func TestAcquire(t *testing.T) {
 	}
 
 	fmt.Println(release)
+}
+
+func TestClient_GetYaml(t *testing.T) {
+	type LogOutputConfigFormat struct {
+		Filedir    string `json:"filedir" yaml:"filedir" validate:"required"`
+		MaxSize    int    `json:"max_size" yaml:"max_size" validate:"required"`
+		MaxBackups int    `json:"max_backups" yaml:"max_backups" validate:"required"`
+		MaxAge     int    `json:"max_age" yaml:"max_age" validate:"required"`
+		Compress   bool   `json:"compress" yaml:"compress"`
+	}
+
+	type LogConfigFormat struct {
+		LogLevel logrus.Level           `json:"log_level" yaml:"log_level" validate:"required"`
+		Output   *LogOutputConfigFormat `json:"output" yaml:"output"`
+	}
+
+	client, err := NewClient(&ClientConfigFormat{
+		Address: "127.0.0.1:8500",
+	})
+	if nil != err {
+		t.Error(err)
+		return
+	}
+
+	config := &LogConfigFormat{}
+	err = client.GetYaml("dev/service/video_buddy_user_device/log.yaml", config)
+	if nil != err {
+		t.Error(err)
+		return
+	}
 }

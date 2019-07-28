@@ -3,12 +3,12 @@ package init
 import (
 	"path/filepath"
 
-	"github.com/go-playground/validator"
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
 	project2 "github.com/haozzzzzzzz/go-rapid-development/tools/api/com/source/project"
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/source/service"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"gopkg.in/go-playground/validator.v9"
 )
 
 // 初始化服务框架

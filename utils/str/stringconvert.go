@@ -2,13 +2,16 @@ package str
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"math"
 )
 
-func ToFloat(str string) float64 {
-	var result float64
-	fmt.Sscanf(str, "%f", &result)
-	return result
+func ToFloat(str string) (result float64, err error) {
+	_, err = fmt.Sscanf(str, "%f", &result)
+	if nil != err {
+		logrus.Errorf("str to float failed. str: %s, err: %s", str, err)
+		return
+	}
 }
 
 func FloatDecimalPrecise(n float64, bit uint32) (strDecimal string) {

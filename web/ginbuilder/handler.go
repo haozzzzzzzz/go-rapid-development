@@ -2,6 +2,7 @@ package ginbuilder
 
 import (
 	"encoding/json"
+	"github.com/sirupsen/logrus"
 
 	"net/http"
 
@@ -24,7 +25,7 @@ func (m *HandleFunc) GinHandler(ginCtx *gin.Context) {
 	var err error
 	ctx, err := NewContext(ginCtx)
 	if nil != err {
-		ctx.Logger.Errorf("new context failed. %s", err)
+		logrus.Errorf("new context failed. %s", err)
 		return
 	}
 

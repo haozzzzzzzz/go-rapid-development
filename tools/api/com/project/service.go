@@ -6,11 +6,11 @@ import (
 
 	"path/filepath"
 
-	"github.com/go-playground/validator"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/file"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/yaml"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"gopkg.in/go-playground/validator.v9"
 )
 
 type ServiceType string

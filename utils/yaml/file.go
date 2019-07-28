@@ -12,7 +12,7 @@ import (
 func ReadYamlFromFile(filePath string, obj interface{}) (err error) {
 	byteObj, err := ioutil.ReadFile(filePath)
 	if nil != err {
-		logrus.Errorf("read %q failed. \n%s.", filePath, err)
+		logrus.Errorf("read %q failed. error: %s.", filePath, err)
 		return
 	}
 

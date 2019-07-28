@@ -1,12 +1,12 @@
 package yaml
 
 import (
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"reflect"
 
 	"github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
 )
 
 func ReadYamlFromFile(filePath string, obj interface{}) (err error) {
@@ -18,7 +18,7 @@ func ReadYamlFromFile(filePath string, obj interface{}) (err error) {
 
 	err = yaml.Unmarshal(byteObj, obj)
 	if nil != err {
-		logrus.Errorf("unmarshal %q yaml file to %q failed. \n%s.", filePath, reflect.TypeOf(obj), err)
+		logrus.Errorf("unmarshal %q yaml file to %q failed. %s.", filePath, reflect.TypeOf(obj), err)
 		return
 	}
 	return

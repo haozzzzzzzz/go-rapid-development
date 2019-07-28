@@ -2,6 +2,7 @@ package consul
 
 import (
 	"fmt"
+	"github.com/haozzzzzzzz/go-rapid-development/utils/yaml"
 	"github.com/sirupsen/logrus"
 	"testing"
 
@@ -122,9 +123,15 @@ func TestClient_GetYaml(t *testing.T) {
 		t.Error(err)
 		return
 	}
+	_ = client
 
 	config := &LogConfigFormat{}
-	err = client.GetYaml("dev/service/video_buddy_user_device/log.yaml", config)
+	//err = client.GetYaml("dev/service/video_buddy_user_device/log.yaml", config)
+	//if nil != err {
+	//	t.Error(err)
+	//	return
+	//}
+	err = yaml.ReadYamlFromFile("/Users/hao/Documents/Projects/XunLei/video_buddy_user_device/common/stage/dev/config/consul/log.yaml", config)
 	if nil != err {
 		t.Error(err)
 		return

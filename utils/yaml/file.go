@@ -1,7 +1,7 @@
 package yaml
 
 import (
-	"gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"reflect"

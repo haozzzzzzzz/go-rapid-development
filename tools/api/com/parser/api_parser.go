@@ -13,7 +13,6 @@ import (
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
 	"github.com/haozzzzzzzz/go-rapid-development/tools/goimports"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
 )
 
 type ApiParser struct {

@@ -9,7 +9,6 @@ import (
 	"github.com/haozzzzzzzz/go-rapid-development/utils/str"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
 )
 
 func (m *ProjectSource) generateCommonStage() (err error) {

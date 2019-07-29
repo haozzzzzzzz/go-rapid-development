@@ -3,7 +3,6 @@ package yaml
 import (
 	"fmt"
 	"github.com/haozzzzzzzz/go-rapid-development/aws/xray"
-	"github.com/haozzzzzzzz/go-rapid-development/consul"
 	"github.com/sirupsen/logrus"
 	"testing"
 )
@@ -14,19 +13,19 @@ func TestReadYamlFromFile(t *testing.T) {
 	defer func() {
 		cancel(err)
 	}()
+
 	_ = ctx
 
-	type ConsulConfigFormat struct {
-		ClientConfig *consul.ClientConfigFormat `yaml:"client_config" validate:"required,required"`
-		KeyPrefix    string                     `yaml:"key_prefix" validate:"required"`
+	type TestStruct struct {
+		TestUint32 logrus.Level `yaml:"log_level"`
 	}
 
-	config := &ConsulConfigFormat{}
-	err = ReadYamlFromFile("/Users/hao/Documents/Projects/XunLei/video_buddy_user_device/common/stage/dev/config/consul.yaml", config)
+	config := &TestStruct{}
+	err = ReadYamlFromFile("/Users/hao/Documents/Projects/XunLei/video_buddy_user_device/common/stage/dev/config/consul/log.yaml", config)
 	if nil != err {
-		logrus.Errorf("read yaml from file failed. error: %s.", err)
+		t.Error(err)
 		return
 	}
 
-	fmt.Println(config)
+	fmt.Println("val: ",config.TestUint32)
 }

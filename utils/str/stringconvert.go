@@ -12,6 +12,7 @@ func ToFloat(str string) (result float64, err error) {
 		logrus.Errorf("str to float failed. str: %s, err: %s", str, err)
 		return
 	}
+	return
 }
 
 func FloatDecimalPrecise(n float64, bit uint32) (strDecimal string) {

@@ -395,7 +395,7 @@ import (
 )
 
 type ServiceConfigFormat struct {
-	MetricsNamespace string ` + "`json:\"metrics_namespace\" yaml:\"metrics_namespace\" validate:\"required\"`" + `
+	Namespace string ` + "`json:\"metrics_namespace\" yaml:\"metrics_namespace\" validate:\"required\"`" + `
 }
 
 var ServiceConfig *ServiceConfigFormat
@@ -437,7 +437,7 @@ func CheckSessionConfig() {
 	CheckAWSConfig()
 	CheckServiceConfig()
 
-	err = session.InitMetrics(ServiceConfig.MetricsNamespace, AWSEc2InstanceIdentifyDocument.InstanceID)
+	err = session.InitMetrics(ServiceConfig.Namespace, AWSEc2InstanceIdentifyDocument.InstanceID)
 	if nil != err {
 		logrus.Fatalf("init session metrics failed. error: %s.", err)
 		return
@@ -458,7 +458,7 @@ func CheckHttpConfig() {
 	CheckAWSConfig()
 	CheckServiceConfig()
 
-	err = http.InitMetrics(ServiceConfig.MetricsNamespace, AWSEc2InstanceIdentifyDocument.InstanceID)
+	err = http.InitMetrics(ServiceConfig.Namespace, AWSEc2InstanceIdentifyDocument.InstanceID)
 	if nil != err {
 		logrus.Fatalf("init http remote request metrics failed. %s", err)
 		return

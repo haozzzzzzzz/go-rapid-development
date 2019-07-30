@@ -36,7 +36,7 @@ import (
 )
 
 var (
-	MetricsNamespace string
+	Namespace string
 
 	// ec2 instance id
 	Ec2InstanceId string
@@ -46,7 +46,7 @@ var (
 func init() {
 	var err error
 
-	MetricsNamespace = config.ServiceConfig.MetricsNamespace
+	Namespace = config.ServiceConfig.Namespace
 	Ec2InstanceId = config.AWSEc2InstanceIdentifyDocument.InstanceID
 }
 `

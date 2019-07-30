@@ -1,0 +1,5 @@
+package gofmt
+
+func main() {
+
+}

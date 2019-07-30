@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"github.com/haozzzzzzzz/go-rapid-development/tools/gofmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 
@@ -130,6 +131,7 @@ func (m *ApiParser) GenerateRoutersSourceFile(apis []*ApiItem) (err error) {
 
 	routersFileName := fmt.Sprintf("%s/routers.go", m.ApiDir)
 	newRoutersText := fmt.Sprintf(routersFileText, strings.Join(strImports, "\n"), strings.Join(strRouters, "\n"))
+	newRoutersText = gofmt.StrGoFmt(newRoutersText)
 	err = ioutil.WriteFile(routersFileName, []byte(newRoutersText), 0644)
 	if nil != err {
 		logrus.Errorf("write new routers file failed. \n%s.", err)

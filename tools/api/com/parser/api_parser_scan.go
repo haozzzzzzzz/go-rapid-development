@@ -2,13 +2,12 @@ package parser
 
 import (
 	"errors"
-	"path/filepath"
-
 	"go/ast"
+	"go/importer"
 	"go/token"
+	"path/filepath"
 	"runtime/debug"
 
-	"go/importer"
 	"go/types"
 
 	"go/parser"
@@ -27,7 +26,7 @@ import (
 
 func (m *ApiParser) ScanApis(
 	parseRequestData bool, // 如果parseRequestData会有点慢
-	importSource bool, // parseRequestData=true时，生效
+	useMod bool, // parseRequestData=true时，生效
 ) (apis []*ApiItem, err error) {
 	apis = make([]*ApiItem, 0)
 	logrus.Info("Scan api files...")
@@ -55,9 +54,9 @@ func (m *ApiParser) ScanApis(
 	}, true)
 	subApiDir = append(subApiDir, apiDir)
 
-	// 服务源文件
+	// 服务源文件，只能一个pkg一个pkg地解析
 	for _, subApiDir := range subApiDir {
-		subApis, errParse := ParseApis(m.GoPaths, apiDir, subApiDir, parseRequestData, importSource)
+		subApis, errParse := ParsePkgApis(m.GoPaths, apiDir, subApiDir, parseRequestData, useMod)
 		err = errParse
 		if nil != err {
 			logrus.Errorf("parse api file dir %q failed. error: %s.", subApiDir, err)
@@ -70,12 +69,12 @@ func (m *ApiParser) ScanApis(
 	return
 }
 
-func ParseApis(
+func ParsePkgApis(
 	goPaths []string,
 	apiRootDir string,
 	apiPackageDir string,
 	parseRequestData bool,
-	importSource bool,
+	useMod bool,
 ) (apis []*ApiItem, err error) {
 	apis = make([]*ApiItem, 0)
 	defer func() {
@@ -117,21 +116,6 @@ func ParseApis(
 		InitOrder:  make([]*types.Initializer, 0),
 	}
 	if parseRequestData {
-		typesConf := types.Config{}
-		if importSource {
-			typesConf.Importer = importer.For("source", nil)
-		} else {
-			typesConf.Importer = importer.Default()
-		}
-
-		pkg, errCheck := typesConf.Check(apiPackageDir, fileSet, astFiles, info)
-		err = errCheck
-		if nil != err {
-			logrus.Errorf("check types failed. error: %s.", err)
-			return
-		}
-		_ = pkg
-
 		// imported
 		impPaths := make(map[string]bool)
 		for fileName, pkgFile := range astFileMap {
@@ -147,31 +131,53 @@ func ParseApis(
 			}
 		}
 
-		for impPath, _ := range impPaths {
-			tempFileSet := token.NewFileSet()
-			tempAstFiles := make([]*ast.File, 0)
-
-			tempPkgs, errParse := parser.ParseDir(tempFileSet, impPath, nil, parseMode)
-			err = errParse
-			if nil != err {
-				logrus.Errorf("parser parse dir failed. error: %s.", err)
-				return
+		if !useMod { // not use mod
+			typesConf := types.Config{
+				Importer: importer.Default(),
 			}
 
-			for pkgName, pkg := range tempPkgs {
-				_ = pkgName
-				for _, pkgFile := range pkg.Files {
-					tempAstFiles = append(tempAstFiles, pkgFile)
+			//typesConf.Importer = importer.For("source", nil)
+
+			pkg, errCheck := typesConf.Check(apiPackageDir, fileSet, astFiles, info)
+			err = errCheck
+			if nil != err {
+				logrus.Errorf("check types failed. error: %s.", err)
+				return
+			}
+			_ = pkg
+
+			for impPath, _ := range impPaths {
+				tempFileSet := token.NewFileSet()
+				tempAstFiles := make([]*ast.File, 0)
+
+				tempPkgs, errParse := parser.ParseDir(tempFileSet, impPath, nil, parseMode)
+				err = errParse
+				if nil != err {
+					logrus.Errorf("parser parse dir failed. error: %s.", err)
+					return
 				}
+
+				for pkgName, pkg := range tempPkgs {
+					_ = pkgName
+					for _, pkgFile := range pkg.Files {
+						tempAstFiles = append(tempAstFiles, pkgFile)
+					}
+				}
+
+				// type check imported path
+				_, err = typesConf.Check(impPath, tempFileSet, tempAstFiles, info)
+				if nil != err {
+					logrus.Errorf("check imported package failed. path: %s, error: %s.", impPath, err)
+					return
+				}
+
 			}
 
-			_, err = typesConf.Check(impPath, tempFileSet, tempAstFiles, info)
-			if nil != err {
-				logrus.Errorf("check imported package failed. path: %s, error: %s.", impPath, err)
-				return
-			}
+		} else {
+			// TODO GOMOD !
 
 		}
+
 	}
 
 	for _, astFile := range astFiles { // 遍历语法树

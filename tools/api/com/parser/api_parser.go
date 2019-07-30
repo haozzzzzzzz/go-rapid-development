@@ -2,7 +2,6 @@ package parser
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 
 	"sort"
@@ -12,7 +11,6 @@ import (
 	"os"
 
 	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/project"
-	"github.com/haozzzzzzzz/go-rapid-development/tools/goimports"
 	"github.com/sirupsen/logrus"
 )
 
@@ -137,10 +135,6 @@ func (m *ApiParser) GenerateRoutersSourceFile(apis []*ApiItem) (err error) {
 		return
 	}
 
-	logrus.Info("Do go imports ...")
-	// do goimports
-	goimports.DoGoImports([]string{m.ApiDir}, true)
-	logrus.Info("Do go imports completed")
 	return
 }
 

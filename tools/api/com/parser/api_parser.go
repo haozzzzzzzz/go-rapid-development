@@ -2,9 +2,10 @@ package parser
 
 import (
 	"fmt"
-	"github.com/haozzzzzzzz/go-rapid-development/tools/gofmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+
+	"github.com/haozzzzzzzz/go-rapid-development/tools/lib/gofmt"
 
 	"sort"
 

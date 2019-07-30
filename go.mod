@@ -37,6 +37,7 @@ require (
 	golang.org/x/image v0.0.0-20190703141733-d6a02ce849c9
 	golang.org/x/net v0.0.0-20190724013045-ca1201d0de80
 	golang.org/x/sys v0.0.0-20190726091711-fc99dfbffb4e // indirect
+	golang.org/x/tools v0.0.0-20190614205625-5aca471b1d59
 	google.golang.org/appengine v1.6.1 // indirect
 	gopkg.in/go-playground/validator.v8 v8.18.2
 	gopkg.in/go-playground/validator.v9 v9.29.1

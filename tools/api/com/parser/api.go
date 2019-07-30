@@ -145,7 +145,7 @@ type ApiItem struct {
 	RelativePackage   string `json:"relative_package" yaml:"relative_package"`
 
 	HttpMethod    string      `validate:"required" json:"http_method" yaml:"http_method"`
-	RelativePaths []string    `validate:"required" json:"relative_path" yaml:"relative_path"`
+	RelativePaths []string    `validate:"required" json:"relative_paths" yaml:"relative_paths"`
 	PathData      *StructType `json:"path_data" yaml:"path_data"`
 	QueryData     *StructType `json:"query_data" yaml:"query_data"`
 	PostData      *StructType `json:"post_data" yaml:"post_data"`

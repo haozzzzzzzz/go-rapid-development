@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"runtime/debug"
 
+	"golang.org/x/tools/go/packages"
+
 	"go/types"
 
 	"go/parser"
@@ -69,6 +71,33 @@ func (m *ApiParser) ScanApis(
 	return
 }
 
+func mergeTypesInfos(info *types.Info, infos ...*types.Info) {
+	for _, tempInfo := range infos {
+		for scopeKey, scopeVal := range tempInfo.Scopes {
+			info.Scopes[scopeKey] = scopeVal
+		}
+
+		for defKey, defVal := range tempInfo.Defs {
+			info.Defs[defKey] = defVal
+		}
+
+		for useKey, useVal := range tempInfo.Uses {
+			info.Uses[useKey] = useVal
+		}
+
+		for implKey, implVal := range tempInfo.Implicits {
+			info.Implicits[implKey] = implVal
+		}
+
+		for selKey, selVal := range tempInfo.Selections {
+			info.Selections[selKey] = selVal
+		}
+
+		// do not need to merge InitOrder
+	}
+	return
+}
+
 func ParsePkgApis(
 	goPaths []string,
 	apiRootDir string,
@@ -88,25 +117,9 @@ func ParsePkgApis(
 
 	// 检索目录下所有的文件
 	astFiles := make([]*ast.File, 0)
-	parseMode := parser.AllErrors | parser.ParseComments
-	pkgs, err := parser.ParseDir(fileSet, apiPackageDir, nil, parseMode)
-	if nil != err {
-		logrus.Errorf("parser parse dir failed. error: %s.", err)
-		return
-	}
-	_ = pkgs
-
-	astFileMap := make(map[string]*ast.File)
-	for pkgName, pkg := range pkgs {
-		_ = pkgName
-		for fileName, pkgFile := range pkg.Files {
-			astFiles = append(astFiles, pkgFile)
-			astFileMap[fileName] = pkgFile
-		}
-	}
 
 	// types
-	info := &types.Info{
+	typesInfo := &types.Info{
 		Scopes:     make(map[ast.Node]*types.Scope),
 		Defs:       make(map[*ast.Ident]types.Object),
 		Uses:       make(map[*ast.Ident]types.Object),
@@ -116,35 +129,54 @@ func ParsePkgApis(
 		InitOrder:  make([]*types.Initializer, 0),
 	}
 	if parseRequestData {
-		// imported
-		impPaths := make(map[string]bool)
-		for fileName, pkgFile := range astFileMap {
-			_ = fileName
-			for _, fileImport := range pkgFile.Imports {
-				impPath := strings.Replace(fileImport.Path.Value, "\"", "", -1)
-				for _, goPath := range goPaths {
-					absPath := fmt.Sprintf("%s/src/%s", goPath, impPath)
-					if file.PathExists(absPath) {
-						impPaths[absPath] = true
-					}
+		if !useMod { // not use mod
+			parseMode := parser.AllErrors | parser.ParseComments
+			astPkgMap, errParse := parser.ParseDir(fileSet, apiPackageDir, nil, parseMode)
+			err = errParse
+			if nil != err {
+				logrus.Errorf("parser parse dir failed. error: %s.", err)
+				return
+			}
+			_ = astPkgMap
+
+			astFileMap := make(map[string]*ast.File)
+			for pkgName, astPkg := range astPkgMap {
+				_ = pkgName
+				for fileName, pkgFile := range astPkg.Files {
+					astFiles = append(astFiles, pkgFile)
+					astFileMap[fileName] = pkgFile
 				}
 			}
-		}
 
-		if !useMod { // not use mod
 			typesConf := types.Config{
 				Importer: importer.Default(),
 			}
 
 			//typesConf.Importer = importer.For("source", nil)
 
-			pkg, errCheck := typesConf.Check(apiPackageDir, fileSet, astFiles, info)
+			// cur package
+			pkg, errCheck := typesConf.Check(apiPackageDir, fileSet, astFiles, typesInfo)
 			err = errCheck
 			if nil != err {
 				logrus.Errorf("check types failed. error: %s.", err)
 				return
 			}
 			_ = pkg
+
+			// imported
+			impPaths := make(map[string]bool)
+			for fileName, pkgFile := range astFileMap {
+				_ = fileName
+				for _, fileImport := range pkgFile.Imports {
+					impPath := strings.Replace(fileImport.Path.Value, "\"", "", -1)
+					for _, goPath := range goPaths {
+						absPath := fmt.Sprintf("%s/src/%s", goPath, impPath)
+						if file.PathExists(absPath) {
+							impPaths[absPath] = true
+						}
+					}
+				}
+			}
 
 			for impPath, _ := range impPaths {
 				tempFileSet := token.NewFileSet()
@@ -160,12 +192,13 @@ func ParsePkgApis(
 				for pkgName, pkg := range tempPkgs {
 					_ = pkgName
 					for _, pkgFile := range pkg.Files {
+						//pkgFile.Imports ? 不递归下去了，目前最多两层
 						tempAstFiles = append(tempAstFiles, pkgFile)
 					}
 				}
 
 				// type check imported path
-				_, err = typesConf.Check(impPath, tempFileSet, tempAstFiles, info)
+				_, err = typesConf.Check(impPath, tempFileSet, tempAstFiles, typesInfo)
 				if nil != err {
 					logrus.Errorf("check imported package failed. path: %s, error: %s.", impPath, err)
 					return
@@ -174,8 +207,79 @@ func ParsePkgApis(
 			}
 
 		} else {
-			// TODO GOMOD !
+			mode := packages.NeedName |
+				packages.NeedFiles |
+				packages.NeedCompiledGoFiles |
+				packages.NeedImports |
+				packages.NeedDeps |
+				packages.NeedExportsFile |
+				packages.NeedTypes |
+				packages.NeedSyntax |
+				packages.NeedTypesInfo |
+				packages.NeedTypesSizes
+			pkgs, errLoad := packages.Load(&packages.Config{
+				Mode: mode,
+				Dir:  apiPackageDir,
+				Fset: fileSet,
+			})
+			err = errLoad
+			if nil != err {
+				logrus.Errorf("go/packages load failed. error: %s.", err)
+				return
+			}
 
+			logrus.Infof("scan imports")
+
+			// only one package
+			impPaths := make(map[string]bool)
+			for _, pkg := range pkgs {
+				_, ok := impPaths[pkg.PkgPath]
+				if ok {
+					continue
+				}
+
+				impPaths[pkg.PkgPath] = true
+
+				// 需要合并token.FileSet、ast.File和types.Info
+				//logrus.Info(pkg.PkgPath)
+
+				pkg.Fset.Iterate(func(i *token.File) bool {
+					fmt.Println(i.Name())
+					fmt.Println(i.Base())
+					fmt.Println(i.Size())
+					f := fileSet.AddFile(i.Name(), fileSet.Base(), i.Size())
+					_ = f
+					return true
+				})
+
+				for _, astFile := range pkg.Syntax {
+					astFiles = append(astFiles, astFile)
+				}
+
+				mergeTypesInfos(typesInfo, pkg.TypesInfo)
+				for _, impPkg := range pkg.Imports { // 依赖
+					_, ok := impPaths[impPkg.PkgPath]
+					if ok {
+						continue
+					}
+
+					impPaths[impPkg.PkgPath] = true
+
+					impPkg.Fset.Iterate(func(i *token.File) bool {
+						fmt.Println(i.Name())
+						f := fileSet.AddFile(i.Name(), fileSet.Base(), i.Size())
+						_ = f
+						return true
+					})
+
+					for _, astFile := range impPkg.Syntax {
+						astFiles = append(astFiles, astFile)
+					}
+
+					//logrus.Info(impPkg.PkgPath)
+					mergeTypesInfos(typesInfo, impPkg.TypesInfo)
+				}
+			}
 		}
 
 	}
@@ -326,13 +430,13 @@ func ParsePkgApis(
 
 									switch ident.Name {
 									case "pathData":
-										apiItem.PathData = parseApiRequest(info, ident)
+										apiItem.PathData = parseApiRequest(typesInfo, ident)
 									case "queryData":
-										apiItem.QueryData = parseApiRequest(info, ident)
+										apiItem.QueryData = parseApiRequest(typesInfo, ident)
 									case "postData":
-										apiItem.PostData = parseApiRequest(info, ident)
+										apiItem.PostData = parseApiRequest(typesInfo, ident)
 									case "respData":
-										apiItem.RespData = parseApiRequest(info, ident)
+										apiItem.RespData = parseApiRequest(typesInfo, ident)
 									}
 								}
 

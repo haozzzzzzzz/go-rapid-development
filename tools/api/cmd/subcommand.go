@@ -5,6 +5,9 @@ import (
 	_init "github.com/haozzzzzzzz/go-rapid-development/tools/api/cmd/init"
 )
 
+// export root cmd
+var RootCmd = rootCmd
+
 func init() {
 	rootCmd.AddCommand(_init.CommandApiInit())
 	rootCmd.AddCommand(_init.CommandApiAddService())

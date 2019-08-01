@@ -30,7 +30,8 @@ type RequestCheckerMaker interface {
 }
 
 type Request struct {
-	Url                 *Url
+	Url                 *Url // 必填
+	Header http.Header
 	codecs              string
 	Ctx                 context.Context
 	Client              *http.Client
@@ -66,6 +67,7 @@ func NewRequest(
 
 	req = &Request{
 		Url:                 url,
+		Header: make(http.Header),
 		codecs:              "json",
 		Ctx:                 ctx,
 		Client:              client,
@@ -86,11 +88,13 @@ func NewRequestByUrl(
 
 	req = &Request{
 		Url:                 reqUrl,
+		Header: make(http.Header),
 		codecs:              "json",
 		Ctx:                 ctx,
 		Client:              client,
 		RequestCheckerMaker: defaultRequestCheckerMaker,
 	}
+
 	return
 }
 
@@ -111,12 +115,16 @@ func (m *Request) Get() (resp *http.Response, err error) {
 	}
 
 	strUrl := m.URL()
-	if m.Ctx != nil {
-		resp, err = ctxhttp.Get(m.Ctx, m.Client, strUrl)
-	} else {
-		resp, err = m.Client.Get(strUrl)
+
+	req, err := http.NewRequest("GET", strUrl, nil)
+	if err != nil {
+		logrus.Errorf("new http request failed. error: %s.", err)
+		return
 	}
 
+	req.Header = m.Header
+
+	resp, err = m.Do(req)
 	if err != nil {
 		logrus.Errorf("request get failed. %s.", err)
 		return
@@ -206,14 +214,17 @@ func (m *Request) PostJson(body interface{}, resp interface{}) (err error) {
 	}
 
 	strUrl := m.URL()
+	bodyReader := bytes.NewBuffer(bytesBody)
 	contentType := "application/json;charset=utf8"
-	if m.Ctx != nil {
-		response, err = ctxhttp.Post(m.Ctx, m.Client, strUrl, contentType, bytes.NewBuffer(bytesBody))
 
-	} else {
-		response, err = m.Client.Post(strUrl, contentType, bytes.NewBuffer(bytesBody))
+	req, err := http.NewRequest("POST", strUrl, bodyReader)
+	if err != nil {
+		return
 	}
+	req.Header = m.Header
+	req.Header.Set("Content-Type", contentType)
 
+	response, err = m.Do(req)
 	if err != nil {
 		logrus.Warnf("post request failed. %s", err)
 		return
@@ -248,6 +259,16 @@ func (m *Request) Do(rawRequest *http.Request) (response *http.Response, err err
 		}()
 	}
 
-	response, err = ctxhttp.Do(m.Ctx, m.Client, rawRequest)
+	if m.Ctx != nil {
+		response, err = ctxhttp.Do(m.Ctx, m.Client, rawRequest)
+	} else {
+		response, err = m.Client.Do(rawRequest)
+	}
+
+	if nil != err {
+		logrus.Errorf("do request failed. error: %s.", err)
+		return
+	}
+
 	return
 }

@@ -64,32 +64,6 @@ func (m *ApiParser) GenerateRoutersSourceFile(apis []*ApiItem) (err error) {
 		}
 	}()
 
-	// add imports
-	//goPaths := m.GoPaths
-	//for _, apiItem := range apis {
-	//	importsMap[apiItem.PackageExportedPath] = apiItem.PackageRelAlias
-	//
-	//	var impPath string
-	//
-	//	// for GOPATH project
-	//	for _, subGoPath := range goPaths {
-	//		if strings.Contains(apiItem.PackageDir, subGoPath) {
-	//			// go path下的相对参数
-	//			impPath = strings.Replace(apiItem.PackageDir, subGoPath+"/src/", "", -1)
-	//			break
-	//		}
-	//	}
-	//
-	//	if impPath == "" {
-	//		impPath = apiItem.PackageRelAlias
-	//		fmt.Println(impPath)
-	//	}
-	//
-	//	// for go mod project
-	//	if impPath != "" {
-	//	}
-	//}
-
 	importsMap := make(map[string]string) // package_exported -> alias
 	strRouters := make([]string, 0)
 

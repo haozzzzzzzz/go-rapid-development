@@ -40,11 +40,13 @@ func TestRequest_GetJSON(t *testing.T) {
 }
 
 func TestRequest_PostJson(t *testing.T) {
-	req, err := NewRequest("http://127.0.0.1:18101/home_manage/v3/tab/feed/add", context.Background(), RequestClient )
+	req, err := NewRequest("http://127.0.0.1:18101/home_manage/v3/tab/feed/add?user_id=1&username=haozzzzzzzz", context.Background(), RequestClient )
 	if nil != err {
 		t.Error(err)
 		return
 	}
+
+	req.Header.Set("x-x-x-x", "1")
 
 	m := make(map[string]interface{})
 	err = req.PostJson(map[string]interface{}{}, &m)

@@ -73,8 +73,8 @@ func (m *ApiParser) ScanApis(
 
 func mergeTypesInfos(info *types.Info, infos ...*types.Info) {
 	for _, tempInfo := range infos {
-		for scopeKey, scopeVal := range tempInfo.Scopes {
-			info.Scopes[scopeKey] = scopeVal
+		for tKey, tVal := range tempInfo.Types {
+			info.Types[tKey] = tVal
 		}
 
 		for defKey, defVal := range tempInfo.Defs {
@@ -91,6 +91,10 @@ func mergeTypesInfos(info *types.Info, infos ...*types.Info) {
 
 		for selKey, selVal := range tempInfo.Selections {
 			info.Selections[selKey] = selVal
+		}
+
+		for scopeKey, scopeVal := range tempInfo.Scopes {
+			info.Scopes[scopeKey] = scopeVal
 		}
 
 		// do not need to merge InitOrder
@@ -113,10 +117,9 @@ func ParsePkgApis(
 		}
 	}()
 
-	fileSet := token.NewFileSet()
-
-	// 检索目录下所有的文件
+	// 检索当前目录下所有的文件，不包含import的子文件
 	astFiles := make([]*ast.File, 0)
+	astFileNames := make(map[*ast.File]string, 0)
 
 	// types
 	typesInfo := &types.Info{
@@ -129,6 +132,8 @@ func ParsePkgApis(
 		InitOrder:  make([]*types.Initializer, 0),
 	}
 	if parseRequestData {
+		fileSet := token.NewFileSet()
+
 		if !useMod { // not use mod
 			parseMode := parser.AllErrors | parser.ParseComments
 			astPkgMap, errParse := parser.ParseDir(fileSet, apiPackageDir, nil, parseMode)
@@ -144,6 +149,7 @@ func ParsePkgApis(
 				_ = pkgName
 				for fileName, pkgFile := range astPkg.Files {
 					astFiles = append(astFiles, pkgFile)
+					astFileNames[pkgFile] = fileName
 					astFileMap[fileName] = pkgFile
 				}
 			}
@@ -192,7 +198,6 @@ func ParsePkgApis(
 				for pkgName, pkg := range tempPkgs {
 					_ = pkgName
 					for _, pkgFile := range pkg.Files {
-						//pkgFile.Imports ? 不递归下去了，目前最多两层
 						tempAstFiles = append(tempAstFiles, pkgFile)
 					}
 				}
@@ -231,52 +236,30 @@ func ParsePkgApis(
 			logrus.Infof("scan imports")
 
 			// only one package
-			impPaths := make(map[string]bool)
+			pkgPath := make(map[string]bool)
+			impPkgPaths := make(map[string]bool)
 			for _, pkg := range pkgs {
-				_, ok := impPaths[pkg.PkgPath]
+				_, ok := pkgPath[pkg.PkgPath]
 				if ok {
 					continue
 				}
 
-				impPaths[pkg.PkgPath] = true
+				pkgPath[pkg.PkgPath] = true
 
-				// 需要合并token.FileSet、ast.File和types.Info
-				//logrus.Info(pkg.PkgPath)
-
-				pkg.Fset.Iterate(func(i *token.File) bool {
-					fmt.Println(i.Name())
-					fmt.Println(i.Base())
-					fmt.Println(i.Size())
-					f := fileSet.AddFile(i.Name(), fileSet.Base(), i.Size())
-					_ = f
-					return true
-				})
-
+				// 合并types.Info
 				for _, astFile := range pkg.Syntax {
 					astFiles = append(astFiles, astFile)
+					astFileNames[astFile] = pkg.Fset.File(astFile.Pos()).Name()
 				}
 
 				mergeTypesInfos(typesInfo, pkg.TypesInfo)
 				for _, impPkg := range pkg.Imports { // 依赖
-					_, ok := impPaths[impPkg.PkgPath]
+					_, ok := impPkgPaths[impPkg.PkgPath]
 					if ok {
 						continue
 					}
 
-					impPaths[impPkg.PkgPath] = true
-
-					impPkg.Fset.Iterate(func(i *token.File) bool {
-						fmt.Println(i.Name())
-						f := fileSet.AddFile(i.Name(), fileSet.Base(), i.Size())
-						_ = f
-						return true
-					})
-
-					for _, astFile := range impPkg.Syntax {
-						astFiles = append(astFiles, astFile)
-					}
-
-					//logrus.Info(impPkg.PkgPath)
+					impPkgPaths[impPkg.PkgPath] = true
 					mergeTypesInfos(typesInfo, impPkg.TypesInfo)
 				}
 			}
@@ -284,9 +267,9 @@ func ParsePkgApis(
 
 	}
 
-	for _, astFile := range astFiles { // 遍历语法树
-		apiPosFile := fileSet.File(astFile.Pos())
-		fileName := apiPosFile.Name()
+	for _, astFile := range astFiles { // 遍历当前package的语法树
+		fileName := astFileNames[astFile]
+		logrus.Infof("parsing package file : %s", fileName)
 		for objName, obj := range astFile.Scope.Objects { // 遍历顶层所有变量，寻找HandleFunc
 			valueSpec, ok := obj.Decl.(*ast.ValueSpec)
 			if !ok {

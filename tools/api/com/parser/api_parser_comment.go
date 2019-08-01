@@ -129,9 +129,9 @@ func ParseApisFromPkgCommentText(
 			continue
 		}
 
-		tempApiItem.ApiHandlerPackage = astFile.Name.Name
+		tempApiItem.PackageName = astFile.Name.Name
 		tempApiItem.SourceFile = fileName
-		tempApiItem.PackagePath = fileDir
+		tempApiItem.PackageDir = fileDir
 
 		apis = append(apis, tempApiItem)
 	}

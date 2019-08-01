@@ -11,6 +11,7 @@ import (
 
 func CommandApiCompile() *cobra.Command {
 	var serviceDir string
+	var notMod bool
 	var cmd = &cobra.Command{
 		Use:   "compile",
 		Short: "api service compilation",
@@ -36,7 +37,7 @@ func CommandApiCompile() *cobra.Command {
 
 			// api parser
 			apiParser := parser.NewApiParser(service)
-			apis, err := apiParser.ScanApis(false, false)
+			apis, err := apiParser.ScanApis(false, !notMod)
 			if nil != err {
 				logrus.Errorf("Scan api failed. \n%s.", err)
 				return
@@ -53,6 +54,7 @@ func CommandApiCompile() *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.StringVarP(&serviceDir, "path", "p", "./", "service path")
+	flags.BoolVarP(&notMod, "not_mod", "n", false, "not mod")
 
 	return cmd
 }

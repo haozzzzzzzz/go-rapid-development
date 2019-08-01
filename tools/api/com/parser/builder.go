@@ -34,7 +34,7 @@ func CreateApiSource(apiItem *ApiItem) (err error) {
 	return
 }
 
-var apiText = `package {{.ApiHandlerPackage}}
+var apiText = `package {{.PackageName}}
 
 import (
 	"fmt"

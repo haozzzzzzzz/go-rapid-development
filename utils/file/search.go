@@ -41,3 +41,19 @@ func SearchFileNames(
 
 	return
 }
+
+// 向上搜索
+func SearchFilenameBackwardIterate(curDir string, name string, check func(curDir string, fileName string) (cont bool)) {
+	if curDir == "" {
+		return
+	}
+
+	fileName := fmt.Sprintf("%s/%s", curDir, name)
+	if PathExists(fileName) && check(curDir, fileName) == false {
+		return
+	}
+
+	SearchFilenameBackwardIterate(ParentDir(curDir), name, check)
+
+	return
+}

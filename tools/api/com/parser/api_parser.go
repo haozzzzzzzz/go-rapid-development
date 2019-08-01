@@ -2,12 +2,11 @@ package parser
 
 import (
 	"fmt"
+	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 
 	"github.com/haozzzzzzzz/go-rapid-development/tools/lib/gofmt"
-
-	"sort"
 
 	"strings"
 
@@ -58,24 +57,6 @@ func (m *ApiParser) apiUrlKey(uri string, method string) string {
 }
 
 func (m *ApiParser) GenerateRoutersSourceFile(apis []*ApiItem) (err error) {
-	// sort api
-	sortedApiUriKeys := make([]string, 0)
-	mapApi := make(map[string]*ApiItem)
-	for _, oneApi := range apis {
-		if oneApi.RelativePaths == nil {
-			continue
-		}
-
-		for _, relPath := range oneApi.RelativePaths {
-			uriKey := m.apiUrlKey(relPath, oneApi.HttpMethod)
-			sortedApiUriKeys = append(sortedApiUriKeys, uriKey)
-			mapApi[uriKey] = oneApi
-		}
-
-	}
-
-	sort.Strings(sortedApiUriKeys)
-
 	logrus.Info("Map apis ...")
 	defer func() {
 		if err == nil {
@@ -83,56 +64,78 @@ func (m *ApiParser) GenerateRoutersSourceFile(apis []*ApiItem) (err error) {
 		}
 	}()
 
-	// binding routers
 	// add imports
-	importsMap := make(map[string]string) // package -> alias
-	_ = importsMap
+	//goPaths := m.GoPaths
+	//for _, apiItem := range apis {
+	//	importsMap[apiItem.PackageExportedPath] = apiItem.PackageRelAlias
+	//
+	//	var impPath string
+	//
+	//	// for GOPATH project
+	//	for _, subGoPath := range goPaths {
+	//		if strings.Contains(apiItem.PackageDir, subGoPath) {
+	//			// go path下的相对参数
+	//			impPath = strings.Replace(apiItem.PackageDir, subGoPath+"/src/", "", -1)
+	//			break
+	//		}
+	//	}
+	//
+	//	if impPath == "" {
+	//		impPath = apiItem.PackageRelAlias
+	//		fmt.Println(impPath)
+	//	}
+	//
+	//	// for go mod project
+	//	if impPath != "" {
+	//	}
+	//}
 
-	goPaths := m.GoPaths
-	for _, subGoPath := range goPaths {
-		for _, apiItem := range mapApi {
-			if strings.Contains(apiItem.PackagePath, subGoPath) {
-				relPath := strings.Replace(apiItem.PackagePath, subGoPath+"/src/", "", -1)
-				if relPath != "" {
-					importsMap[relPath] = apiItem.RelativePackage
-				}
-			}
-		}
-	}
-
-	strImports := make([]string, 0)
-	for relPath, alias := range importsMap {
-		var str string
-		if alias == "" {
-			str = fmt.Sprintf("    %q", relPath)
-		} else {
-			str = fmt.Sprintf("    %s %q", alias, relPath)
-		}
-		strImports = append(strImports, str)
-	}
-
+	importsMap := make(map[string]string) // package_exported -> alias
 	strRouters := make([]string, 0)
-	for _, uriKey := range sortedApiUriKeys {
-		apiItem := mapApi[uriKey]
+
+	for _, apiItem := range apis {
+		// imports
+		if apiItem.PackageRelAlias != "" { // 本目录下的不用加入
+			if apiItem.PackageExportedPath == "" {
+				err = uerrors.Newf("alias require exported path. alias: %s", apiItem.PackageRelAlias)
+				return
+			}
+
+			importsMap[apiItem.PackageExportedPath] = apiItem.PackageRelAlias
+		}
+
+		// handle func binding
 		strHandleFunc := apiItem.ApiHandlerFunc
-		if apiItem.RelativePackage != "" {
-			strHandleFunc = fmt.Sprintf("%s.%s", apiItem.RelativePackage, apiItem.ApiHandlerFunc)
+		if apiItem.PackageRelAlias != "" {
+			strHandleFunc = fmt.Sprintf("%s.%s", apiItem.PackageRelAlias, apiItem.ApiHandlerFunc)
 		}
 
 		for _, uri := range apiItem.RelativePaths {
-			if uriKey != m.apiUrlKey(uri, apiItem.HttpMethod) {
-				continue
-			}
-
 			str := fmt.Sprintf("    engine.Handle(\"%s\", \"%s\", %s.GinHandler)", apiItem.HttpMethod, uri, strHandleFunc)
 			strRouters = append(strRouters, str)
 		}
 
 	}
 
+	strImports := make([]string, 0)
+	for expPath, alias := range importsMap {
+		var str string
+		if alias == "" {
+			str = fmt.Sprintf("    %q", expPath)
+		} else {
+			str = fmt.Sprintf("    %s %q", alias, expPath)
+		}
+		strImports = append(strImports, str)
+	}
+
 	routersFileName := fmt.Sprintf("%s/routers.go", m.ApiDir)
 	newRoutersText := fmt.Sprintf(routersFileText, strings.Join(strImports, "\n"), strings.Join(strRouters, "\n"))
-	newRoutersText = gofmt.StrGoFmt(newRoutersText)
+	newRoutersText, err = gofmt.StrGoFmt(newRoutersText)
+	if nil != err {
+		logrus.Errorf("go fmt source failed. text: %s, error: %s.", newRoutersText, err)
+		return
+	}
+
 	err = ioutil.WriteFile(routersFileName, []byte(newRoutersText), 0644)
 	if nil != err {
 		logrus.Errorf("write new routers file failed. \n%s.", err)

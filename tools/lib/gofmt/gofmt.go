@@ -43,10 +43,16 @@ func CmdGoFmt(path string) (err error) {
 	return
 }
 
-func StrGoFmt(buf string) string{
+func StrGoFmt(buf string) (strFormatted string, err error) {
+	defer func() {
+		if iRec := recover(); iRec != nil {
+			err = uerrors.Newf("go fmt string panic: %s", err)
+		}
+	}()
 	formatted, err := format.Source([]byte(buf))
 	if err != nil {
 		panic(fmt.Errorf("%s\nOriginal code:\n%s", err.Error(), buf))
 	}
-	return string(formatted)
+	strFormatted = string(formatted)
+	return
 }

@@ -138,11 +138,13 @@ func (m *InterfaceType) TypeName() string {
 }
 
 type ApiItem struct {
-	ApiHandlerFunc    string `validate:"required" json:"api_handler_func" yaml:"api_handler_func"`       // handler 函数名
-	ApiHandlerPackage string `validate:"required" json:"api_handler_package" yaml:"api_handler_package"` // handler 所在的包名
-	SourceFile        string `validate:"required" json:"source_file" yaml:"source_file"`                 // 源码
-	PackagePath       string `json:"package_path" yaml:"package_path"`                                   // 包所在的路径
-	RelativePackage   string `json:"relative_package" yaml:"relative_package"`
+	ApiHandlerFunc string `validate:"required" json:"api_handler_func" yaml:"api_handler_func"` // handler 函数名
+	SourceFile     string `validate:"required" json:"source_file" yaml:"source_file"`           // 源码
+
+	PackageName         string `validate:"required" json:"api_handler_package" yaml:"api_handler_package"` // handler 所在的包名
+	PackageExportedPath string `json:"package_exported" yaml:"package_exported"`                           // 被别人引入的path
+	PackageDir          string `json:"package_dir" yaml:"package_dir"`                                     // 包所在的路径
+	PackageRelAlias     string `json:"package_rel_alias" yaml:"package_rel_alias"`                         // 包昵称
 
 	HttpMethod    string      `validate:"required" json:"http_method" yaml:"http_method"`
 	RelativePaths []string    `validate:"required" json:"relative_paths" yaml:"relative_paths"`
@@ -156,7 +158,7 @@ type ApiItem struct {
 }
 
 func (m *ApiItem) PackageFuncName() string {
-	return fmt.Sprintf("%s.%s", m.RelativePackage, m.ApiHandlerFunc)
+	return fmt.Sprintf("%s.%s", m.PackageRelAlias, m.ApiHandlerFunc)
 }
 
 // 成功返回结构

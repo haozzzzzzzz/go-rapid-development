@@ -2,17 +2,18 @@ package parser
 
 import (
 	"errors"
+	"github.com/haozzzzzzzz/go-rapid-development/tools/api/com/mod"
+	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
 	"go/ast"
 	"go/importer"
+	"go/parser"
 	"go/token"
+	"golang.org/x/tools/go/packages"
 	"path/filepath"
 	"runtime/debug"
-
-	"golang.org/x/tools/go/packages"
+	"sort"
 
 	"go/types"
-
-	"go/parser"
 
 	"os"
 
@@ -58,7 +59,7 @@ func (m *ApiParser) ScanApis(
 
 	// 服务源文件，只能一个pkg一个pkg地解析
 	for _, subApiDir := range subApiDir {
-		subApis, errParse := ParsePkgApis(m.GoPaths, apiDir, subApiDir, parseRequestData, useMod)
+		subApis, errParse := ParsePkgApis(apiDir, subApiDir, useMod, parseRequestData)
 		err = errParse
 		if nil != err {
 			logrus.Errorf("parse api file dir %q failed. error: %s.", subApiDir, err)
@@ -68,6 +69,30 @@ func (m *ApiParser) ScanApis(
 		apis = append(apis, subApis...)
 	}
 
+	// sort api
+	sortedApiUriKeys := make([]string, 0)
+	mapApi := make(map[string]*ApiItem)
+	for _, oneApi := range apis {
+		if oneApi.RelativePaths == nil {
+			continue
+		}
+
+		for _, relPath := range oneApi.RelativePaths {
+			uriKey := m.apiUrlKey(relPath, oneApi.HttpMethod)
+			sortedApiUriKeys = append(sortedApiUriKeys, uriKey)
+			mapApi[uriKey] = oneApi
+		}
+
+	}
+
+	sort.Strings(sortedApiUriKeys)
+
+	sortedApis := make([]*ApiItem, 0)
+	for _, key := range sortedApiUriKeys {
+		sortedApis = append(sortedApis, mapApi[key])
+	}
+
+	apis = sortedApis
 	return
 }
 
@@ -103,11 +128,10 @@ func mergeTypesInfos(info *types.Info, infos ...*types.Info) {
 }
 
 func ParsePkgApis(
-	goPaths []string,
 	apiRootDir string,
 	apiPackageDir string,
-	parseRequestData bool,
 	useMod bool,
+	parseRequestData bool,
 ) (apis []*ApiItem, err error) {
 	apis = make([]*ApiItem, 0)
 	defer func() {
@@ -116,6 +140,24 @@ func ParsePkgApis(
 			debug.PrintStack()
 		}
 	}()
+
+	goPaths := make([]string, 0)
+	var goModName, goModDir string
+
+	if !useMod {
+		goPaths = strings.Split(os.Getenv("GOPATH"), ":")
+		if len(goPaths) == 0 {
+			err = uerrors.Newf("failed to find go paths")
+			return
+		}
+
+	} else {
+		_, goModName, goModDir = mod.FindGoMod(apiPackageDir)
+		if goModName == "" || goModDir == "" {
+			err = uerrors.Newf("failed to find go mod")
+			return
+		}
+	}
 
 	// 检索当前目录下所有的文件，不包含import的子文件
 	astFiles := make([]*ast.File, 0)
@@ -131,29 +173,31 @@ func ParsePkgApis(
 		Selections: make(map[*ast.SelectorExpr]*types.Selection),
 		InitOrder:  make([]*types.Initializer, 0),
 	}
-	if parseRequestData {
-		fileSet := token.NewFileSet()
 
-		if !useMod { // not use mod
-			parseMode := parser.AllErrors | parser.ParseComments
-			astPkgMap, errParse := parser.ParseDir(fileSet, apiPackageDir, nil, parseMode)
-			err = errParse
-			if nil != err {
-				logrus.Errorf("parser parse dir failed. error: %s.", err)
-				return
+	fileSet := token.NewFileSet()
+
+	if !useMod { // not use mod
+		parseMode := parser.AllErrors | parser.ParseComments
+		astPkgMap, errParse := parser.ParseDir(fileSet, apiPackageDir, nil, parseMode)
+		err = errParse
+		if nil != err {
+			logrus.Errorf("parser parse dir failed. error: %s.", err)
+			return
+		}
+		_ = astPkgMap
+
+		astFileMap := make(map[string]*ast.File)
+		for pkgName, astPkg := range astPkgMap {
+			_ = pkgName
+			for fileName, pkgFile := range astPkg.Files {
+				astFiles = append(astFiles, pkgFile)
+				astFileNames[pkgFile] = fileName
+				astFileMap[fileName] = pkgFile
 			}
-			_ = astPkgMap
+		}
 
-			astFileMap := make(map[string]*ast.File)
-			for pkgName, astPkg := range astPkgMap {
-				_ = pkgName
-				for fileName, pkgFile := range astPkg.Files {
-					astFiles = append(astFiles, pkgFile)
-					astFileNames[pkgFile] = fileName
-					astFileMap[fileName] = pkgFile
-				}
-			}
-
+		if parseRequestData {
+			// parse types
 			typesConf := types.Config{
 				Importer: importer.Default(),
 			}
@@ -211,48 +255,52 @@ func ParsePkgApis(
 
 			}
 
-		} else {
-			mode := packages.NeedName |
-				packages.NeedFiles |
-				packages.NeedCompiledGoFiles |
-				packages.NeedImports |
-				packages.NeedDeps |
-				packages.NeedExportsFile |
-				packages.NeedTypes |
-				packages.NeedSyntax |
-				packages.NeedTypesInfo |
-				packages.NeedTypesSizes
-			pkgs, errLoad := packages.Load(&packages.Config{
-				Mode: mode,
-				Dir:  apiPackageDir,
-				Fset: fileSet,
-			})
-			err = errLoad
-			if nil != err {
-				logrus.Errorf("go/packages load failed. error: %s.", err)
-				return
+		}
+
+	} else {
+		mode := packages.NeedName |
+			packages.NeedFiles |
+			packages.NeedCompiledGoFiles |
+			packages.NeedImports |
+			packages.NeedDeps |
+			packages.NeedExportsFile |
+			packages.NeedTypes |
+			packages.NeedSyntax |
+			packages.NeedTypesInfo |
+			packages.NeedTypesSizes
+		pkgs, errLoad := packages.Load(&packages.Config{
+			Mode: mode,
+			Dir:  apiPackageDir,
+			Fset: fileSet,
+		})
+		err = errLoad
+		if nil != err {
+			logrus.Errorf("go/packages load failed. error: %s.", err)
+			return
+		}
+
+		logrus.Infof("scan imports")
+
+		// only one package
+		pkgPath := make(map[string]bool)
+		impPkgPaths := make(map[string]bool)
+		for _, pkg := range pkgs {
+			_, ok := pkgPath[pkg.PkgPath]
+			if ok {
+				continue
 			}
 
-			logrus.Infof("scan imports")
+			pkgPath[pkg.PkgPath] = true
 
-			// only one package
-			pkgPath := make(map[string]bool)
-			impPkgPaths := make(map[string]bool)
-			for _, pkg := range pkgs {
-				_, ok := pkgPath[pkg.PkgPath]
-				if ok {
-					continue
-				}
+			// 合并types.Info
+			for _, astFile := range pkg.Syntax {
+				astFiles = append(astFiles, astFile)
+				astFileNames[astFile] = pkg.Fset.File(astFile.Pos()).Name()
+			}
 
-				pkgPath[pkg.PkgPath] = true
+			mergeTypesInfos(typesInfo, pkg.TypesInfo)
 
-				// 合并types.Info
-				for _, astFile := range pkg.Syntax {
-					astFiles = append(astFiles, astFile)
-					astFileNames[astFile] = pkg.Fset.File(astFile.Pos()).Name()
-				}
-
-				mergeTypesInfos(typesInfo, pkg.TypesInfo)
+			if parseRequestData {
 				for _, impPkg := range pkg.Imports { // 依赖
 					_, ok := impPkgPaths[impPkg.PkgPath]
 					if ok {
@@ -264,12 +312,51 @@ func ParsePkgApis(
 				}
 			}
 		}
-
 	}
 
 	for _, astFile := range astFiles { // 遍历当前package的语法树
 		fileName := astFileNames[astFile]
 		logrus.Infof("Parsing %s", fileName)
+
+		// package
+		fileDir := filepath.Dir(fileName)
+
+		var pkgRelAlias string
+		packageName := astFile.Name.Name
+		var pkgExportedPath string
+
+		// 设置相对api文件夹的relative path
+		pkgRelDir := strings.Replace(fileDir, apiRootDir, "", 1)
+		if pkgRelDir != "" { // 子目录
+			pkgRelDir = strings.Replace(pkgRelDir, "/", "", 1)
+			pkgRelAlias = strings.Replace(pkgRelDir, "/", "_", -1)
+		}
+
+		// package exported path
+		if !useMod { // 使用GOPATH
+			foundInGoPath := false
+
+			for _, subGoPath := range goPaths {
+				if strings.Contains(fileDir, subGoPath) {
+					foundInGoPath = true
+
+					// 在此gopath下
+					pkgExportedPath = strings.Replace(fileDir, subGoPath+"/src/", "", -1)
+					break
+				}
+			}
+
+			if !foundInGoPath {
+				err = uerrors.Newf("failed to find file in go path. file: %s", fileName)
+				return
+			}
+
+		} else { // 使用GOMOD
+			pkgRelModPath := strings.ReplaceAll(fileDir, goModDir, "")
+			pkgExportedPath = goModName + pkgRelModPath
+
+		}
+
 		for objName, obj := range astFile.Scope.Objects { // 遍历顶层所有变量，寻找HandleFunc
 			valueSpec, ok := obj.Decl.(*ast.ValueSpec)
 			if !ok {
@@ -294,23 +381,13 @@ func ParsePkgApis(
 			}
 
 			apiItem := &ApiItem{
-				SourceFile:        fileName,
-				ApiHandlerFunc:    objName,
-				ApiHandlerPackage: astFile.Name.Name,
-				RelativePaths:     make([]string, 0),
-			}
-
-			fileDir := filepath.Dir(fileName)
-
-			// 设置相对api文件夹的relative path
-			pkgDir := strings.Replace(fileDir, apiRootDir, "", 1)
-			if pkgDir != "" { // 子目录
-				pkgDir = strings.Replace(pkgDir, "/", "", 1)
-				apiItem.RelativePackage = strings.Replace(pkgDir, "/", "_", -1)
-			}
-
-			if apiItem.RelativePackage != "" {
-				apiItem.PackagePath = fileDir
+				SourceFile:          fileName,
+				ApiHandlerFunc:      objName,
+				PackageName:         packageName,
+				PackageExportedPath: pkgExportedPath,
+				PackageRelAlias:     pkgRelAlias,
+				PackageDir:          fileDir,
+				RelativePaths:       make([]string, 0),
 			}
 
 			for _, value := range valueSpec.Values { // 遍历属性

@@ -9,9 +9,9 @@ func TestSaveApisSwaggerSpec(t *testing.T) {
 	swgSpc := NewSwaggerSpec()
 	swgSpc.Apis([]*ApiItem{
 		{
-			ApiHandlerPackage: "pack",
-			ApiHandlerFunc:    "func",
-			HttpMethod:        "GET",
+			PackageName:    "pack",
+			ApiHandlerFunc: "func",
+			HttpMethod:     "GET",
 			RelativePaths: []string{
 				"/api/book/:book_id",
 				"/api/book",

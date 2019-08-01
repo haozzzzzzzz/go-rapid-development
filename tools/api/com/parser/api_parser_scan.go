@@ -269,7 +269,7 @@ func ParsePkgApis(
 
 	for _, astFile := range astFiles { // 遍历当前package的语法树
 		fileName := astFileNames[astFile]
-		logrus.Infof("parsing %s", fileName)
+		logrus.Infof("Parsing %s", fileName)
 		for objName, obj := range astFile.Scope.Objects { // 遍历顶层所有变量，寻找HandleFunc
 			valueSpec, ok := obj.Decl.(*ast.ValueSpec)
 			if !ok {

@@ -279,8 +279,6 @@ func ParsePkgApis(
 			return
 		}
 
-		logrus.Infof("scan imports")
-
 		// only one package
 		pkgPath := make(map[string]bool)
 		impPkgPaths := make(map[string]bool)

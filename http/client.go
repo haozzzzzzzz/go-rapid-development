@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	RequestClient = &http.Client{
+	ShortTimeoutRequestClient = &http.Client{
 		Transport: &http.Transport{
 			//MaxIdleConns:        100,
 			//MaxIdleConnsPerHost: 2,
@@ -25,6 +25,9 @@ var (
 
 		Timeout: 2 * time.Second,
 	}
+
+	// Deprecated: use ShortTimeoutRequestClient, which is more semantic
+	RequestClient = ShortTimeoutRequestClient
 
 	LongTimeoutRequestClient = &http.Client{
 		Transport: &http.Transport{

@@ -62,7 +62,12 @@ func (m *ExchangePublisher) connect() (err error) {
 		logrus.Errorf("amqp dial rabbitmq failed. url: %s. error: %s.", m.url, err)
 		return
 	}
-	defer conn.Close()
+	defer func() {
+		errClose := conn.Close()
+		if errClose != nil {
+			logrus.Errorf("close connection failed. error: %s.", err)
+		}
+	}()
 
 	logrus.Infof("connect ampq successfully. url: %s", m.url)
 	connClose := make(chan *amqp.Error, 10) // close by NotifyClose
@@ -83,7 +88,12 @@ func (m *ExchangePublisher) connect() (err error) {
 				logrus.Errorf("create home page exchange channel failed. error: %s.", err)
 				return
 			}
-			defer channel.Close()
+			defer func() {
+				errClose := channel.Close()
+				if errClose != nil {
+					logrus.Errorf("close channel failed. error: %s.", err)
+				}
+			}()
 
 			channelClose := make(chan *amqp.Error, 10) // 会被channel.NotifyClose关闭
 			channel.NotifyClose(channelClose)

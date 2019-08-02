@@ -5,6 +5,6 @@ import (
 	"github.com/haozzzzzzzz/go-rapid-development/http"
 )
 
-var RequestClientWithXray = xray.Client(http.RequestClient)
+var RequestClientWithXray = xray.Client(http.ShortTimeoutRequestClient)
 var LongTimeoutRequestClientWithXray = xray.Client(http.LongTimeoutRequestClient)
 var NoTimeoutRequestClientWithXray = xray.Client(http.NoTimeoutRequestClient)

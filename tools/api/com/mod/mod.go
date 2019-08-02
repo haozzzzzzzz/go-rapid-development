@@ -2,7 +2,6 @@ package mod
 
 import (
 	"bufio"
-	"fmt"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/file"
 	"github.com/sirupsen/logrus"
 	"os"

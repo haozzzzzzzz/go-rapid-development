@@ -55,9 +55,15 @@ func (m *QueueConsumer) Start() {
 
 					defer func() {
 						if errGo == nil {
-							msg.Ack(false)
+							errAck := msg.Ack(false)
+							if errAck != nil {
+								logrus.Errorf("set msg ack false failed. error: %s.", err)
+							}
 						} else { // 如果失败则丢弃
-							msg.Nack(false, false)
+							errNAck := msg.Nack(false, false)
+							if errNAck != nil {
+								logrus.Errorf("set msg nack false failed. error: %s.", err)
+							}
 						}
 					}()
 
@@ -96,7 +102,12 @@ func (m *QueueConsumer) connect() (err error) {
 		logrus.Errorf("amqp dial rabbitmq failed. url: %s. error: %s.", m.url, err)
 		return
 	}
-	defer conn.Close()
+	defer func() {
+		errClose := conn.Close()
+		if errClose != nil {
+			logrus.Errorf("close amqp connection failed. error: %s.", err)
+		}
+	}()
 
 	logrus.Infof("connect ampq successfully. url: %s", m.url)
 
@@ -119,7 +130,12 @@ func (m *QueueConsumer) connect() (err error) {
 			if errGo != nil {
 				logrus.Errorf("create connection channel failed. error: %s.", err)
 			}
-			defer channel.Close()
+			defer func() {
+				errClose := channel.Close()
+				if errClose != nil {
+					logrus.Errorf("close channel failed. error: %s.", err)
+				}
+			}()
 
 			channelClose := make(chan *amqp.Error) // 会被channel.NotifyClose关闭
 			channel.NotifyClose(channelClose)

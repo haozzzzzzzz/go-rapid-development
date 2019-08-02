@@ -44,7 +44,7 @@ func SearchFileNames(
 
 // 向上搜索
 func SearchFilenameBackwardIterate(curDir string, name string, check func(curDir string, fileName string) (cont bool)) {
-	if curDir == "" {
+	if curDir == "" { // access top
 		return
 	}
 

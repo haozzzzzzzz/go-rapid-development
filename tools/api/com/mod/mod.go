@@ -2,6 +2,7 @@ package mod
 
 import (
 	"bufio"
+	"fmt"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/file"
 	"github.com/sirupsen/logrus"
 	"os"
@@ -15,22 +16,19 @@ func FindGoMod(curDir string) (
 	modDir string,
 ) {
 	var err error
-	goModFilename := os.Getenv("GOMOD")
-	if goModFilename == "" {
-		curDir, errAbs := filepath.Abs(curDir)
-		err = errAbs
-		if nil != err {
-			logrus.Errorf("get abs file dir failed. curDir: %s, error: %s.", curDir, err)
-			return
-		}
-
-		file.SearchFilenameBackwardIterate(curDir, "go.mod", func(curDir string, fileName string) (cont bool) {
-			cont = false
-			goModFilename = fileName
-			return
-		})
+	var goModFilename string
+	curDir, errAbs := filepath.Abs(curDir)
+	err = errAbs
+	if nil != err {
+		logrus.Errorf("get abs file dir failed. curDir: %s, error: %s.", curDir, err)
+		return
 	}
 
+	file.SearchFilenameBackwardIterate(curDir, "go.mod", func(curDir string, fileName string) (cont bool) {
+		cont = false
+		goModFilename = fileName
+		return
+	})
 	if goModFilename == "" {
 		return
 	}

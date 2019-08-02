@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 export GOROOT=/usr/local/go
 export GOOS=darwin
-export GOMOD=../../go.mod
 
 # api project
 go build -o api ../../tools/api/main.go

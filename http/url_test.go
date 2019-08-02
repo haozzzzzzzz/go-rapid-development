@@ -15,6 +15,6 @@ func TestString(t *testing.T) {
 		return
 	}
 
-	tUrl.QueryValues.Set("name", "Ricky Chen")
+	tUrl.QueryValues.Set("name", "Hao Ok")
 	fmt.Println(tUrl.String())
 }

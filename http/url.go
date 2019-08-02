@@ -1,3 +1,6 @@
+/**
+Extend func for url.URL
+ */
 package http
 
 import (

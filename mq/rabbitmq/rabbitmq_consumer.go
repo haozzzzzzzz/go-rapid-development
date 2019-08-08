@@ -57,12 +57,12 @@ func (m *QueueConsumer) Start() {
 						if errGo == nil {
 							errAck := msg.Ack(false)
 							if errAck != nil {
-								logrus.Errorf("set msg ack false failed. error: %s.", err)
+								logrus.Errorf("set msg ack false failed. error: %s.", errAck)
 							}
 						} else { // 如果失败则丢弃
 							errNAck := msg.Nack(false, false)
 							if errNAck != nil {
-								logrus.Errorf("set msg nack false failed. error: %s.", err)
+								logrus.Errorf("set msg nack false failed. error: %s.", errNAck)
 							}
 						}
 					}()

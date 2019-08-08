@@ -9,6 +9,7 @@ import (
 )
 
 // 搜索
+// 如果希望使用递归搜索的话，请使用filepath.Walk功能
 func SearchFileNames(
 	dir string,
 	filter func(fileInfo os.FileInfo) bool,
@@ -22,7 +23,6 @@ func SearchFileNames(
 	}
 
 	for _, fileInfo := range files {
-
 		if fileInfo.IsDir() && recurse {
 			subFiles, errSearch := SearchFileNames(fmt.Sprintf("%s/%s", dir, fileInfo.Name()), filter, recurse)
 			if nil != errSearch {
@@ -44,7 +44,7 @@ func SearchFileNames(
 
 // 向上搜索
 func SearchFilenameBackwardIterate(curDir string, name string, check func(curDir string, fileName string) (cont bool)) {
-	if curDir == "" {
+	if curDir == "" { // access top
 		return
 	}
 

@@ -1,7 +1,0 @@
-log_level: 5
-output:
-  compress: false
-  filedir: /Users/hao/Documents/Projects/XunLei/video_buddy_service/bin/log
-  max_age: 3
-  max_backups: 3
-  max_size: 5

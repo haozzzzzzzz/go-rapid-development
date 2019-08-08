@@ -1,7 +1,0 @@
-log_level: 4
-output:
-  compress: false
-  filedir: /data/logs
-  max_age: 3
-  max_backups: 3
-  max_size: 500

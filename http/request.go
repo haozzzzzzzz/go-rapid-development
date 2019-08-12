@@ -21,7 +21,7 @@ func SetDefaultRequestCheckerMaker(checkerMaker RequestCheckerMaker) {
 }
 
 type RequestChecker interface {
-	Before(request *Request, body interface{})
+	Before(request *Request, rawReq *http.Request)
 	After(response *http.Response, err error)
 }
 
@@ -31,7 +31,7 @@ type RequestCheckerMaker interface {
 
 type Request struct {
 	Url                 *Url // 必填
-	Header http.Header
+	Header              http.Header
 	codecs              string
 	Ctx                 context.Context
 	Client              *http.Client
@@ -67,7 +67,7 @@ func NewRequest(
 
 	req = &Request{
 		Url:                 url,
-		Header: make(http.Header),
+		Header:              make(http.Header),
 		codecs:              "json",
 		Ctx:                 ctx,
 		Client:              client,
@@ -88,7 +88,7 @@ func NewRequestByUrl(
 
 	req = &Request{
 		Url:                 reqUrl,
-		Header: make(http.Header),
+		Header:              make(http.Header),
 		codecs:              "json",
 		Ctx:                 ctx,
 		Client:              client,
@@ -104,16 +104,6 @@ func (m *Request) URL() string {
 
 // when err !=nil, resp returns nil
 func (m *Request) Get() (resp *http.Response, err error) {
-
-	// checker
-	checker := m.RequestChecker()
-	if checker != nil {
-		checker.Before(m, nil)
-		defer func() {
-			checker.After(resp, err)
-		}()
-	}
-
 	strUrl := m.URL()
 
 	req, err := http.NewRequest("GET", strUrl, nil)
@@ -195,15 +185,6 @@ func (m *Request) GetText() (text string, err error) {
 func (m *Request) PostJson(body interface{}, resp interface{}) (err error) {
 	var response *http.Response
 
-	// checker
-	checker := m.RequestChecker()
-	if checker != nil {
-		checker.Before(m, body)
-		defer func() {
-			checker.After(response, err)
-		}()
-	}
-
 	var bytesBody []byte
 	if body != nil {
 		bytesBody, err = json.Marshal(body)
@@ -253,7 +234,7 @@ func (m *Request) Do(rawRequest *http.Request) (response *http.Response, err err
 	// checker
 	checker := m.RequestChecker()
 	if checker != nil {
-		checker.Before(m, nil)
+		checker.Before(m, rawRequest)
 		defer func() {
 			checker.After(response, err)
 		}()

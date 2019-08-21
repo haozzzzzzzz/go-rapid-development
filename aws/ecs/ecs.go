@@ -9,12 +9,13 @@ import (
 )
 
 // https://docs.aws.amazon.com/zh_cn/AmazonECS/latest/developerguide/container-metadata.html
+type PortMapping struct {
+	HostPort int64 `json:"HostPort"`
+}
 type ContainerMetaData struct {
-	MetadataFileStatus string `json:"MetadataFileStatus"`
-	PortMappings       []struct {
-		HostPort int64 `json:"HostPort"`
-	} `json:"PortMappings"`
-	HostPrivateIPv4Address string `json:"HostPrivateIPv4Address"`
+	MetadataFileStatus     string        `json:"MetadataFileStatus"`
+	PortMappings           []PortMapping `json:"PortMappings"`
+	HostPrivateIPv4Address string        `json:"HostPrivateIPv4Address"`
 }
 
 // chan need to be closed in outer
@@ -35,6 +36,7 @@ func GetEcsContainerMetaData(retryTimes int, wait time.Duration) (c chan *Contai
 				break
 			}
 
+			logrus.Warnf("sleep for get ecs container meta data")
 			time.Sleep(wait)
 
 		}

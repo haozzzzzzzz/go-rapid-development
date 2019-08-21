@@ -21,6 +21,10 @@ type ContainerMetaData struct {
 func GetEcsContainerMetaData(retryTimes int, wait time.Duration) (c chan *ContainerMetaData) {
 	c = make(chan *ContainerMetaData, 1)
 	go func() {
+		defer func() {
+			close(c)
+		}()
+
 		for i := 0; i < retryTimes; i++ {
 			meta, err := getEcsContainerMetaDataFromFile()
 			if err != nil {

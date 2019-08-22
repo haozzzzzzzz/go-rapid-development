@@ -52,6 +52,8 @@ func NewGuage(
 	return
 }
 
+var SummaryObjectives = map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001}
+
 // 单个统计分布
 func NewSummary(
 	namespace string,
@@ -60,10 +62,11 @@ func NewSummary(
 	help string,
 ) (summary prometheus.Summary, err error) {
 	summary = prometheus.NewSummary(prometheus.SummaryOpts{
-		Namespace: namespace,
-		Subsystem: subsystem,
-		Name:      name,
-		Help:      help,
+		Namespace:  namespace,
+		Subsystem:  subsystem,
+		Name:       name,
+		Help:       help,
+		Objectives: SummaryObjectives,
 	})
 
 	err = prometheus.Register(summary)
@@ -132,10 +135,11 @@ func NewSummaryVec(
 	labels []string,
 ) (summaryVec *prometheus.SummaryVec, err error) {
 	summaryVec = prometheus.NewSummaryVec(prometheus.SummaryOpts{
-		Namespace: namespace,
-		Subsystem: subsystem,
-		Name:      name,
-		Help:      help,
+		Namespace:  namespace,
+		Subsystem:  subsystem,
+		Name:       name,
+		Help:       help,
+		Objectives: SummaryObjectives,
 	}, labels)
 
 	err = prometheus.Register(summaryVec)

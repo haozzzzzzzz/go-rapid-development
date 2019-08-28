@@ -2,6 +2,7 @@ package consul
 
 import (
 	"encoding/json"
+	"gopkg.in/go-playground/validator.v9"
 
 	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
 	"github.com/hashicorp/consul/api"
@@ -95,6 +96,20 @@ func (m *Client) GetYaml(key string, obj interface{}) (err error) {
 	return
 }
 
+func (m *Client) GetValidateYamlPanic(key string, obj interface{}) {
+	err := m.GetYaml(key, obj)
+	if nil != err {
+		logrus.Panicf("consul get yaml failed. key: %s, error: %s", key, err)
+		return
+	}
+
+	err = validator.New().Struct(obj)
+	if nil != err {
+		logrus.Panicf("validate yaml failed. key: %s, error: %s", key, obj)
+		return
+	}
+}
+
 func (m *Client) GetJson(key string, obj interface{}) (err error) {
 	value, err := m.GetString(key)
 	if nil != err {
@@ -109,6 +124,20 @@ func (m *Client) GetJson(key string, obj interface{}) (err error) {
 	}
 
 	return
+}
+
+func (m *Client) GetValidateJsonPanic(key string, obj interface{}) {
+	err := m.GetJson(key, obj)
+	if nil != err {
+		logrus.Panicf("consul get json failed. key: %s, error: %s", key, err)
+		return
+	}
+
+	err = validator.New().Struct(obj)
+	if nil != err {
+		logrus.Panicf("validate json failed. key: %s, error: %s", key, err)
+		return
+	}
 }
 
 // put

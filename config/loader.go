@@ -7,11 +7,7 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 )
 
-func LoadFileYamlPanic(skip bool, path string, obj interface{}) {
-	if skip {
-		return
-	}
-
+func LoadFileYamlPanic(path string, obj interface{}) {
 	err := yaml.ReadYamlFromFile(path, obj)
 	if nil != err {
 		logrus.Panicf("read yaml from file failed. error: %s.", err)
@@ -27,11 +23,7 @@ func LoadFileYamlPanic(skip bool, path string, obj interface{}) {
 	return
 }
 
-func LoadFileJsonPanic(skip bool, path string, obj interface{}) {
-	if skip {
-		return
-	}
-
+func LoadFileJsonPanic(path string, obj interface{}) {
 	err := ujson.ReadJsonFromFile(path, obj)
 	if nil != err {
 		logrus.Panicf("read yaml from file failed. error: %s.", err)

@@ -1,7 +1,9 @@
 package metrics
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 )
 
@@ -149,4 +151,16 @@ func NewSummaryVec(
 	}
 
 	return
+}
+
+func PrometheusGinMetrics(routes gin.IRoutes, metricsPath string) {
+	routes.GET(metricsPath, func(context *gin.Context) {
+		defer func() {
+			if err := recover(); err != nil {
+				logrus.Println(err)
+			}
+		}()
+
+		promhttp.Handler().ServeHTTP(context.Writer, context.Request)
+	})
 }

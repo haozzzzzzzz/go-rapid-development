@@ -140,3 +140,23 @@ func (m *ConsulLoader) GetJsonPanic(key string, obj interface{}) {
 		return
 	}
 }
+
+func (m *ConsulLoader) GetString(key string) (value string, err error) {
+	key = m.keyPrefix + key
+	value, err = m.Client.GetString(key)
+	if nil != err {
+		logrus.Errorf("get string failed. key: %s, error: %s.", key, err)
+		return
+	}
+
+	return
+}
+
+func (m *ConsulLoader) GetStringPanic(key string) (value string) {
+	value, err := m.GetString(key)
+	if nil != err {
+		logrus.Panicf("get string failed. key: %s, error: %s", key, err)
+		return
+	}
+	return
+}

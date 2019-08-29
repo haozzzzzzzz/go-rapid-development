@@ -5,7 +5,6 @@ import (
 	"github.com/haozzzzzzzz/go-rapid-development/aws/xray"
 	"github.com/haozzzzzzzz/go-rapid-development/http"
 	"github.com/haozzzzzzzz/go-rapid-development/limiting/current_limiting"
-	"github.com/haozzzzzzzz/go-rapid-development/utils/uctx"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
 	"github.com/sirupsen/logrus"
 	"reflect"
@@ -76,7 +75,7 @@ func (m *LimitingDingdingAlert) send(datas ...interface{}) (err error) {
 			return
 		}
 
-		content := fmt.Sprintf("[%s]%s %s", msg.Service, msg.Content, msg.CreateTime)
+		content := fmt.Sprintf("[%s]\n%s\n%s", msg.Service, msg.Content, msg.CreateTime)
 		if contents != "" {
 			contents += "\n" + content
 		} else {
@@ -85,9 +84,9 @@ func (m *LimitingDingdingAlert) send(datas ...interface{}) (err error) {
 	}
 
 	logrus.Infof("dingding send : %#v", contents)
-	ctx, cancel := uctx.BackgroundWithCancel()
+	ctx, _, cancel := xray.NewBackgroundContext("dingding_send")
 	defer func() {
-		cancel()
+		cancel(err)
 	}()
 
 	apiUrl := m.ApiUrl

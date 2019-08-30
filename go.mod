@@ -7,6 +7,7 @@ require (
 	github.com/aws/aws-sdk-go v1.21.7
 	github.com/aws/aws-xray-sdk-go v0.9.4
 	github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575 // indirect
+	github.com/elastic/go-elasticsearch/v7 v7.1.1 // indirect
 	github.com/fatih/structs v1.1.0
 	github.com/gin-gonic/gin v1.4.1-0.20190727010637-461df9320ac2
 	github.com/go-playground/locales v0.12.1 // indirect

@@ -15,16 +15,21 @@ import (
 	"gopkg.in/go-playground/validator.v8"
 )
 
-const TRACE_REQUEST_KEY = "trace"
+const TRACE_REQUEST_KEY = "trace_fields"
+const NO_ACCESS_LOG_PRINT = "no_access_log_print" // key for not print access log
 
-// engine
-func DefaultEngine() (engine *gin.Engine) {
-	engine = gin.New()
-	engine.Use(func(context *gin.Context) {
+func LogAccessMiddleware() func(context *gin.Context) {
+	return func(context *gin.Context) {
 		context.Set(TRACE_REQUEST_KEY, logrus.Fields{})
 
 		startTime := time.Now()
 		context.Next()
+
+		if context.GetBool(NO_ACCESS_LOG_PRINT) {
+			return
+		}
+
+		// print access log
 		duration := time.Now().Sub(startTime)
 
 		var logFields logrus.Fields
@@ -34,7 +39,7 @@ func DefaultEngine() (engine *gin.Engine) {
 		}
 
 		logFields, ok := value.(logrus.Fields)
-		if !ok {
+		if !ok || logFields == nil {
 			logFields = logrus.Fields{}
 		}
 
@@ -46,10 +51,21 @@ func DefaultEngine() (engine *gin.Engine) {
 			path = path + "?" + raw
 		}
 
+		logFields["status_code"] = statusCode
+		logFields["duration"] = duration
+		logFields["path"] = path
+		logFields["method"] = method
+		logFields["client_ip"] = context.ClientIP()
+
 		logrus.WithFields(logFields).Infof("%s | %d | %v | %s", method, statusCode, duration, path)
 
-	}, gin.Recovery())
+	}
+}
 
+// engine
+func DefaultEngine() (engine *gin.Engine) {
+	engine = gin.New()
+	engine.Use(LogAccessMiddleware(), gin.Recovery())
 	return
 }
 

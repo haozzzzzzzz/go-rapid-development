@@ -2,6 +2,7 @@ package metrics
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/haozzzzzzzz/go-rapid-development/web/ginbuilder"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
@@ -162,5 +163,9 @@ func PrometheusGinMetrics(routes gin.IRoutes, metricsPath string) {
 		}()
 
 		promhttp.Handler().ServeHTTP(context.Writer, context.Request)
+
+		// don't print access log
+		context.Set(ginbuilder.NO_ACCESS_LOG_PRINT, true)
+
 	})
 }

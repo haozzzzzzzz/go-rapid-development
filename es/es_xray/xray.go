@@ -1,4 +1,4 @@
-package xray
+package es_xray
 
 import (
 	"github.com/aws/aws-xray-sdk-go/xray"

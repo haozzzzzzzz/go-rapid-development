@@ -36,6 +36,10 @@ func (m *TransportCheckRoundTripper) RoundTrip(req *http.Request) (resp *http.Re
 				}
 			}()
 			checker = m.NewCheckerFunc()
+			if checker == nil {
+				return
+			}
+
 			checker.Before(req)
 		}()
 
@@ -50,6 +54,7 @@ func (m *TransportCheckRoundTripper) RoundTrip(req *http.Request) (resp *http.Re
 				checker.After(req, resp, err)
 			}
 		}()
+
 	}
 
 	resp, err = m.Transport.RoundTrip(req)

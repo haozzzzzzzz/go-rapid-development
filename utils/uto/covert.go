@@ -39,6 +39,12 @@ func MapStringInterfaceToStringString(
 }
 
 func JsonOrString(o interface{}) (strInter string) {
+	switch o.(type) {
+	case string:
+		strInter = o.(string)
+		return
+	}
+
 	bInter, err := json.Marshal(o)
 	if nil != err {
 		logrus.Errorf("marshal interface to string failed. error: %s.", err)

@@ -229,4 +229,15 @@ var (
 		Code:    2204,
 		Message: "dynamodb unmarshal failed",
 	}
+
+	// es
+	CodeErrorElasticsearch = &ApiCode{
+		Code:    2300,
+		Message: "elasticserach error",
+	}
+
+	CodeErrorElasticsearchCreate = &ApiCode{
+		Code:    2301,
+		Message: "elasticsearch create error",
+	}
 )

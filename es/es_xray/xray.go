@@ -9,7 +9,7 @@ import (
 
 func NewClientWithXRay(
 	address []string,
-	newCheckerFunc func() es.RoundTripChecker,
+	newCheckerFunc func() es.IRoundTripChecker,
 ) (client *elasticsearch.Client, err error) {
 	transport := xray.RoundTripper(es.NewTransportCheckRoundTripper(es.ShortTimeoutTransport, newCheckerFunc)) // 3 RoundTripper stack up
 	client, err = es.NewClient(address, transport)

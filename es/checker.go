@@ -5,19 +5,19 @@ import (
 	"net/http"
 )
 
-type RoundTripChecker interface {
+type IRoundTripChecker interface {
 	Before(req *http.Request)
 	After(req *http.Request, resp *http.Response, reqErr error) // should not close body
 }
 
 type TransportCheckRoundTripper struct {
 	Transport      http.RoundTripper
-	NewCheckerFunc func() RoundTripChecker
+	NewCheckerFunc func() IRoundTripChecker
 }
 
 func NewTransportCheckRoundTripper(
 	transport http.RoundTripper,
-	newCheckerFunc func() RoundTripChecker,
+	newCheckerFunc func() IRoundTripChecker,
 ) *TransportCheckRoundTripper {
 	return &TransportCheckRoundTripper{
 		Transport:      transport,
@@ -28,7 +28,7 @@ func NewTransportCheckRoundTripper(
 // will not close body
 func (m *TransportCheckRoundTripper) RoundTrip(req *http.Request) (resp *http.Response, err error) {
 	if m.NewCheckerFunc != nil {
-		var checker RoundTripChecker
+		var checker IRoundTripChecker
 		func() {
 			defer func() {
 				if iRec := recover(); iRec != nil {

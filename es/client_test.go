@@ -20,7 +20,7 @@ func (m *SampleChecker) After(resp *http2.Response, err error) {
 
 func TestNewClient(t *testing.T) {
 	var err error
-	client, err := NewClient([]string{"http://localhost:9200"}, func() RoundTripChecker {
+	client, err := NewClient([]string{"http://localhost:9200"}, func() IRoundTripChecker {
 		return &SampleChecker{}
 	})
 	if nil != err {

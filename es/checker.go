@@ -7,7 +7,7 @@ import (
 
 type RoundTripChecker interface {
 	Before(req *http.Request)
-	After(resp *http.Response, reqErr error) // should not close body
+	After(req *http.Request, resp *http.Response, reqErr error) // should not close body
 }
 
 type TransportCheckRoundTripper struct {
@@ -47,7 +47,7 @@ func (m *TransportCheckRoundTripper) RoundTrip(req *http.Request) (resp *http.Re
 			}()
 
 			if checker != nil {
-				checker.After(resp, err)
+				checker.After(req, resp, err)
 			}
 		}()
 	}

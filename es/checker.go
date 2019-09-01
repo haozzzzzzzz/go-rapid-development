@@ -10,23 +10,23 @@ type RoundTripChecker interface {
 	After(resp *http.Response, reqErr error) // should not close body
 }
 
-type TransportRoundTripper struct {
+type TransportCheckRoundTripper struct {
 	Transport      http.RoundTripper
 	NewCheckerFunc func() RoundTripChecker
 }
 
-func NewTransportRoundTripper(
+func NewTransportCheckRoundTripper(
 	transport http.RoundTripper,
 	newCheckerFunc func() RoundTripChecker,
-) *TransportRoundTripper {
-	return &TransportRoundTripper{
+) *TransportCheckRoundTripper {
+	return &TransportCheckRoundTripper{
 		Transport:      transport,
 		NewCheckerFunc: newCheckerFunc,
 	}
 }
 
 // will not close body
-func (m *TransportRoundTripper) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+func (m *TransportCheckRoundTripper) RoundTrip(req *http.Request) (resp *http.Response, err error) {
 	if m.NewCheckerFunc != nil {
 		var checker RoundTripChecker
 		func() {

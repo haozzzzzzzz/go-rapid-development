@@ -11,7 +11,7 @@ func NewClient(
 ) (client *elasticsearch.Client, err error) {
 	client, err = elasticsearch.NewClient(elasticsearch.Config{
 		Addresses: address,
-		Transport: NewTransportCheck(
+		Transport: NewTransportRoundTripper(
 			ShortTimeoutTransport,
 			newCheckerFunc,
 		),

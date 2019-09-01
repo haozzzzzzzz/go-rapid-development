@@ -1,7 +1,9 @@
 package uto
 
 import (
+	"encoding/json"
 	"github.com/gosexy/to"
+	"github.com/sirupsen/logrus"
 )
 
 func SliceStringToInt64(
@@ -21,5 +23,26 @@ func SliceInt64ToString(
 	for _, i := range int64Slice {
 		strSlice = append(strSlice, to.String(i))
 	}
+	return
+}
+
+func MapStringInterfaceToStringString(
+	mInter map[string]interface{},
+) (mStr map[string]string) {
+	mStr = make(map[string]string)
+
+	for key, vInter := range mInter {
+		var strInter string
+		bIntr, err := json.Marshal(vInter)
+		if nil != err {
+			logrus.Errorf("marshal interface value failed. error: %s.", err)
+			strInter = to.String(vInter)
+		} else {
+			strInter = string(bIntr)
+		}
+
+		mStr[key] = strInter
+	}
+
 	return
 }

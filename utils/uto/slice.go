@@ -32,16 +32,20 @@ func MapStringInterfaceToStringString(
 	mStr = make(map[string]string)
 
 	for key, vInter := range mInter {
-		var strInter string
-		bIntr, err := json.Marshal(vInter)
-		if nil != err {
-			logrus.Errorf("marshal interface value failed. error: %s.", err)
-			strInter = to.String(vInter)
-		} else {
-			strInter = string(bIntr)
-		}
+		mStr[key] = JsonOrString(vInter)
+	}
 
-		mStr[key] = strInter
+	return
+}
+
+func JsonOrString(o interface{}) (strInter string) {
+	bInter, err := json.Marshal(o)
+	if nil != err {
+		logrus.Errorf("marshal interface to string failed. error: %s.", err)
+		strInter = to.String(bInter)
+		err = nil
+	} else {
+		strInter = string(bInter)
 	}
 
 	return

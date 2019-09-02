@@ -240,4 +240,9 @@ var (
 		Code:    2301,
 		Message: "elasticsearch create error",
 	}
+
+	CodeErrorElasticsearchSearch = &ApiCode{
+		Code:    2302,
+		Message: "elasticsearch search error",
+	}
 )

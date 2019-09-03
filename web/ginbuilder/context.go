@@ -254,3 +254,12 @@ func (m *Context) StringErrorf(result string, logFormat string, logArgs ...inter
 	m.GinContext.String(http.StatusOK, result)
 	m.Logger.Errorf(logFormat, logArgs...)
 }
+
+func (m *Context) JSON(result interface{}) {
+	m.GinContext.JSON(http.StatusOK, result)
+}
+
+func (m *Context) JSONErrorf(result interface{}, logFormat string, logArgs ...interface{}) {
+	m.GinContext.JSON(http.StatusOK, result)
+	m.Logger.Errorf(logFormat, logArgs...)
+}

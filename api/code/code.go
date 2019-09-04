@@ -48,8 +48,10 @@ var (
 	// 校验path参数失败
 	CodeErrorPathParams = &ApiCode{
 		Code:    1003,
-		Message: "verify path params failed",
+		Message: "verify uri params failed",
 	}
+
+	CodeErrorUriParams = CodeErrorPathParams
 
 	// 校验post参数失败
 	CodeErrorPostParams = &ApiCode{

@@ -5,6 +5,7 @@ import (
 	"github.com/haozzzzzzzz/go-rapid-development/api/request"
 )
 
+// Deprecated: new gin has full support of bind
 func BindParams(params gin.Params, v interface{}) error {
 
 	form := make(map[string][]string)
@@ -13,6 +14,6 @@ func BindParams(params gin.Params, v interface{}) error {
 		form[param.Key] = []string{param.Value}
 	}
 
-	return request.StructMapForm(v, form)
+	return request.StructMapForm(v, form, "form")
 
 }

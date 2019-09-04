@@ -128,7 +128,7 @@ func (m *Context) BindQueryData(queryData interface{}) (retCode *code.ApiCode, e
 }
 
 func (m *Context) BindPostData(postData interface{}) (retCode *code.ApiCode, err error) {
-	err = m.GinContext.ShouldBindWith(postData, binding.JSON)
+	err = m.GinContext.ShouldBindWith(postData, binding.JSON) // json only
 	if err != nil {
 		retCode = code.CodeErrorPostParams.Clone()
 		validateErrors, ok := err.(validator.ValidationErrors)
@@ -146,15 +146,17 @@ func (m *Context) BindPostData(postData interface{}) (retCode *code.ApiCode, err
 func (m *Context) BindPostForm(postData interface{}) (err error) {
 	err = m.GinContext.ShouldBindWith(postData, binding.FormPost)
 	if nil != err {
+		logrus.Errorf("gin should bind with form post failed. error: %s.", err)
 		return
 	}
 	return
 }
 
+// Deprecated: use BindUriData which is use gin's bind.
 func (m *Context) BindPathData(pathData interface{}) (retCode *code.ApiCode, err error) {
 	defer func() {
 		if err != nil {
-			retCode = code.CodeErrorPathParams.Clone()
+			retCode = code.CodeErrorUriParams.Clone()
 			validateErrors, ok := err.(validator.ValidationErrors)
 			if ok {
 				for _, fieldError := range validateErrors {
@@ -164,6 +166,7 @@ func (m *Context) BindPathData(pathData interface{}) (retCode *code.ApiCode, err
 			}
 		}
 	}()
+
 	err = BindParams(m.GinContext.Params, pathData)
 	if nil != err {
 		logrus.Errorf("bind path data failed. \n%s.", err)
@@ -176,6 +179,41 @@ func (m *Context) BindPathData(pathData interface{}) (retCode *code.ApiCode, err
 		return
 	}
 
+	return
+}
+
+// use form tag `uri`
+func (m *Context) BindUriData(uriData interface{}) (retCode *code.ApiCode, err error) {
+	err = m.GinContext.ShouldBindUri(uriData)
+	if nil != err {
+		retCode = code.CodeErrorUriParams.Clone()
+		validateErrors, ok := err.(validator.ValidationErrors)
+		if ok {
+			for _, fieldError := range validateErrors {
+				retCode.Message = fmt.Sprintf("%s. %q:%s", retCode.Message, fieldError.Name, fieldError.Tag)
+				break
+			}
+		}
+		return
+	}
+	return
+}
+
+func (m *Context) BindHeaderData(
+	headerData interface{},
+) (retCode *code.ApiCode, err error) {
+	err = m.GinContext.ShouldBindHeader(headerData)
+	if nil != err {
+		retCode = code.CodeErrorHeaderParams.Clone()
+		validateErrors, ok := err.(validator.ValidationErrors)
+		if ok {
+			for _, fieldError := range validateErrors {
+				retCode.Message = fmt.Sprintf("%s. %q:%s", retCode.Message, fieldError.Name, fieldError.Tag)
+				break
+			}
+		}
+		return
+	}
 	return
 }
 

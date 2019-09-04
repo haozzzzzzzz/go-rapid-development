@@ -12,7 +12,7 @@ import (
 )
 
 // transform form into struct
-func StructMapForm(ptr interface{}, form map[string][]string) error {
+func StructMapForm(ptr interface{}, form map[string][]string, tag string) error {
 	typ := reflect.TypeOf(ptr).Elem()
 	val := reflect.ValueOf(ptr).Elem()
 	for i := 0; i < typ.NumField(); i++ {
@@ -23,7 +23,7 @@ func StructMapForm(ptr interface{}, form map[string][]string) error {
 		}
 
 		structFieldKind := structField.Kind()
-		inputFieldName := typeField.Tag.Get("form")
+		inputFieldName := typeField.Tag.Get(tag)
 		if inputFieldName == "" {
 			inputFieldName = typeField.Name
 
@@ -31,7 +31,7 @@ func StructMapForm(ptr interface{}, form map[string][]string) error {
 			// this would not make sense for JSON parsing but it does for a form
 			// since data is flatten
 			if structFieldKind == reflect.Struct {
-				err := StructMapForm(structField.Addr().Interface(), form)
+				err := StructMapForm(structField.Addr().Interface(), form, tag)
 				if err != nil {
 					return err
 				}

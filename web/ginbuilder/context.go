@@ -6,8 +6,6 @@ import (
 
 	"context"
 
-	"time"
-
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/haozzzzzzzz/go-rapid-development/api/code"
@@ -18,69 +16,7 @@ import (
 const TRACE_REQUEST_KEY = "trace_fields"
 const NO_ACCESS_LOG_PRINT = "no_access_log_print" // key for not print access log
 
-func LogAccessMiddleware() func(context *gin.Context) {
-	return func(context *gin.Context) {
-		context.Set(TRACE_REQUEST_KEY, logrus.Fields{})
-
-		startTime := time.Now()
-		context.Next()
-
-		if context.GetBool(NO_ACCESS_LOG_PRINT) {
-			return
-		}
-
-		// print access log
-		duration := time.Now().Sub(startTime)
-
-		var logFields logrus.Fields
-		value, exist := context.Get(TRACE_REQUEST_KEY)
-		if !exist {
-			logFields = logrus.Fields{}
-		}
-
-		logFields, ok := value.(logrus.Fields)
-		if !ok || logFields == nil {
-			logFields = logrus.Fields{}
-		}
-
-		method := context.Request.Method
-		statusCode := context.Writer.Status()
-		path := context.Request.URL.Path
-		raw := context.Request.URL.RawQuery
-		if raw != "" {
-			path = path + "?" + raw
-		}
-
-		logFields["status_code"] = statusCode
-		logFields["duration"] = duration
-		logFields["path"] = path
-		logFields["method"] = method
-		logFields["client_ip"] = context.ClientIP()
-
-		logrus.WithFields(logFields).Infof("%s | %d | %v | %s", method, statusCode, duration, path)
-
-	}
-}
-
-// engine
-func DefaultEngine() (engine *gin.Engine) {
-	engine = gin.New()
-	engine.Use(LogAccessMiddleware(), gin.Recovery())
-	return
-}
-
 // context
-var sessionBuilder SessionBuilderFunc
-
-func BindSessionBuilder(sesBuilder SessionBuilderFunc) {
-	if sessionBuilder != nil {
-		logrus.Fatalf("session builder was bound")
-		return
-	}
-
-	sessionBuilder = sesBuilder
-}
-
 type Context struct {
 	GinContext   *gin.Context
 	RequestCtx   context.Context
@@ -95,15 +31,6 @@ func NewContext(ginContext *gin.Context) (ctx *Context, err error) {
 		RequestCtx: ginContext.Request.Context(),
 		Logger:     logrus.WithFields(logrus.Fields{}),
 	}
-
-	if sessionBuilder != nil {
-		err = sessionBuilder(ctx)
-		if nil != err {
-			logrus.Errorf("session builder error. %s.", err)
-			return
-		}
-	}
-
 	return
 }
 

@@ -32,12 +32,10 @@ func LoadFileYamlPanic(path string, obj interface{}) {
 	}
 }
 
-func LoadFileYamlOrDefaultPanic(
+func LoadFileYamlNoError(
 	path string,
 	obj interface{},
-	defVal interface{},
 ) {
-	obj = defVal
 	err := LoadFileYaml(path, obj)
 	if nil != err {
 		err = nil

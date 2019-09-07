@@ -1,28 +1,29 @@
 package ginbuilder
 
 import (
-	"encoding/json"
-	"github.com/sirupsen/logrus"
-
-	"net/http"
-
 	"fmt"
+	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
+	"github.com/haozzzzzzzz/go-rapid-development/utils/uruntime"
+	"github.com/sirupsen/logrus"
+	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
-	"github.com/haozzzzzzzz/go-rapid-development/utils/uruntime"
 )
 
 type HandleFunc struct {
-	HttpMethod    string
+	HttpMethod string
+	// Deprecated: please use RelativePaths for more url
 	RelativePath  string   // 单个。废弃
 	RelativePaths []string // 多个
+	BeforeHandle  func(ctx *Context) (stop bool, err error)
 	Handle        func(ctx *Context) (err error)
+	AfterHandle   func(ctx *Context, handleErr error) (err error)
 }
 
 func (m *HandleFunc) GinHandler(ginCtx *gin.Context) {
 	var err error
+	ginReq := ginCtx.Request
 	ctx, err := NewContext(ginCtx)
 	if nil != err {
 		logrus.Errorf("new context failed. %s", err)
@@ -30,40 +31,20 @@ func (m *HandleFunc) GinHandler(ginCtx *gin.Context) {
 	}
 
 	defer func() {
-		if errPanic := recover(); errPanic != nil {
+		if iRec := recover(); iRec != nil {
 			if ctx.Session != nil {
-				ctx.Session.Panic(errPanic)
+				ctx.Session.Panic(iRec)
+			}
+
+			if err == nil {
+				err = uerrors.Newf("gin handler panic: %s", iRec)
 			}
 
 			// print panic stack
 			stack := uruntime.Stack(3)
 			ctx.Logger.Error(string(stack))
 
-			if err == nil {
-				err = uerrors.Newf("panic occurs: %#v", errPanic)
-			}
-
 			ginCtx.AbortWithStatus(http.StatusInternalServerError)
-		}
-
-		// print error
-		if err != nil {
-			ctx.Logger.Errorf("error: %s", err)
-
-			// dump request
-			dumpRequest := &struct {
-				Response interface{} `json:"response"`
-			}{
-				Response: ctx.ResponseData,
-			}
-
-			byteDumpInfo, errMarshal := json.Marshal(dumpRequest)
-			if errMarshal != nil {
-				ctx.Logger.Errorf("%#v", dumpRequest)
-			}
-
-			ctx.Logger.Error(string(byteDumpInfo))
-
 		}
 
 		if ctx.Session != nil {
@@ -71,6 +52,24 @@ func (m *HandleFunc) GinHandler(ginCtx *gin.Context) {
 		}
 
 	}()
+
+	if m.BeforeHandle != nil {
+		stop, errBef := m.BeforeHandle(ctx)
+		err = errBef
+		if err != nil {
+			ctx.Logger.Errorf("before handle %s failed. %s", ginReq.URL, err)
+		}
+
+		if stop {
+			return
+		}
+	}
+
+	err = buildSessionForCtx(ctx)
+	if nil != err {
+		ctx.Logger.Errorf("build session for ctx failed. %s", err)
+		return
+	}
 
 	if ctx.Session != nil {
 		uri := ginCtx.Request.URL.Path
@@ -97,5 +96,12 @@ func (m *HandleFunc) GinHandler(ginCtx *gin.Context) {
 	err = m.Handle(ctx)
 	if nil != err {
 		ctx.Logger.Errorf("handler %q failed. %s.", ginCtx.Request.RequestURI, err)
+	}
+
+	if m.AfterHandle != nil {
+		err = m.AfterHandle(ctx, err)
+		if nil != err {
+			ctx.Logger.Errorf("after handle %s failed. %s", ginReq.RequestURI, err)
+		}
 	}
 }

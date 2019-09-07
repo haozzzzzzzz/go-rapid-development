@@ -9,3 +9,5 @@ const METHOD_OPTIONS = "OPTIONS"
 const METHOD_DELETE = "DELETE"
 const METHOD_CONNECT = "CONNECT"
 const METHOD_TRACE = "TRACE"
+
+const METHOD_ANY = "ANY" // any methods

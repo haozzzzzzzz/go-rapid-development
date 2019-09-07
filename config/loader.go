@@ -32,6 +32,19 @@ func LoadFileYamlPanic(path string, obj interface{}) {
 	}
 }
 
+func LoadFileYamlOrDefaultPanic(
+	path string,
+	obj interface{},
+	defVal interface{},
+) {
+	obj = defVal
+	err := LoadFileYaml(path, obj)
+	if nil != err {
+		err = nil
+		return
+	}
+}
+
 func LoadFileJson(path string, obj interface{}) (err error) {
 	err = ujson.ReadJsonFromFile(path, obj)
 	if nil != err {

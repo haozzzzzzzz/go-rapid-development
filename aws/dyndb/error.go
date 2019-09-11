@@ -14,3 +14,19 @@ func IsErrConditionalCheckFailedException(
 	}
 	return
 }
+
+func IsErrTransactionTolerable(err error) (isNormal bool) {
+	awsErr, ok := err.(awserr.Error)
+	if !ok {
+		return
+	}
+
+	switch awsErr.Code() {
+	case dynamodb.ErrCodeTransactionCanceledException,
+		dynamodb.ErrCodeTransactionConflictException,
+		dynamodb.ErrCodeTransactionInProgressException:
+		isNormal = true
+	}
+
+	return
+}

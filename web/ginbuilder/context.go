@@ -79,7 +79,7 @@ func (m *Context) BindPostForm(postData interface{}) (err error) {
 	return
 }
 
-// Deprecated: use BindUriData which is use gin's bind.
+// Deprecated: use BindUriData which uses gin's bind.
 func (m *Context) BindPathData(pathData interface{}) (retCode *code.ApiCode, err error) {
 	defer func() {
 		if err != nil {

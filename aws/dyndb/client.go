@@ -84,6 +84,19 @@ func (m *Client) DescribeTable(input *dynamodb.DescribeTableInput) (output *dyna
 	return
 }
 
+func (m *Client) UpdateTable(input *dynamodb.UpdateTableInput) (output *dynamodb.UpdateTableOutput, err error) {
+	checker := m.CommandChecker()
+	if checker != nil {
+		checker.Before(m, input)
+		defer func() {
+			checker.After(err)
+		}()
+	}
+
+	output, err = m.DB.UpdateTableWithContext(m.Ctx, input)
+	return
+}
+
 func (m *Client) TableExists(tableName string) (exists bool, err error) {
 	_, err = m.DescribeTable(&dynamodb.DescribeTableInput{
 		TableName: aws.String(tableName),

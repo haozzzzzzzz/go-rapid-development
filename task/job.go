@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/haozzzzzzzz/go-rapid-development/aws/xray"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
 	"github.com/robfig/cron/v3"
 	"github.com/sirupsen/logrus"
@@ -51,15 +50,15 @@ func (m *TaskJob) DoJob() (err error) {
 
 	// context
 	var ctx context.Context
-	var cancelCtx func(err error)
+	var cancelCtx func()
 	if m.ExecTimeout <= 0 {
-		ctx, _, cancelCtx = xray.NewBackgroundContext(m.TaskName)
+		ctx, cancelCtx = context.WithCancel(context.Background())
 	} else {
-		ctx, _, cancelCtx = xray.NewBackgroundContextWithTimeout(m.TaskName, m.ExecTimeout)
+		ctx, cancelCtx = context.WithTimeout(context.Background(), m.ExecTimeout)
 	}
 
 	defer func() {
-		cancelCtx(err)
+		cancelCtx()
 	}()
 
 	// check

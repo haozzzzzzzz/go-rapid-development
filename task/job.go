@@ -2,6 +2,7 @@ package task
 
 import (
 	"context"
+	"github.com/haozzzzzzzz/go-rapid-development/aws/xray"
 	"time"
 
 	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
@@ -50,15 +51,24 @@ func (m *TaskJob) DoJob() (err error) {
 
 	// context
 	var ctx context.Context
-	var cancelCtx func()
+	var cancelCtx func(error)
+
+	// 已经被很多xray服务引用，所以这里需要改回成xray的
+
+	//if m.ExecTimeout <= 0 {
+	//	ctx, cancelCtx = context.WithCancel(context.Background())
+	//} else {
+	//	ctx, cancelCtx = context.WithTimeout(context.Background(), m.ExecTimeout)
+	//}
+
 	if m.ExecTimeout <= 0 {
-		ctx, cancelCtx = context.WithCancel(context.Background())
+		ctx, _, cancelCtx = xray.NewBackgroundContext(m.TaskName)
 	} else {
-		ctx, cancelCtx = context.WithTimeout(context.Background(), m.ExecTimeout)
+		ctx, _, cancelCtx = xray.NewBackgroundContextWithTimeout(m.TaskName, m.ExecTimeout)
 	}
 
 	defer func() {
-		cancelCtx()
+		cancelCtx(err)
 	}()
 
 	// check

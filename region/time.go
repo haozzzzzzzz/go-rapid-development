@@ -33,6 +33,18 @@ func AppRegionDayStartTime(t time.Time) (dayStartTime time.Time) {
 	return
 }
 
+func AppRegionTodayStartTime() (today time.Time) {
+	return AppRegionDayStartTime(AppRegionNow())
+}
+
+func AppRegionTomorrowStartTime() (tomorrow time.Time) {
+	return AppRegionDayStartTimeOffset(AppRegionNow(), 1)
+}
+
+func AppRegionYesterdayStartTime() (yesterday time.Time) {
+	return AppRegionDayStartTimeOffset(AppRegionNow(), -1)
+}
+
 func AppRegionCurrentDayRangeTime(t time.Time) (startTime time.Time, endTime time.Time) {
 	startTime = AppRegionDayStartTime(t)
 	endTime = AppRegionDayStartTimeOffset(startTime, 1)

@@ -59,7 +59,7 @@ func (m *ExchangePublisher) connect() (err error) {
 
 	conn, err := amqp.Dial(m.url)
 	if nil != err {
-		logrus.Errorf("amqp dial rabbitmq failed. url: %s. error: %s.", m.url, err)
+		logrus.Errorf("amqp dial rabbitmq failed. url: %s, exchange: %s, error: %s.", m.url, m.exchange, err)
 		return
 	}
 	defer func() {
@@ -69,7 +69,7 @@ func (m *ExchangePublisher) connect() (err error) {
 		}
 	}()
 
-	logrus.Infof("connect ampq successfully. url: %s", m.url)
+	logrus.Infof("connect ampq successfully. url: %s, exchange: %s", m.url, m.exchange)
 	connClose := make(chan *amqp.Error, 10) // close by NotifyClose
 	conn.NotifyClose(connClose)
 

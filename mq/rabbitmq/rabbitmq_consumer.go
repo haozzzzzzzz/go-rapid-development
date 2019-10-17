@@ -99,7 +99,7 @@ func (m *QueueConsumer) connect() (err error) {
 	// init connection
 	conn, err := amqp.Dial(m.url)
 	if nil != err {
-		logrus.Errorf("amqp dial rabbitmq failed. url: %s. error: %s.", m.url, err)
+		logrus.Errorf("amqp dial rabbitmq failed. url: %s. queue: %s, error: %s.", m.url, m.queue, err)
 		return
 	}
 	defer func() {
@@ -109,7 +109,7 @@ func (m *QueueConsumer) connect() (err error) {
 		}
 	}()
 
-	logrus.Infof("connect ampq successfully. url: %s", m.url)
+	logrus.Infof("connect ampq successfully. url: %s, queue: %s", m.url, m.queue)
 
 	connClose := make(chan *amqp.Error, 10)
 	conn.NotifyClose(connClose)

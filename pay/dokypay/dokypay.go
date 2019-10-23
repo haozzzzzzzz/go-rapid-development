@@ -142,6 +142,7 @@ const ProdNameSouthEastAsiaPayout string = "southeast.asia.payout"
 获取的签名值为： d11d877c0f435f2f8a263eca22559af47fb5679b7b235483f2b6767cd9d1ce22
 */
 
+// https://www.dokypay.com/api.html#59f15b9651
 // 只对string类型的第一级参数进行签名
 func DokypaySign(params map[string]interface{}, signKey string) (strSign string) {
 	delete(params, "sign")

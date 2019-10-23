@@ -143,7 +143,7 @@ const ProdNameSouthEastAsiaPayout string = "southeast.asia.payout"
 */
 
 // https://www.dokypay.com/api.html#59f15b9651
-// 只对string类型的第一级参数进行签名
+// 只对string类型的第一级参数进行签名。extInfo不加入签名
 func DokypaySign(params map[string]interface{}, signKey string) (strSign string) {
 	delete(params, "sign")
 

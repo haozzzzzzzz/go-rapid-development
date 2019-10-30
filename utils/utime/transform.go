@@ -72,3 +72,7 @@ func DateStringFormat(t time.Time) string {
 func DateStringFormatCompact(t time.Time) string {
 	return t.Format("20060102")
 }
+
+func DateStringMonthFormatCompact(t time.Time) string {
+	return t.Format("200601")
+}

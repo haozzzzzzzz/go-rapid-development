@@ -69,6 +69,21 @@ func (m *Context) BindPostData(postData interface{}) (retCode *code.ApiCode, err
 	return
 }
 
+func (m *Context) BindBodyData(bodyData interface{}) (retCode *code.ApiCode, err error) {
+	err = m.GinContext.ShouldBindWith(bodyData, binding.JSON) // json only
+	if err != nil {
+		retCode = code.CodeErrorPostParams.Clone()
+		validateErrors, ok := err.(validator.ValidationErrors)
+		if ok {
+			for _, fieldError := range validateErrors {
+				retCode.Message = fmt.Sprintf("%s. %q:%s", retCode.Message, fieldError.Name, fieldError.Tag)
+				break
+			}
+		}
+	}
+	return
+}
+
 // form-urlencoded
 func (m *Context) BindPostForm(postData interface{}) (err error) {
 	err = m.GinContext.ShouldBindWith(postData, binding.FormPost)

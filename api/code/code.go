@@ -165,6 +165,9 @@ var (
 	//	Message: "require auth",
 	//}
 
+	// json body参数
+	CodeErrorBodyParams = NewAddApiCodePanic(1016, "verify body params failed")
+
 	// proxy
 	CodeErrorProxyFailed = NewAddApiCodePanic(1100, "proxy failed")
 	//&ApiCode{

@@ -4,7 +4,6 @@
 package batch_shape
 
 import (
-	"fmt"
 	"github.com/sirupsen/logrus"
 	"time"
 )
@@ -62,14 +61,12 @@ func (m *BatchShape) Start() {
 				case item := <-m.C:
 					items = append(items, item)
 					if len(items) >= m.Size {
-						fmt.Println("normal handle")
 						handleItems()
 					}
 
 				case <-ticker.C: // tick
 					now := time.Now()
 					if now.Sub(lastHandleTime) >= m.Timeout && len(items) > 0 { // 超时
-						fmt.Println("timeout handle")
 						handleItems()
 					}
 				}
@@ -81,7 +78,6 @@ func (m *BatchShape) Start() {
 }
 
 func (m *BatchShape) PushItem(items ...interface{}) {
-	fmt.Println("push")
 	for _, item := range items {
 		m.C <- item
 	}

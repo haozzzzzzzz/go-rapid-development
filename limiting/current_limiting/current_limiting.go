@@ -1,75 +1,15 @@
 /**
 limit execution times
- */
+调用频次限制
+*/
 package current_limiting
 
 import (
+	"github.com/haozzzzzzzz/go-rapid-development/limiting/store"
 	"time"
-
-	"sync"
 
 	"github.com/sirupsen/logrus"
 )
-
-type Store interface {
-	Push(datas ...interface{})
-	Pop(number uint) (datas []interface{})
-}
-
-// 数据存储
-type MemoryStore struct {
-	mutex sync.Mutex
-	items []interface{}
-}
-
-func NewMemoryStore() *MemoryStore {
-	return &MemoryStore{
-		items: make([]interface{}, 0),
-	}
-}
-
-func (m *MemoryStore) Push(datas ...interface{}) {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-
-	m.items = append(m.items, datas...)
-
-	return
-}
-
-func (m *MemoryStore) Pop(number uint) (datas []interface{}) {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-
-	datas = make([]interface{}, 0)
-	lenItems := uint(len(m.items))
-	if lenItems == 0 {
-		return
-	}
-
-	if lenItems <= number {
-		datas = make([]interface{}, lenItems)
-		copy(datas, m.items)
-		m.items = make([]interface{}, 0)
-		return
-	}
-
-	datas = make([]interface{}, number)
-	copy(datas, m.items[:number])
-
-	m.items = m.items[number:]
-
-	return
-}
-
-func (m *MemoryStore) Get() (items []interface{}) {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-
-	items = make([]interface{}, len(m.items))
-	copy(items, m.items)
-	return
-}
 
 // 任务
 type Handler func(datas ...interface{}) (err error)
@@ -80,7 +20,7 @@ type MinuteFrequencyLimiting struct {
 	Times        uint          // 频次。要大于0
 	WaitInterval time.Duration // 如果没有数据，等待间隔
 	MaxBatchSize uint          // 一次多少条数据
-	Store        Store         // 数据存储
+	Store        store.Store   // 数据存储
 	Handler      Handler       // 任务处理函数
 }
 

@@ -38,6 +38,7 @@ func (m *HandleFunc) GinHandler(ginCtx *gin.Context) {
 
 			if err == nil {
 				err = uerrors.Newf("gin handler panic: %s", iRec)
+				ctx.Logger.Error(err)
 			}
 
 			// print panic stack

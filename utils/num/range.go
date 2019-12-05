@@ -1,8 +1,25 @@
 package num
 
+import (
+	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
+)
+
+// 全闭合的
 type IntRange struct {
 	Min int64
 	Max int64
+}
+
+func NewIntRange(min int64, max int64) (intRange *IntRange, err error) {
+	if max < min {
+		err = uerrors.Newf("int range max should be gte min")
+		return
+	}
+	intRange = &IntRange{
+		Min: min,
+		Max: max,
+	}
+	return
 }
 
 func (m *IntRange) IsBetween(val int64) (result bool) {
@@ -38,12 +55,12 @@ func IntRangeIntersectRange(
 
 	sub = &IntRange{}
 	sub.Min = r1.Min
-	if sub.Min < r2.Min {
+	if sub.Min < r2.Min { // 取min大值
 		sub.Min = r2.Min
 	}
 
 	sub.Max = r1.Max
-	if sub.Max > r2.Max {
+	if sub.Max > r2.Max { // 取max小值
 		sub.Max = r2.Max
 	}
 

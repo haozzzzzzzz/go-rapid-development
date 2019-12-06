@@ -19,7 +19,11 @@ func (m *ApiCode) Clone() *ApiCode {
 }
 
 func (m ApiCode) String() string {
-	return fmt.Sprintf("Code: %d; Message: %s; Err: %s", m.Code, m.Message, m.Err)
+	strErr := ""
+	if m.Err != nil {
+		strErr = m.Err.Error()
+	}
+	return fmt.Sprintf("Code: %d; Message: %s; Err: %s", m.Code, m.Message, strErr)
 }
 
 // 状态码

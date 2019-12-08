@@ -2,7 +2,7 @@ package num
 
 import (
 	"fmt"
-	"github.com/gosexy/to"
+	"github.com/xiam/to"
 )
 
 func FloatDecimal(origin float64, decimal int) float64 {

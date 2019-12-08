@@ -2,8 +2,8 @@ package uto
 
 import (
 	"encoding/json"
-	"github.com/gosexy/to"
 	"github.com/sirupsen/logrus"
+	"github.com/xiam/to"
 )
 
 func SliceStringToInt64(

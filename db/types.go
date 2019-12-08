@@ -1,6 +1,7 @@
 package db
 
 import (
+	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
 
@@ -12,6 +13,30 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
+
+// NULL will present as emtpy string
+type AdaptNullString string
+
+func (m AdaptNullString) Value() (value driver.Value, err error) {
+	if m == "" {
+		return nil, nil
+	}
+
+	value = string(m)
+	return
+}
+
+func (m *AdaptNullString) Scan(src interface{}) (err error) {
+	ns := sql.NullString{}
+	err = ns.Scan(src)
+	if nil != err {
+		logrus.Errorf("scan sql null string failed. error: %s.", err)
+		return
+	}
+
+	*m = AdaptNullString(ns.String)
+	return
+}
 
 type StringSlice []string
 

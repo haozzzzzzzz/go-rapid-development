@@ -54,13 +54,6 @@ func (m *TaskJob) DoJob() (err error) {
 	var cancelCtx func(error)
 
 	// 已经被很多xray服务引用，所以这里需要改回成xray的
-
-	//if m.ExecTimeout <= 0 {
-	//	ctx, cancelCtx = context.WithCancel(context.Background())
-	//} else {
-	//	ctx, cancelCtx = context.WithTimeout(context.Background(), m.ExecTimeout)
-	//}
-
 	if m.ExecTimeout <= 0 {
 		ctx, _, cancelCtx = xray.NewBackgroundContext(m.TaskName)
 	} else {
@@ -87,6 +80,7 @@ func (m *TaskJob) DoJob() (err error) {
 	}()
 
 	// do job
+	logrus.Infof("do job %s", m.TaskName)
 	err = m.Handler(ctx)
 	if nil != err {
 		logrus.Errorf("do Handler failed. error: %s.", err)

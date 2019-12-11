@@ -80,7 +80,7 @@ func (m *TaskJob) DoJob() (err error) {
 	}()
 
 	// do job
-	logrus.Infof("do job %s", m.TaskName)
+	logrus.Infof("do cron task job %s", m.TaskName)
 	err = m.Handler(ctx)
 	if nil != err {
 		logrus.Errorf("do Handler failed. error: %s.", err)

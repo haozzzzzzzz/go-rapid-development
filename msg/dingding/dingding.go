@@ -5,6 +5,7 @@ import (
 	"github.com/haozzzzzzzz/go-rapid-development/aws/xray"
 	"github.com/haozzzzzzzz/go-rapid-development/http"
 	"github.com/haozzzzzzzz/go-rapid-development/limiting/current_limiting"
+	"github.com/haozzzzzzzz/go-rapid-development/limiting/store"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
 	"github.com/sirupsen/logrus"
 	"reflect"
@@ -35,7 +36,7 @@ func (m *LimitingDingdingAlert) Start(
 		Times:        20,
 		WaitInterval: time.Second,
 		MaxBatchSize: 10,
-		Store:        current_limiting.NewMemoryStore(),
+		Store:        store.NewMemoryStore(),
 		Handler:      m.send,
 	}
 

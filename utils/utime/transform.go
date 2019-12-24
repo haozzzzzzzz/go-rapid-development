@@ -76,3 +76,5 @@ func DateStringFormatCompact(t time.Time) string {
 func DateStringMonthFormatCompact(t time.Time) string {
 	return t.Format("200601")
 }
+
+// layout transform https://programming.guide/go/format-parse-string-time-date-example.html

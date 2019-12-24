@@ -212,7 +212,7 @@ func (m *Request) PostJson(body interface{}, resp interface{}) (err error) {
 	}
 
 	if response.StatusCode != http.StatusOK {
-		err = errors.New(fmt.Sprintf("http status: %s", resp.Status))
+		err = errors.New(fmt.Sprintf("http status: %s", response.Status))
 		logrus.Errorf("response error. %s.", err)
 		return
 	}

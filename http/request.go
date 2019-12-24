@@ -211,6 +211,12 @@ func (m *Request) PostJson(body interface{}, resp interface{}) (err error) {
 		return
 	}
 
+	if response.StatusCode != http.StatusOK {
+		err = errors.New(fmt.Sprintf("http status: %s", resp.Status))
+		logrus.Errorf("response error. %s.", err)
+		return
+	}
+
 	defer func() {
 		errClose := response.Body.Close()
 		if errClose != nil {

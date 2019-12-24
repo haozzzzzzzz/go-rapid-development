@@ -34,6 +34,8 @@ func NewBackgroundContext(name string) (
 		seg.Close(err)
 		cancelFunc()
 	}
+
+	seg.Sampled = false
 	return
 }
 
@@ -44,5 +46,6 @@ func NewBackgroundContextWithTimeout(name string, timeout time.Duration) (ctx co
 		seg.Close(err)
 		cancelFunc()
 	}
+	seg.Sampled = false
 	return
 }

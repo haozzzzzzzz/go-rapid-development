@@ -34,3 +34,16 @@ func NewClientV6WithXRay(
 	}
 	return
 }
+
+func NewClientV6NoTimeoutWithXRay(
+	address []string,
+	newCheckerFunc func() es.IRoundTripChecker,
+) (client *elasticsearch_v6.Client, err error) {
+	transport := xray.RoundTripper(es.NewTransportCheckRoundTripper(es.NoTimeoutTransport, newCheckerFunc)) // 3 RoundTripper stack up
+	client, err = es.NewClientV6(address, transport)
+	if nil != err {
+		logrus.Errorf("new es client failed. error: %s.", err)
+		return
+	}
+	return
+}

@@ -10,9 +10,9 @@ import (
 var (
 	ShortTimeoutRequestClient = &http.Client{
 		Transport: &http.Transport{
-			//MaxIdleConns:        100,
-			//MaxIdleConnsPerHost: 2,
-			IdleConnTimeout: 5 * time.Minute,
+			MaxIdleConns:        10000,
+			MaxIdleConnsPerHost: 1000,
+			IdleConnTimeout:     5 * time.Minute,
 			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 				d := net.Dialer{
 					Timeout:   2 * time.Second,
@@ -31,9 +31,9 @@ var (
 
 	LongTimeoutRequestClient = &http.Client{
 		Transport: &http.Transport{
-			//MaxIdleConns:        100,
-			//MaxIdleConnsPerHost: 2,
-			IdleConnTimeout: 5 * time.Minute,
+			MaxIdleConns:        10000,
+			MaxIdleConnsPerHost: 1000,
+			IdleConnTimeout:     5 * time.Minute,
 			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 				d := net.Dialer{
 					Timeout:   20 * time.Second,

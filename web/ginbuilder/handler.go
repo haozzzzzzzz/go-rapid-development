@@ -22,11 +22,35 @@ type HandleFunc struct {
 }
 
 func (m *HandleFunc) GinHandler(ginCtx *gin.Context) {
+	defer func() {
+		if iRec := recover(); iRec != nil {
+			logrus.Errorf("gin handler panic : %s.", iRec)
+		}
+	}()
+
 	var err error
 	ginReq := ginCtx.Request
 	ctx, err := NewContext(ginCtx)
 	if nil != err {
 		logrus.Errorf("new context failed. %s", err)
+		return
+	}
+
+	if m.BeforeHandle != nil {
+		stop, errBef := m.BeforeHandle(ctx)
+		err = errBef
+		if err != nil {
+			ctx.Logger.Errorf("before handle %s failed. %s", ginReq.URL, err)
+		}
+
+		if stop {
+			return
+		}
+	}
+
+	err = buildSessionForCtx(ctx)
+	if nil != err {
+		ctx.Logger.Errorf("build session for ctx failed. %s", err)
 		return
 	}
 
@@ -53,24 +77,6 @@ func (m *HandleFunc) GinHandler(ginCtx *gin.Context) {
 		}
 
 	}()
-
-	if m.BeforeHandle != nil {
-		stop, errBef := m.BeforeHandle(ctx)
-		err = errBef
-		if err != nil {
-			ctx.Logger.Errorf("before handle %s failed. %s", ginReq.URL, err)
-		}
-
-		if stop {
-			return
-		}
-	}
-
-	err = buildSessionForCtx(ctx)
-	if nil != err {
-		ctx.Logger.Errorf("build session for ctx failed. %s", err)
-		return
-	}
 
 	if ctx.Session != nil {
 		uri := ginCtx.Request.URL.Path

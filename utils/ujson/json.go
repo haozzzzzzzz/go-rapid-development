@@ -37,7 +37,7 @@ func ReadJsonFromFile(filePath string, obj interface{}) (err error) {
 
 	err = json.Unmarshal(byteObj, obj)
 	if nil != err {
-		logrus.Errorf("unmarshal %q json file failed. error: %s.", err)
+		logrus.Errorf("unmarshal %q json file failed. error: %s.", filePath, err)
 		return
 	}
 

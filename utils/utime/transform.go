@@ -61,8 +61,10 @@ func WeekTimeIdentifyKey(t time.Time) string {
 	return t.Format("w_2006_01_02")
 }
 
+const StrCommonDateFormat = "2006-01-02 15:04:05"
+
 func CommonDateFormat(t time.Time) string {
-	return t.Format("2006-01-02 15:04:05")
+	return t.Format(StrCommonDateFormat)
 }
 
 func DateStringFormat(t time.Time) string {

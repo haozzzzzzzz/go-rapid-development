@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
-
 	"fmt"
+	"github.com/haozzzzzzzz/go-rapid-development/utils/ujson"
 	"reflect"
 
 	"strings"
@@ -273,5 +273,46 @@ func (m *SplitStringSlice) Scan(src interface{}) (err error) {
 	}
 
 	*m = strings.Split(source, ",")
+	return
+}
+
+// json interface
+type JsonInterface struct {
+	I interface{}
+}
+
+func (m JsonInterface) Value() (value driver.Value, err error) {
+	byteValue, err := json.Marshal(m.I)
+	if nil != err {
+		logrus.Errorf("marshal interface map failed. %s.", err)
+		return
+	}
+
+	value = string(byteValue)
+
+	return
+}
+
+func (m *JsonInterface) Scan(src interface{}) (err error) {
+	var source string
+	switch src.(type) {
+	case string:
+		source = src.(string)
+	case []byte:
+		source = string(src.([]byte))
+	default:
+		return errors.New(fmt.Sprintf("Incompatible type %q for InterfaceMap", reflect.TypeOf(src)))
+	}
+
+	if source == "" {
+		source = "null"
+	}
+
+	_, m.I, err = ujson.ParseJson(source)
+	if nil != err {
+		logrus.Errorf("parse json failed. error: %s.", err)
+		return
+	}
+
 	return
 }

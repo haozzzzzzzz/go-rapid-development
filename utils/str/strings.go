@@ -39,3 +39,7 @@ func BlurNickname(udId string, nickname string) (str string) {
 	str = BlurRange(str, 2)
 	return
 }
+
+func IsSpace(c byte) bool {
+	return c == ' ' || c == '\t' || c == '\r' || c == '\n'
+}

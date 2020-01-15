@@ -165,6 +165,9 @@ var (
 	// dynamodb unmarshal失败
 	CodeErrorDynamodbAttributeUnmarshalFailed = NewAddApiCodePanic(2204, "dynamodb unmarshal failed")
 
+	// dynamodb 没有符合条件的记录
+	CodeErrorDynamodbQueryNoRecords = NewAddApiCodePanic(2205, "dynamodb query no records")
+
 	// es
 	CodeErrorElasticsearch = NewAddApiCodePanic(2300, "elasticserach error")
 

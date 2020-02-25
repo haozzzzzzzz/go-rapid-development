@@ -18,6 +18,12 @@ func (m *ApiCode) Clone() *ApiCode {
 	}
 }
 
+func (m *ApiCode) WithMessage(msg string) *ApiCode {
+	apiCode := m.Clone()
+	apiCode.Message = msg
+	return apiCode
+}
+
 func (m ApiCode) String() string {
 	strErr := ""
 	if m.Err != nil {

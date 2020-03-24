@@ -28,6 +28,9 @@ type TaskJob struct {
 	TaskName string                                // required
 	Handler  func(ctx context.Context) (err error) // required
 
+	RetryTimes    uint32        // 重试次数
+	RetryInterval time.Duration // 重试间隔
+
 	ExecTimeout  time.Duration
 	CheckerMaker func() (checker Checker)
 	Locker       Locker
@@ -91,9 +94,27 @@ func (m *TaskJob) DoJob() (err error) {
 }
 
 func (m *TaskJob) Run() {
-	err := m.DoJob()
-	if nil != err {
+	curRetryTimes := uint32(0)
+
+	for {
+		err := m.DoJob()
+		if err == nil {
+			break
+		}
+
+		// 出错
 		logrus.Errorf("do job failed. task_name: %s, error: %s.", m.TaskName, err)
-		return
+
+		// 尝试重试
+		if m.RetryTimes == 0 || curRetryTimes >= m.RetryTimes {
+			break
+		}
+
+		curRetryTimes++
+
+		if m.RetryInterval > 0 {
+			time.Sleep(m.RetryInterval)
+		}
 	}
+
 }

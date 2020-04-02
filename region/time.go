@@ -23,6 +23,10 @@ func AppRegionNow() (t time.Time) {
 	return time.Now().In(AppRegionTimezone)
 }
 
+func AppRegionNowUnix() int64 {
+	return AppRegionNow().Unix()
+}
+
 func AppRegionUnix(sec int64, nsec int64) (t time.Time) {
 	return time.Unix(sec, nsec).In(AppRegionTimezone)
 }
@@ -109,4 +113,8 @@ func AppRegionIndianMomentDuration(
 	distanceDur = nextMoment.Sub(curTime)
 
 	return
+}
+
+func ParseCommonDateFormat(strTime string) (time.Time, error) {
+	return time.ParseInLocation(utime.StrCommonDateFormat, strTime, AppRegionTimezone)
 }

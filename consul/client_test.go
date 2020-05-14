@@ -151,6 +151,7 @@ func TestClient_WatchChecks(t *testing.T) {
 		for _, heathCheck := range heathChecks {
 			fmt.Printf("%#v\n", heathCheck)
 		}
+		fmt.Printf("\n")
 		return
 	})
 
@@ -158,4 +159,6 @@ func TestClient_WatchChecks(t *testing.T) {
 		t.Error(err)
 		return
 	}
+
+	<-make(chan int)
 }

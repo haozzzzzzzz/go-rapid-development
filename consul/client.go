@@ -176,3 +176,38 @@ func (m *Client) Watch(key string, localValue LocalValue) (err error) {
 
 	return
 }
+
+type WatchServiceCallback func(heathChecks []*api.HealthCheck) (err error)
+
+// watch service
+func (m *Client) WatchChecks(serviceName string, callback WatchServiceCallback) (err error) {
+	plan, err := watch.Parse(map[string]interface{}{
+		"type":    "checks",
+		"service": serviceName,
+	})
+	if nil != err {
+		logrus.Errorf("parse watch checks params error: %s", err)
+		return
+	}
+
+	plan.HybridHandler = func(blockVal watch.BlockingParamVal, val interface{}) {
+		healthChecks, ok := val.([]*api.HealthCheck)
+		if !ok {
+			return
+		}
+
+		errCallback := callback(healthChecks)
+		if errCallback != nil {
+			logrus.Errorf("watch checks callback error: %s", err)
+			return
+		}
+	}
+
+	go func() {
+		errRun := plan.Run(m.Config.Address)
+		if nil != errRun {
+			logrus.Errorf("error: %s", err)
+		}
+	}()
+	return
+}

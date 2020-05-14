@@ -137,3 +137,25 @@ func TestClient_GetYaml(t *testing.T) {
 		return
 	}
 }
+
+func TestClient_WatchChecks(t *testing.T) {
+	consulClient, err := NewClient(&ClientConfigFormat{
+		Address: "127.0.0.1:8500",
+	})
+	if nil != err {
+		t.Error(err)
+		return
+	}
+
+	err = consulClient.WatchChecks("websocket_demo", func(heathChecks []*api.HealthCheck) (err error) {
+		for _, heathCheck := range heathChecks {
+			fmt.Printf("%#v\n", heathCheck)
+		}
+		return
+	})
+
+	if nil != err {
+		t.Error(err)
+		return
+	}
+}

@@ -2,10 +2,12 @@ package consul
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
 	"github.com/hashicorp/consul/api"
 	"github.com/hashicorp/consul/api/watch"
 	"github.com/sirupsen/logrus"
+	"github.com/xiam/to"
 	"gopkg.in/yaml.v2"
 )
 
@@ -209,5 +211,64 @@ func (m *Client) WatchChecks(serviceName string, callback WatchServiceCallback) 
 			logrus.Errorf("error: %s", err)
 		}
 	}()
+	return
+}
+
+// 注册服务
+func (m *Client) RegisterService(
+	serviceName string,
+	ip string, // ip加端口
+	port string,
+	metricsPath string,
+	checkInterval string,
+	tags []string,
+	meta map[string]string,
+) (err error) {
+	address := fmt.Sprintf("%s:%s", ip, port)
+	serviceId := address
+	metricsAddress := fmt.Sprintf("%s%s", address, metricsPath)
+
+	// https://www.consul.io/api/agent/service.html#register-service
+	err = m.Api.Agent().ServiceRegister(&api.AgentServiceRegistration{
+		Name:    serviceName,
+		ID:      serviceId,
+		Tags:    tags,
+		Address: ip,
+		Meta:    meta,
+		Port:    to.Int(port),
+
+		// https://www.consul.io/api/agent/check.html#register-check
+		Checks: api.AgentServiceChecks{
+			&api.AgentServiceCheck{
+				Name:                           "metrics_check",
+				CheckID:                        metricsAddress,
+				Interval:                       checkInterval,
+				HTTP:                           fmt.Sprintf("http://%s", metricsAddress),
+				Status:                         "passing",
+				Timeout:                        "10s",
+				DeregisterCriticalServiceAfter: "10m",
+			},
+		},
+	})
+	if nil != err {
+		logrus.Errorf("register service error: %s", err)
+	}
+
+	return
+}
+
+// 取消注册服务
+func (m *Client) DeregisterService(
+	ip string,
+	port string,
+) (err error) {
+	address := fmt.Sprintf("%s:%s", ip, port)
+	serviceId := address
+
+	err = m.Api.Agent().ServiceDeregister(serviceId)
+	if nil != err {
+		logrus.Errorf("deregister service error: %s", err)
+	}
+
 	return
 }

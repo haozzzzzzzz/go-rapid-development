@@ -36,30 +36,13 @@ type TaskJob struct {
 }
 
 func (m *TaskJob) DoJob() (err error) {
-	// lock
-	if m.Locker != nil {
-		if !m.Locker.LockTask(m.TaskName, m.ExecTimeout) {
-			return
-		}
-
-		defer func() {
-			success := m.Locker.UnlockTask(m.TaskName)
-			if !success {
-				logrus.Errorf("task Locker unlock failed. error: %s.", err)
-			}
-		}()
-
-	}
-
 	// context
 	var ctx context.Context
 	var cancelCtx func(error)
 
 	if m.ExecTimeout <= 0 {
-		//ctx, _, cancelCtx = xray.NewBackgroundContext(m.TaskName)
 		ctx, cancelCtx = NewBackgroundContext(m.TaskName)
 	} else {
-		//ctx, _, cancelCtx = xray.NewBackgroundContextWithTimeout(m.TaskName, m.ExecTimeout)
 		ctx, cancelCtx = NewBackgroundContextWithTimeout(m.TaskName, m.ExecTimeout)
 	}
 
@@ -95,6 +78,21 @@ func (m *TaskJob) DoJob() (err error) {
 
 func (m *TaskJob) Run() {
 	curRetryTimes := uint32(0)
+
+	// lock
+	if m.Locker != nil {
+		if !m.Locker.LockTask(m.TaskName, m.ExecTimeout) {
+			return
+		}
+
+		defer func() {
+			success := m.Locker.UnlockTask(m.TaskName)
+			if !success {
+				logrus.Errorf("task Locker unlock failed. error: %s.", err)
+			}
+		}()
+
+	}
 
 	for {
 		err := m.DoJob()

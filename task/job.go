@@ -88,7 +88,7 @@ func (m *TaskJob) Run() {
 		defer func() {
 			success := m.Locker.UnlockTask(m.TaskName)
 			if !success {
-				logrus.Errorf("task Locker unlock failed. error: %s.", err)
+				logrus.Errorf("task Locker unlock failed")
 			}
 		}()
 

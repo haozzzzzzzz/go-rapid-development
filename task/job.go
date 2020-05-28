@@ -2,6 +2,7 @@ package task
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
@@ -33,6 +34,8 @@ type TaskJob struct {
 	ExecTimeout  time.Duration
 	CheckerMaker func() (checker Checker)
 	Locker       Locker
+
+	Meta sync.Map // custom meta
 }
 
 func (m *TaskJob) DoJob() (err error) {

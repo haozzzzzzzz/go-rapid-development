@@ -228,6 +228,12 @@ func (m *Client) RegisterService(
 	serviceId := address
 	metricsAddress := fmt.Sprintf("%s%s", address, metricsPath)
 
+	if meta == nil {
+		meta = make(map[string]string)
+	}
+
+	meta["metrics_path"] = metricsPath
+
 	// https://www.consul.io/api/agent/service.html#register-service
 	err = m.Api.Agent().ServiceRegister(&api.AgentServiceRegistration{
 		Name:    serviceName,

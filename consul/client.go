@@ -182,11 +182,40 @@ func (m *Client) Watch(key string, localValue LocalValue) (err error) {
 type WatchServiceCallback func(heathChecks []*api.HealthCheck) (err error)
 
 // watch service
-func (m *Client) WatchChecks(serviceName string, callback WatchServiceCallback) (err error) {
-	plan, err := watch.Parse(map[string]interface{}{
+func (m *Client) WatchServiceChecks(
+	serviceName string,
+	callback WatchServiceCallback,
+) (err error) {
+	err = m.WatchChecks(map[string]interface{}{
 		"type":    "checks",
 		"service": serviceName,
-	})
+	}, callback)
+	if err != nil {
+		logrus.Errorf("watch service checks error: %s", err)
+		return
+	}
+	return
+}
+
+// watch checks critical
+func (m *Client) WatchChecksCritical(callback WatchServiceCallback) (err error) {
+	err = m.WatchChecks(map[string]interface{}{
+		"type":  "checks",
+		"state": "critical",
+	}, callback)
+	if err != nil {
+		logrus.Errorf("watch checks critical error: %s", err)
+		return
+	}
+	return
+}
+
+// watch  checks
+func (m *Client) WatchChecks(
+	params map[string]interface{},
+	callback WatchServiceCallback,
+) (err error) {
+	plan, err := watch.Parse(params)
 	if nil != err {
 		logrus.Errorf("parse watch checks params error: %s", err)
 		return
@@ -304,6 +333,7 @@ func (m *Client) RegisterServiceWithChecks(
 			HTTP:                           check.HTTP,
 			Method:                         check.Method,
 			Header:                         check.Header,
+			Status:                         "passing",
 			Timeout:                        "10s",
 			DeregisterCriticalServiceAfter: "30m",
 		})

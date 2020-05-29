@@ -214,8 +214,8 @@ func (m *Client) WatchChecks(serviceName string, callback WatchServiceCallback) 
 	return
 }
 
-// 注册服务
-func (m *Client) RegisterService(
+// 注册带有metrics的服务
+func (m *Client) RegisterServiceWithMetrics(
 	serviceName string,
 	ip string, // ip加端口
 	port string,
@@ -265,16 +265,63 @@ func (m *Client) RegisterService(
 
 // 取消注册服务
 func (m *Client) DeregisterService(
-	ip string,
-	port string,
+	serviceId string,
 ) (err error) {
-	address := fmt.Sprintf("%s:%s", ip, port)
-	serviceId := address
-
 	err = m.Api.Agent().ServiceDeregister(serviceId)
 	if nil != err {
 		logrus.Errorf("deregister service error: %s", err)
 	}
 
+	return
+}
+
+type Check struct {
+	CheckName string              `json:"check_name" form:"check_name" binding:"required"`
+	CheckId   string              `json:"check_id" form:"check_id" binding:"required"`
+	Interval  string              `json:"interval" form:"interval" binding:"required"`
+	HTTP      string              `json:"http" form:"http" binding:"required"`
+	Method    string              `json:"method" form:"method"`
+	Header    map[string][]string `json:"header" form:"header"`
+}
+
+// 注册服务
+func (m *Client) RegisterServiceWithChecks(
+	serviceName string,
+	ip string,
+	port int,
+	tags []string,
+	meta map[string]string,
+	checks []*Check,
+) (err error) {
+	serviceId := fmt.Sprintf("%s:%d", ip, port)
+
+	checksConfig := make(api.AgentServiceChecks, 0)
+	for _, check := range checks {
+		checksConfig = append(checksConfig, &api.AgentServiceCheck{
+			Name:                           check.CheckName,
+			CheckID:                        fmt.Sprintf("%s_%s", serviceId, check.CheckId),
+			Interval:                       check.Interval,
+			HTTP:                           check.HTTP,
+			Method:                         check.Method,
+			Header:                         check.Header,
+			Timeout:                        "10s",
+			DeregisterCriticalServiceAfter: "30m",
+		})
+	}
+
+	serviceConfig := &api.AgentServiceRegistration{
+		Name:    serviceName,
+		ID:      serviceId,
+		Address: ip,
+		Port:    port,
+		Tags:    tags,
+		Meta:    meta,
+		Checks:  checksConfig,
+	}
+	err = m.Api.Agent().ServiceRegister(serviceConfig)
+	if err != nil {
+		logrus.Errorf("register service error: %s", err)
+		return
+	}
 	return
 }

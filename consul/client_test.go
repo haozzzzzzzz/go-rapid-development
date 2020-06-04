@@ -138,7 +138,7 @@ func TestClient_GetYaml(t *testing.T) {
 	}
 }
 
-func TestClient_WatchChecks(t *testing.T) {
+func TestClient_WatchService(t *testing.T) {
 	consulClient, err := NewClient(&ClientConfigFormat{
 		Address: "127.0.0.1:8500",
 	})
@@ -147,18 +147,37 @@ func TestClient_WatchChecks(t *testing.T) {
 		return
 	}
 
-	err = consulClient.WatchChecks("websocket_demo", func(heathChecks []*api.HealthCheck) (err error) {
-		for _, heathCheck := range heathChecks {
-			fmt.Printf("%#v\n", heathCheck)
+	err = consulClient.WatchService(map[string]interface{}{
+		"type":    "service",
+		"service": "ws_demo",
+		//"passingonly": true,
+	}, func(entries []*api.ServiceEntry) (err error) {
+		fmt.Println(entries)
+		for _, entry := range entries {
+			fmt.Printf("%#v\n", entry.Service)
+			for _, check := range entry.Checks {
+				fmt.Printf("%#v\n", check)
+			}
 		}
-		fmt.Printf("\n")
 		return
 	})
+	<-make(chan int)
+}
 
+func TestClient_SetServiceMaintenanceMode(t *testing.T) {
+	consulClient, err := NewClient(&ClientConfigFormat{
+		Address: "127.0.0.1:8500",
+	})
 	if nil != err {
 		t.Error(err)
 		return
 	}
 
-	<-make(chan int)
+	err = consulClient.SetServiceMaintenanceMode("host.docker.internal:12345", false, map[string]interface{}{
+		"type": "test",
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
 }

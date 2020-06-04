@@ -179,12 +179,12 @@ func (m *Client) Watch(key string, localValue LocalValue) (err error) {
 	return
 }
 
-type WatchServiceCallback func(heathChecks []*api.HealthCheck) (err error)
+type WatchCheckCallback func(heathChecks []*api.HealthCheck) (err error)
 
 // watch service
 func (m *Client) WatchServiceChecks(
 	serviceName string,
-	callback WatchServiceCallback,
+	callback WatchCheckCallback,
 ) (err error) {
 	err = m.WatchChecks(map[string]interface{}{
 		"type":    "checks",
@@ -198,7 +198,7 @@ func (m *Client) WatchServiceChecks(
 }
 
 // watch checks critical
-func (m *Client) WatchChecksCritical(callback WatchServiceCallback) (err error) {
+func (m *Client) WatchChecksCritical(callback WatchCheckCallback) (err error) {
 	err = m.WatchChecks(map[string]interface{}{
 		"type":  "checks",
 		"state": "critical",
@@ -213,7 +213,7 @@ func (m *Client) WatchChecksCritical(callback WatchServiceCallback) (err error) 
 // watch  checks
 func (m *Client) WatchChecks(
 	params map[string]interface{},
-	callback WatchServiceCallback,
+	callback WatchCheckCallback,
 ) (err error) {
 	plan, err := watch.Parse(params)
 	if nil != err {
@@ -240,6 +240,58 @@ func (m *Client) WatchChecks(
 			logrus.Errorf("error: %s", err)
 		}
 	}()
+	return
+}
+
+type WatchServiceCallback func(entries []*api.ServiceEntry) (err error)
+
+// watch service
+func (m *Client) WatchService(
+	params map[string]interface{},
+	callback WatchServiceCallback,
+) (err error) {
+	plan, err := watch.Parse(params)
+	if nil != err {
+		logrus.Errorf("parse watch checks params error: %s", err)
+		return
+	}
+
+	plan.HybridHandler = func(blockVal watch.BlockingParamVal, val interface{}) {
+		serviceEntries, ok := val.([]*api.ServiceEntry)
+		if !ok {
+			return
+		}
+
+		errCallback := callback(serviceEntries)
+		if errCallback != nil {
+			logrus.Errorf("do watch service callback error: %s", err)
+			return
+		}
+	}
+
+	go func() {
+		errRun := plan.Run(m.Config.Address)
+		if nil != errRun {
+			logrus.Errorf("error: %s", err)
+		}
+	}()
+
+	return
+}
+
+// watch service
+func (m *Client) WatchServiceAll(
+	serviceName string,
+	callback WatchServiceCallback,
+) (err error) {
+	err = m.WatchService(map[string]interface{}{
+		"type":    "service",
+		"service": serviceName,
+	}, callback)
+	if err != nil {
+		logrus.Errorf("watch service all error: %s", err)
+		return
+	}
 	return
 }
 
@@ -353,5 +405,36 @@ func (m *Client) RegisterServiceWithChecks(
 		logrus.Errorf("register service error: %s", err)
 		return
 	}
+	return
+}
+
+// 设置服务维护状态
+func (m *Client) SetServiceMaintenanceMode(
+	serviceId string,
+	enable bool,
+	enableReason map[string]interface{},
+) (err error) {
+	if enable {
+		bReason, errM := json.Marshal(enableReason)
+		err = errM
+		if err != nil {
+			logrus.Errorf("marshal error: %s", err)
+			return
+		}
+
+		err = m.Api.Agent().EnableServiceMaintenance(serviceId, string(bReason))
+		if err != nil {
+			logrus.Errorf("enable service maintenance error: %s", err)
+			return
+		}
+
+	} else {
+		err = m.Api.Agent().DisableServiceMaintenance(serviceId)
+		if err != nil {
+			logrus.Errorf("disable service maintenance error: %s", err)
+			return
+		}
+	}
+
 	return
 }

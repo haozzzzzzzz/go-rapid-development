@@ -331,7 +331,7 @@ func (m *Client) RegisterServiceWithMetrics(
 				CheckID:                        metricsAddress,
 				Interval:                       checkInterval,
 				HTTP:                           fmt.Sprintf("http://%s", metricsAddress),
-				Status:                         "passing",
+				Status:                         api.HealthPassing,
 				Timeout:                        "10s",
 				DeregisterCriticalServiceAfter: "10m",
 			},

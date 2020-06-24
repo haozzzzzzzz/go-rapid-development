@@ -272,7 +272,11 @@ func (m *SplitStringSlice) Scan(src interface{}) (err error) {
 		return
 	}
 
-	*m = strings.Split(source, ",")
+	if source != "" {
+		*m = strings.Split(source, ",")
+	} else {
+		*m = SplitStringSlice{}
+	}
 	return
 }
 

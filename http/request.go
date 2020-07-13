@@ -113,6 +113,10 @@ func (m *Request) Get() (resp *http.Response, err error) {
 	}
 
 	req.Header = m.Header
+	host := m.Header.Get("Host")
+	if host != "" {
+		req.Host = host
+	}
 
 	resp, err = m.Do(req)
 	if err != nil {

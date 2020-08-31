@@ -263,3 +263,59 @@ func (m *Request) Do(rawRequest *http.Request) (response *http.Response, err err
 
 	return
 }
+
+// 构建Post Json请求。需手动调用DoRespJson发送请求
+func (m *Request) BuildPostJson(body interface{}) (req *http.Request, err error) {
+	var bytesBody []byte
+	if body != nil {
+		bytesBody, err = json.Marshal(body)
+		if err != nil {
+			logrus.Warnf("marshal post body failed. %s", err)
+			return
+		}
+	}
+
+	strUrl := m.URL()
+	bodyReader := bytes.NewBuffer(bytesBody)
+	contentType := "application/json;charset=utf8"
+
+	req, err = http.NewRequest("POST", strUrl, bodyReader)
+	if err != nil {
+		return
+	}
+	req.Header = m.Header
+	req.Header.Set("Content-Type", contentType)
+	return
+}
+
+func (m *Request) DoRespJson(rawReq *http.Request, resp interface{}) (err error) {
+	response, err := m.Do(rawReq)
+	if err != nil {
+		logrus.Warnf("post request failed. %s", err)
+		return
+	}
+
+	if response.StatusCode != http.StatusOK {
+		err = errors.New(fmt.Sprintf("http status: %s", response.Status))
+		logrus.Errorf("response error. %s.", err)
+		return
+	}
+
+	defer func() {
+		errClose := response.Body.Close()
+		if errClose != nil {
+			logrus.Errorf("close http response body failed. %s.", err)
+			if err == nil {
+				err = errClose
+			}
+		}
+	}()
+
+	err = ujson.UnmarshalJsonFromReader(response.Body, resp)
+	if nil != err {
+		logrus.Errorf("unmarshal body json failed. %s.", err)
+		return
+	}
+
+	return
+}

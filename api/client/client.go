@@ -226,6 +226,61 @@ func (m *Client) PostWithHeader(
 	return
 }
 
+func (m *Client) PostJsonReq(
+	urlPath string,
+	iRespData interface{},
+	iPathData interface{},
+	iQueryData interface{},
+	iPostData interface{},
+	beforeRequest func(rawReq *http2.Request) (err error),
+) (err error) {
+	apiUrl := fmt.Sprintf("%s%s", m.UrlPrefix, urlPath)
+	reqUrl, err := http.NewUrlByStrUrl(apiUrl)
+	if nil != err {
+		logrus.Errorf("new url by string url failed. %s.", err)
+		return
+	}
+
+	pathData := make(map[string][]string)
+	err = request.FormMap(pathData, iPathData)
+	if nil != err {
+		logrus.Errorf("map path data failed. %s.", err)
+		return
+	}
+
+	queryData := make(map[string][]string)
+	err = request.FormMap(queryData, iQueryData)
+	if nil != err {
+		logrus.Errorf("map query data failed. %s.", err)
+		return
+	}
+
+	reqUrl.SetPathData(pathData)
+	reqUrl.SetQueryData(queryData)
+
+	req := http.NewRequestByUrl(reqUrl, m.Ctx, m.HttpClient)
+	rawReq, err := req.BuildPostJson(iPostData)
+	if err != nil {
+		logrus.Errorf("req build post json failed. error: %s", err)
+		return
+	}
+
+	if beforeRequest != nil {
+		err = beforeRequest(rawReq)
+		if err != nil {
+			logrus.Errorf("call before request failed. error: %s", err)
+			return
+		}
+	}
+
+	err = req.DoRespJson(rawReq, iRespData)
+	if err != nil {
+		logrus.Errorf("req do req json failed. error: %s", err)
+		return
+	}
+	return
+}
+
 type ResponseMessage struct {
 	ReturnCode uint32 `json:"ret"`
 	Message    string `json:"msg"`

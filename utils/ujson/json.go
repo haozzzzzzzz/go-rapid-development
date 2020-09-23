@@ -59,3 +59,7 @@ func WriteJsonToFile(filePath string, obj interface{}, mode os.FileMode) (err er
 
 	return
 }
+
+func MarshalPretty(obj interface{}) ([]byte, error){
+	return json.MarshalIndent(obj, "", "\t")
+}

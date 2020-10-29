@@ -2,6 +2,8 @@ package es
 
 import (
 	"encoding/json"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/haozzzzzzzz/go-rapid-development/utils/uio"
 	"github.com/sirupsen/logrus"
 	"strings"
 )
@@ -77,5 +79,36 @@ func BulkBodyFromDocSlice(
 		return
 	}
 
+	return
+}
+
+// handle response body
+func HandleResponseBody(
+	response *esapi.Response,
+	outBody interface{},
+) (err error) {
+	bBody, err := uio.ReadAllAndClose(response.Body)
+	if err != nil {
+		logrus.Errorf("read response body failed. error: %s", err)
+		return
+	}
+	if response.IsError() {
+		err = RespError(bBody)
+		if err != nil {
+			logrus.Errorf("es response error. %s", err)
+			return
+		}
+		return
+	}
+
+	if outBody == nil {
+		return
+	}
+
+	err = json.Unmarshal(bBody, outBody)
+	if err != nil {
+		logrus.Errorf("unmarshal response body failed. %s", err)
+		return
+	}
 	return
 }

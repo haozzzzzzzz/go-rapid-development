@@ -16,6 +16,16 @@ var ShortTimeoutTransport = &http.Transport{
 	}).DialContext,
 }
 
+var LongTimeoutTransport = &http.Transport{
+	MaxIdleConnsPerHost:   100,
+	ResponseHeaderTimeout: 10 * time.Second,
+	IdleConnTimeout:       1 * time.Minute,
+	DialContext: (&net.Dialer{
+		Timeout:   10 * time.Second,
+		KeepAlive: 10 * time.Minute,
+	}).DialContext,
+}
+
 var TimeoutTransport = ShortTimeoutTransport
 
 var NoTimeoutTransport = &http.Transport{

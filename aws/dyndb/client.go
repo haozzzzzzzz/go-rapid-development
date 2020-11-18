@@ -305,12 +305,13 @@ func (m *Client) BatchWriteItem(input *dynamodb.BatchWriteItemInput) (err error)
 		tryCount++
 		if tryCount > 24 {
 			err = uerrors.Newf("batch write item request retry too many times. try_times: %s", tryCount)
+			logrus.Error(err)
 			break
 		}
 
 		waitTime := (math.Exp2(float64(tryCount/2)) + 1) * 10
 		time.Sleep(time.Duration(waitTime) * time.Millisecond)
-		logrus.Infof("batch write item request retry. try_times: %d, request_count: %d, wait_time: %f ms", tryCount, lenItem, waitTime)
+		logrus.Debugf("batch write item request retry. try_times: %d, request_count: %d, wait_time: %f ms", tryCount, lenItem, waitTime)
 
 		input.RequestItems = output.UnprocessedItems // 需要重试
 	}

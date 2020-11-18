@@ -2,6 +2,8 @@ package dyndb
 
 import (
 	"context"
+	"math"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -270,6 +272,7 @@ func (m *Client) PutItem(input *dynamodb.PutItemInput) (output *dynamodb.PutItem
 }
 
 // batch put item
+// https://docs.aws.amazon.com/zh_cn/amazondynamodb/latest/APIReference/API_BatchWriteItem.html
 func (m *Client) BatchWriteItem(input *dynamodb.BatchWriteItemInput) (output *dynamodb.BatchWriteItemOutput, err error) {
 	checker := m.CommandChecker()
 	if checker != nil {
@@ -279,7 +282,29 @@ func (m *Client) BatchWriteItem(input *dynamodb.BatchWriteItemInput) (output *dy
 		}()
 	}
 
-	output, err = m.DB.BatchWriteItemWithContext(m.Ctx, input)
+	tryCount := 0
+	for tryCount < 25 {
+		output, err = m.DB.BatchWriteItemWithContext(m.Ctx, input)
+		if err != nil {
+			logrus.Errorf("batch write item with context failed. error: %s", err)
+			return
+		}
+
+		lenItem := len(output.UnprocessedItems)
+		if lenItem <= 0 {
+			break
+		}
+
+		// 重试
+		// 指数回退算法
+		waitTime := (math.Exp2(float64(tryCount/2)) + 1) * 10
+		time.Sleep(time.Duration(waitTime) * time.Millisecond)
+		logrus.Infof("batch write item request retry. request_count: %d, wait_time: %d ms", lenItem, waitTime)
+
+		input.RequestItems = output.UnprocessedItems // 需要重试
+		tryCount++
+	}
+
 	return
 }
 

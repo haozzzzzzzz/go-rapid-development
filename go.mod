@@ -10,9 +10,7 @@ require (
 	github.com/elastic/go-elasticsearch/v6 v6.8.6-0.20191210132626-f0c66f50f9e7
 	github.com/elastic/go-elasticsearch/v7 v7.1.1
 	github.com/fatih/structs v1.1.0
-	github.com/gin-gonic/gin v1.4.1-0.20190727010637-461df9320ac2
-	github.com/go-playground/locales v0.12.1 // indirect
-	github.com/go-playground/universal-translator v0.16.0 // indirect
+	github.com/gin-gonic/gin v1.6.3
 	github.com/go-redis/redis v6.15.2+incompatible
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/google/btree v1.0.0 // indirect
@@ -21,8 +19,8 @@ require (
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
-	github.com/leodido/go-urn v1.1.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
+	github.com/mitchellh/mapstructure v1.1.2
 	github.com/onsi/ginkgo v1.8.0 // indirect
 	github.com/onsi/gomega v1.5.0 // indirect
 	github.com/pkg/errors v0.8.1
@@ -37,7 +35,8 @@ require (
 	golang.org/x/net v0.0.0-20190724013045-ca1201d0de80
 	google.golang.org/appengine v1.6.1 // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
+	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v8 v8.18.2
 	gopkg.in/go-playground/validator.v9 v9.31.0
-	gopkg.in/yaml.v2 v2.2.2
+	gopkg.in/yaml.v2 v2.2.8
 )

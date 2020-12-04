@@ -53,14 +53,14 @@ func (m *Client) Get(
 	}
 
 	pathData := make(map[string][]string)
-	err = request.FormMap(pathData, iPathData)
+	err = request.ObjToUrlValues(pathData, iPathData)
 	if nil != err {
 		logrus.Errorf("map path data failed. %s.", err)
 		return
 	}
 
 	queryData := make(map[string][]string)
-	err = request.FormMap(queryData, iQueryData)
+	err = request.ObjToUrlValues(queryData, iQueryData)
 	if nil != err {
 		logrus.Errorf("map query data failed. %s.", err)
 		return
@@ -101,14 +101,14 @@ func (m *Client) GetWithHeader(
 	}
 
 	pathData := make(map[string][]string)
-	err = request.FormMap(pathData, iPathData)
+	err = request.ObjToUrlValues(pathData, iPathData)
 	if nil != err {
 		logrus.Errorf("map path data failed. %s.", err)
 		return
 	}
 
 	queryData := make(map[string][]string)
-	err = request.FormMap(queryData, iQueryData)
+	err = request.ObjToUrlValues(queryData, iQueryData)
 	if nil != err {
 		logrus.Errorf("map query data failed. %s.", err)
 		return
@@ -150,14 +150,14 @@ func (m *Client) Post(
 	}
 
 	pathData := make(map[string][]string)
-	err = request.FormMap(pathData, iPathData)
+	err = request.ObjToUrlValues(pathData, iPathData)
 	if nil != err {
 		logrus.Errorf("map path data failed. %s.", err)
 		return
 	}
 
 	queryData := make(map[string][]string)
-	err = request.FormMap(queryData, iQueryData)
+	err = request.ObjToUrlValues(queryData, iQueryData)
 	if nil != err {
 		logrus.Errorf("map query data failed. %s.", err)
 		return
@@ -199,14 +199,14 @@ func (m *Client) PostWithHeader(
 	}
 
 	pathData := make(map[string][]string)
-	err = request.FormMap(pathData, iPathData)
+	err = request.ObjToUrlValues(pathData, iPathData)
 	if nil != err {
 		logrus.Errorf("map path data failed. %s.", err)
 		return
 	}
 
 	queryData := make(map[string][]string)
-	err = request.FormMap(queryData, iQueryData)
+	err = request.ObjToUrlValues(queryData, iQueryData)
 	if nil != err {
 		logrus.Errorf("map query data failed. %s.", err)
 		return
@@ -242,14 +242,14 @@ func (m *Client) PostJsonReq(
 	}
 
 	pathData := make(map[string][]string)
-	err = request.FormMap(pathData, iPathData)
+	err = request.ObjToUrlValues(pathData, iPathData)
 	if nil != err {
 		logrus.Errorf("map path data failed. %s.", err)
 		return
 	}
 
 	queryData := make(map[string][]string)
-	err = request.FormMap(queryData, iQueryData)
+	err = request.ObjToUrlValues(queryData, iQueryData)
 	if nil != err {
 		logrus.Errorf("map query data failed. %s.", err)
 		return

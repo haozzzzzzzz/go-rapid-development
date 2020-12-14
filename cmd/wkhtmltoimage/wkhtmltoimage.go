@@ -12,7 +12,7 @@ func WkHtmlToImage(
 	outputPath string,
 	format string,
 ) (err error) {
-	_, err = cmd.RunCommand("~/", "wkhtmltoimage", "--format", format, inputPath, outputPath)
+	_, err = cmd.RunCommand("./", "wkhtmltoimage", "--format", format, inputPath, outputPath)
 	if err != nil {
 		logrus.Errorf("run cmd wkhtmtoimage to generate picture failed. error: %s", err)
 		return

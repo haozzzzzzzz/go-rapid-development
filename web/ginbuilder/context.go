@@ -10,7 +10,6 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/haozzzzzzzz/go-rapid-development/api/code"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/go-playground/validator.v8"
 )
 
 const TRACE_REQUEST_KEY = "trace_fields"
@@ -43,13 +42,14 @@ func (m *Context) BindQueryData(queryData interface{}) (retCode *code.ApiCode, e
 	err = m.GinContext.ShouldBindQuery(queryData)
 	if err != nil {
 		retCode = code.CodeErrorQueryParams.Clone()
-		validateErrors, ok := err.(validator.ValidationErrors)
-		if ok {
-			for _, fieldError := range validateErrors {
-				retCode.Message = fmt.Sprintf("%s. %q:%s", retCode.Message, fieldError.Name, fieldError.Tag)
-				break
-			}
-		}
+		retCode.Message = fmt.Sprintf("%s. %s", retCode.Message, err.Error())
+		//validateErrors, ok := err.(validator.ValidationErrors)
+		//if ok {
+		//	for _, fieldError := range validateErrors {
+		//		retCode.Message = fmt.Sprintf("%s. %q:%s", retCode.Message, fieldError.Name, fieldError.Tag)
+		//		break
+		//	}
+		//}
 	}
 	return
 }
@@ -58,13 +58,14 @@ func (m *Context) BindPostData(postData interface{}) (retCode *code.ApiCode, err
 	err = m.GinContext.ShouldBindWith(postData, binding.JSON) // json only
 	if err != nil {
 		retCode = code.CodeErrorPostParams.Clone()
-		validateErrors, ok := err.(validator.ValidationErrors)
-		if ok {
-			for _, fieldError := range validateErrors {
-				retCode.Message = fmt.Sprintf("%s. %q:%s", retCode.Message, fieldError.Name, fieldError.Tag)
-				break
-			}
-		}
+		retCode.Message = fmt.Sprintf("%s. %s", retCode.Message, err.Error())
+		//validateErrors, ok := err.(validator.ValidationErrors)
+		//if ok {
+		//	for _, fieldError := range validateErrors {
+		//		retCode.Message = fmt.Sprintf("%s. %q:%s", retCode.Message, fieldError.Name, fieldError.Tag)
+		//		break
+		//	}
+		//}
 	}
 	return
 }
@@ -73,13 +74,14 @@ func (m *Context) BindBodyData(bodyData interface{}) (retCode *code.ApiCode, err
 	err = m.GinContext.ShouldBindWith(bodyData, binding.JSON) // json only
 	if err != nil {
 		retCode = code.CodeErrorPostParams.Clone()
-		validateErrors, ok := err.(validator.ValidationErrors)
-		if ok {
-			for _, fieldError := range validateErrors {
-				retCode.Message = fmt.Sprintf("%s. %q:%s", retCode.Message, fieldError.Name, fieldError.Tag)
-				break
-			}
-		}
+		retCode.Message = fmt.Sprintf("%s. %s", retCode.Message, err.Error())
+		//validateErrors, ok := err.(validator.ValidationErrors)
+		//if ok {
+		//	for _, fieldError := range validateErrors {
+		//		retCode.Message = fmt.Sprintf("%s. %q:%s", retCode.Message, fieldError.Name, fieldError.Tag)
+		//		break
+		//	}
+		//}
 	}
 	return
 }
@@ -99,13 +101,14 @@ func (m *Context) BindPathData(pathData interface{}) (retCode *code.ApiCode, err
 	defer func() {
 		if err != nil {
 			retCode = code.CodeErrorUriParams.Clone()
-			validateErrors, ok := err.(validator.ValidationErrors)
-			if ok {
-				for _, fieldError := range validateErrors {
-					retCode.Message = fmt.Sprintf("%s. %q:%s", retCode.Message, fieldError.Name, fieldError.Tag)
-					break
-				}
-			}
+			retCode.Message = fmt.Sprintf("%s. %s", retCode.Message, err.Error())
+			//validateErrors, ok := err.(validator.ValidationErrors)
+			//if ok {
+			//	for _, fieldError := range validateErrors {
+			//		retCode.Message = fmt.Sprintf("%s. %q:%s", retCode.Message, fieldError.Name, fieldError.Tag)
+			//		break
+			//	}
+			//}
 		}
 	}()
 
@@ -129,14 +132,15 @@ func (m *Context) BindUriData(uriData interface{}) (retCode *code.ApiCode, err e
 	err = m.GinContext.ShouldBindUri(uriData)
 	if nil != err {
 		retCode = code.CodeErrorUriParams.Clone()
-		validateErrors, ok := err.(validator.ValidationErrors)
-		if ok {
-			for _, fieldError := range validateErrors {
-				retCode.Message = fmt.Sprintf("%s. %q:%s", retCode.Message, fieldError.Name, fieldError.Tag)
-				break
-			}
-		}
-		return
+		retCode.Message = fmt.Sprintf("%s. %s", retCode.Message, err.Error())
+		//validateErrors, ok := err.(validator.ValidationErrors)
+		//if ok {
+		//	for _, fieldError := range validateErrors {
+		//		retCode.Message = fmt.Sprintf("%s. %q:%s", retCode.Message, fieldError.Name, fieldError.Tag)
+		//		break
+		//	}
+		//}
+		//return
 	}
 	return
 }
@@ -147,14 +151,15 @@ func (m *Context) BindHeaderData(
 	err = m.GinContext.ShouldBindHeader(headerData)
 	if nil != err {
 		retCode = code.CodeErrorHeaderParams.Clone()
-		validateErrors, ok := err.(validator.ValidationErrors)
-		if ok {
-			for _, fieldError := range validateErrors {
-				retCode.Message = fmt.Sprintf("%s. %q:%s", retCode.Message, fieldError.Name, fieldError.Tag)
-				break
-			}
-		}
-		return
+		retCode.Message = fmt.Sprintf("%s. %s", retCode.Message, err.Error())
+		//validateErrors, ok := err.(validator.ValidationErrors)
+		//if ok {
+		//	for _, fieldError := range validateErrors {
+		//		retCode.Message = fmt.Sprintf("%s. %q:%s", retCode.Message, fieldError.Name, fieldError.Tag)
+		//		break
+		//	}
+		//}
+		//return
 	}
 	return
 }

@@ -287,6 +287,7 @@ func (m *Client) HGet(key string, field string) (result string, err error) {
 	return
 }
 
+// 如果fields不存在，则相应位置返回redis.Nil
 func (m *Client) HMGet(key string, fields ...string) (result []interface{}, err error) {
 	cmder := m.RedisClient.HMGet(key, fields...)
 

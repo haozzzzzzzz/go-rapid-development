@@ -1,4 +1,5 @@
 // 这个工具有个劣势：对于html、css的特性支持不足
+// 暂停使用https://github.com/gen2brain/url2img替换
 package wkhtmltoimage
 
 import (

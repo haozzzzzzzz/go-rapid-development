@@ -73,7 +73,10 @@ func (m *TaskJob) DoJob() (err error) {
 	logrus.Infof("do cron task job start. task_name: %s, start_time: %s", m.TaskName, startTime)
 	defer func() {
 		endTime := time.Now()
-		logrus.Infof("do cron task job end. task_name: %s, end_time: %s, dur: %s, error: %s", m.TaskName, endTime, endTime.Sub(startTime), err)
+		logrus.Infof("do cron task job end. task_name: %s, end_time: %s, dur: %s", m.TaskName, endTime, endTime.Sub(startTime))
+		if err != nil {
+			logrus.Errorf("do cron tabs failed. error: %s", err)
+		}
 	}()
 
 	err = m.Handler(ctx)

@@ -118,3 +118,19 @@ func AppRegionIndianMomentDuration(
 func ParseCommonDateFormat(strTime string) (time.Time, error) {
 	return time.ParseInLocation(utime.StrCommonDateFormat, strTime, AppRegionTimezone)
 }
+
+func AppRegionHourStartTime(t time.Time) (hourStartTime time.Time) {
+	t = t.In(AppRegionTimezone)
+	hourStartTime = time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), 0, 0, 0, AppRegionTimezone)
+	return
+}
+
+func AppRegionHourStartTimeUnix(t time.Time) (hourUnix int64) {
+	return AppRegionHourStartTime(t).Unix()
+}
+
+func AppRegionHourStartTimeOffset(t time.Time, hourOffset int) (hourStartTime time.Time) {
+	curHourTime := AppRegionHourStartTime(t)
+	hourStartTime = curHourTime.Add(time.Duration(hourOffset) * time.Hour)
+	return
+}

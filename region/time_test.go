@@ -3,6 +3,7 @@ package region
 import (
 	"fmt"
 	"testing"
+	"time"
 )
 
 func TestParseCommonDateFormat(t *testing.T) {
@@ -13,4 +14,13 @@ func TestParseCommonDateFormat(t *testing.T) {
 	}
 
 	fmt.Println(tt.Weekday())
+}
+
+func TestAppRegionHourStartTime(t *testing.T) {
+	SetAppRegionTimezone(IndianStandardTimezone)
+	now := time.Now()
+	hourTime := AppRegionHourStartTime(now)
+	fmt.Println(hourTime)
+	h24 := AppRegionHourStartTimeOffset(now, -25)
+	fmt.Println(h24)
 }

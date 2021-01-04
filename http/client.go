@@ -54,7 +54,7 @@ var (
 			IdleConnTimeout:     5 * time.Minute,
 			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 				d := net.Dialer{
-					Timeout:   10 * time.Second,
+					Timeout:   20 * time.Second,
 					KeepAlive: 10 * time.Minute,
 				}
 

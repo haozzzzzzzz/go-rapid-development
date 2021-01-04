@@ -13,7 +13,7 @@ import (
 
 type HandleFunc struct {
 	HttpMethod string
-	// Deprecated: please use RelativePaths for more url
+	// Deprecated: please use RelativePaths for multi url
 	RelativePath  string   // 单个。废弃
 	RelativePaths []string // 多个
 	BeforeHandle  func(ctx *Context) (stop bool, err error)

@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+var ChinaStandardTimezone = time.FixedZone("CST", 8*3600)
+
 // https://baike.baidu.com/item/印度标准时间/1313539?fr=aladdin
 var IndianStandardTimezone = time.FixedZone("IST", 5*3600+1800) // +5:30
 

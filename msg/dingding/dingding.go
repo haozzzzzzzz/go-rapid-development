@@ -1,6 +1,7 @@
 package dingding
 
 import (
+	"context"
 	"fmt"
 	"github.com/haozzzzzzzz/go-rapid-development/aws/xray"
 	"github.com/haozzzzzzzz/go-rapid-development/http"
@@ -8,6 +9,7 @@ import (
 	"github.com/haozzzzzzzz/go-rapid-development/limiting/store"
 	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
 	"github.com/sirupsen/logrus"
+	http2 "net/http"
 	"reflect"
 	"time"
 )
@@ -32,7 +34,7 @@ func (m *LimitingDingdingAlert) Start(
 	}
 
 	m.limiting = &current_limiting.MinuteFrequencyLimiting{
-		WorkerNumber: 2,
+		WorkerNumber: workerNumber,
 		Times:        20,
 		WaitInterval: time.Second,
 		MaxBatchSize: 10,
@@ -90,8 +92,22 @@ func (m *LimitingDingdingAlert) send(datas ...interface{}) (err error) {
 		cancel(err)
 	}()
 
-	apiUrl := m.ApiUrl
-	req, err := http.NewRequest(apiUrl, ctx, xray.LongTimeoutRequestClientWithXray)
+	err = SendDingdingMsg(m.ApiUrl, ctx, http.LongTimeoutRequestClient, contents)
+	if err != nil {
+		logrus.Errorf("send dingding msg failed. error: %s", err)
+		return
+	}
+
+	return
+}
+
+func SendDingdingMsg(
+	apiUrl string,
+	ctx context.Context,
+	httpClient *http2.Client,
+	contents string,
+) (err error) {
+	req, err := http.NewRequest(apiUrl, ctx, httpClient)
 	if nil != err {
 		logrus.Errorf("new http request failed. error: %s.", err)
 		return
@@ -118,6 +134,5 @@ func (m *LimitingDingdingAlert) send(datas ...interface{}) (err error) {
 	if resp.Errcode != 0 {
 		err = uerrors.Newf("dingding response error. errcode: %d, errmsg: %s", resp.Errcode, resp.Errmsg)
 	}
-
 	return
 }

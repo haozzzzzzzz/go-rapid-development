@@ -14,7 +14,6 @@ import (
 func UnmarshalJsonFromReader(reader io.Reader, v interface{}) error {
 
 	bytes, err := ioutil.ReadAll(reader)
-
 	if err != nil {
 		return err
 	}

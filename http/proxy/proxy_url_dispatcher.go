@@ -62,6 +62,10 @@ func (m *Dispatcher) DispatchProxyUrl(
 		return
 	}
 
+	if strUrl == "" {
+		return
+	}
+
 	urlUrl, err = url.ParseRequestURI(strUrl)
 	if err != nil {
 		success = false
@@ -123,7 +127,13 @@ func (m *ProxyUrls) AddUrl(proxyUrl *ProxyUrl) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
-	m.sortedSet.AddOrUpdate(proxyUrl.Url, 1, proxyUrl)
+	// 获取最小的score
+	node := m.sortedSet.GetByRank(1, false)
+	score := sortedset.SCORE(1)
+	if node != nil {
+		score = node.Score()
+	}
+	m.sortedSet.AddOrUpdate(proxyUrl.Url, score, proxyUrl)
 }
 
 func (m *ProxyUrls) RemoveUrl(urlKey string) {
@@ -199,5 +209,28 @@ func (m *ProxyUrls) SelectUrl(
 
 	strUrl = proxyUrl.Url
 	success = true
+	return
+}
+
+func (m *ProxyUrls) Urls() (urls []*ProxyUrl, err error) {
+	urls = make([]*ProxyUrl, 0)
+	m.lock.RLock()
+	defer m.lock.RUnlock()
+
+	nodes := m.sortedSet.GetByRankRange(1, -1, false)
+	if err != nil {
+	    logrus.Errorf("get proxy urls failed. error: %s", err)
+	    return
+	}
+
+	for _, node := range nodes {
+		proxyUrl, ok := node.Value.(*ProxyUrl)
+		if !ok {
+			continue
+		}
+
+		urls = append(urls, proxyUrl)
+
+	}
 	return
 }

@@ -134,14 +134,19 @@ func (m *Request) Get() (resp *http.Response, err error) {
 }
 
 func (m *Request) GetJSON(v interface{}) (err error) {
-	ack, err := m.Get()
+	_, err = m.GetRespJson(v)
+	return
+}
+
+func (m *Request) GetRespJson(v interface{}) (resp *http.Response, err error) {
+	resp, err = m.Get()
 	if err != nil {
 		logrus.Errorf("request failed. %s.", err)
 		return
 	}
 
 	defer func() {
-		errClose := ack.Body.Close()
+		errClose := resp.Body.Close()
 		if errClose != nil {
 			logrus.Errorf("close http response body failed. %s.", err)
 			if err == nil {
@@ -150,7 +155,7 @@ func (m *Request) GetJSON(v interface{}) (err error) {
 		}
 	}()
 
-	err = ujson.UnmarshalJsonFromReader(ack.Body, v)
+	err = ujson.UnmarshalJsonFromReader(resp.Body, v)
 	if nil != err {
 		logrus.Errorf("unmarshal body json failed. %s.", err)
 		return

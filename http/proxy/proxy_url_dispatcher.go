@@ -183,7 +183,6 @@ func (m *ProxyUrls) SelectUrl(
 			err = proxyUrl.Limiter.Wait(ctx)
 			if err != nil {
 				logrus.Errorf("proxy url limiter wait failed. url: %s, error: %s", proxyUrl.Url, err)
-				err = ErrorWaitProxyUrlTimeout
 				return
 			}
 
@@ -219,8 +218,8 @@ func (m *ProxyUrls) Urls() (urls []*ProxyUrl, err error) {
 
 	nodes := m.sortedSet.GetByRankRange(1, -1, false)
 	if err != nil {
-	    logrus.Errorf("get proxy urls failed. error: %s", err)
-	    return
+		logrus.Errorf("get proxy urls failed. error: %s", err)
+		return
 	}
 
 	for _, node := range nodes {

@@ -176,6 +176,54 @@ func (m *Client) Post(
 	return
 }
 
+func (m *Client) PostBodyString(
+	urlPath string,
+	iRespData interface{},
+	iPathData interface{},
+	iQueryData interface{},
+	strPostData string,
+) (err error) {
+	defer func() {
+		iRecover := recover()
+		if iRecover != nil {
+			err = uerrors.Newf("panic: %#v", iRecover)
+		}
+	}()
+
+	apiUrl := fmt.Sprintf("%s%s", m.UrlPrefix, urlPath)
+	reqUrl, err := http.NewUrlByStrUrl(apiUrl)
+	if nil != err {
+		logrus.Errorf("new url by string url failed. %s.", err)
+		return
+	}
+
+	pathData := make(map[string][]string)
+	err = request.ObjToUrlValues(pathData, iPathData)
+	if nil != err {
+		logrus.Errorf("map path data failed. %s.", err)
+		return
+	}
+
+	queryData := make(map[string][]string)
+	err = request.ObjToUrlValues(queryData, iQueryData)
+	if nil != err {
+		logrus.Errorf("map query data failed. %s.", err)
+		return
+	}
+
+	reqUrl.SetPathData(pathData)
+	reqUrl.SetQueryData(queryData)
+
+	req := http.NewRequestByUrl(reqUrl, m.Ctx, m.HttpClient)
+	err = req.PostJsonString(strPostData, iRespData)
+	if nil != err {
+		logrus.Errorf("request api json failed. %s.", err)
+		return
+	}
+
+	return
+}
+
 func (m *Client) PostWithHeader(
 	urlPath string,
 	iRespData interface{},

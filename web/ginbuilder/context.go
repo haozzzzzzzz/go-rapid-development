@@ -75,13 +75,25 @@ func (m *Context) BindBodyData(bodyData interface{}) (retCode *code.ApiCode, err
 	if err != nil {
 		retCode = code.CodeErrorPostParams.Clone()
 		retCode.Message = fmt.Sprintf("%s. %s", retCode.Message, err.Error())
-		//validateErrors, ok := err.(validator.ValidationErrors)
-		//if ok {
-		//	for _, fieldError := range validateErrors {
-		//		retCode.Message = fmt.Sprintf("%s. %q:%s", retCode.Message, fieldError.Name, fieldError.Tag)
-		//		break
-		//	}
-		//}
+	}
+	return
+}
+
+// read body, and reuse it in request
+func (m *Context) BindCacheBodyData(bodyData interface{}) (retCode *code.ApiCode, err error) {
+	err = m.GinContext.ShouldBindBodyWith(bodyData, binding.JSON) // json only
+	if err != nil {
+		retCode = code.CodeErrorPostParams.Clone()
+		retCode.Message = fmt.Sprintf("%s. %s", retCode.Message, err.Error())
+	}
+	return
+}
+
+func (m *Context) GetCachedBody() (body []byte, exists bool) {
+	var iBody interface{}
+	iBody, exists = m.GinContext.Get(gin.BodyBytesKey)
+	if exists {
+		body, exists = iBody.([]byte)
 	}
 	return
 }

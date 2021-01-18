@@ -51,10 +51,6 @@ func NewRequest(
 	ctx context.Context,
 	client *http.Client,
 ) (req *Request, err error) {
-	if client == nil {
-		client = RequestClient
-	}
-
 	url, err := NewUrlByStrUrl(strUrl)
 	if nil != err {
 		logrus.Errorf("new url failed. %s.", err)
@@ -62,7 +58,7 @@ func NewRequest(
 	}
 
 	if client == nil {
-		client = RequestClient
+		client = ShortTimeoutRequestClient
 	}
 
 	req = &Request{
@@ -83,7 +79,7 @@ func NewRequestByUrl(
 	client *http.Client,
 ) (req *Request) {
 	if client == nil {
-		client = RequestClient
+		client = ShortTimeoutRequestClient
 	}
 
 	req = &Request{
@@ -96,6 +92,11 @@ func NewRequestByUrl(
 	}
 
 	return
+}
+
+// 设置新的http
+func (m *Request) SetClient(httpClient *http.Client) {
+	m.Client = httpClient
 }
 
 func (m *Request) URL() string {
@@ -205,6 +206,51 @@ func (m *Request) PostJson(body interface{}, resp interface{}) (err error) {
 
 	strUrl := m.URL()
 	bodyReader := bytes.NewBuffer(bytesBody)
+	contentType := "application/json;charset=utf8"
+
+	req, err := http.NewRequest("POST", strUrl, bodyReader)
+	if err != nil {
+		return
+	}
+	req.Header = m.Header
+	req.Header.Set("Content-Type", contentType)
+
+	response, err = m.Do(req)
+	if err != nil {
+		logrus.Warnf("post request failed. %s", err)
+		return
+	}
+
+	if response.StatusCode != http.StatusOK {
+		err = errors.New(fmt.Sprintf("http status: %s", response.Status))
+		logrus.Errorf("response error. %s.", err)
+		return
+	}
+
+	defer func() {
+		errClose := response.Body.Close()
+		if errClose != nil {
+			logrus.Errorf("close http response body failed. %s.", err)
+			if err == nil {
+				err = errClose
+			}
+		}
+	}()
+
+	err = ujson.UnmarshalJsonFromReader(response.Body, resp)
+	if nil != err {
+		logrus.Errorf("unmarshal body json failed. %s.", err)
+		return
+	}
+
+	return
+}
+
+func (m *Request) PostJsonString(body string, resp interface{}) (err error) {
+	var response *http.Response
+
+	strUrl := m.URL()
+	bodyReader := bytes.NewBuffer([]byte(body))
 	contentType := "application/json;charset=utf8"
 
 	req, err := http.NewRequest("POST", strUrl, bodyReader)

@@ -32,3 +32,5 @@ func ParseErrorResponseBody(
 	}
 	return
 }
+
+const ErrorTypeDocumentMissing = "document_missing_exception" // 文档不存在

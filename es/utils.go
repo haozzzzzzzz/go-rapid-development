@@ -93,7 +93,7 @@ func HandleResponseBody(
 		return
 	}
 	if response.IsError() {
-		err = RespError(bBody)
+		_, err = RespError(bBody)
 		if err != nil {
 			logrus.Errorf("es response error. %s", err)
 			return

@@ -10,7 +10,7 @@ require (
 	github.com/elastic/go-elasticsearch/v6 v6.8.6-0.20191210132626-f0c66f50f9e7
 	github.com/elastic/go-elasticsearch/v7 v7.1.1
 	github.com/fatih/structs v1.1.0
-	github.com/gin-gonic/gin v1.6.3
+	github.com/gin-gonic/gin v1.7.2
 	github.com/go-redis/redis v6.15.2+incompatible
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/google/btree v1.0.0 // indirect
@@ -31,7 +31,6 @@ require (
 	github.com/streadway/amqp v0.0.0-20190404075320-75d898a42a94
 	github.com/wangjia184/sortedset v0.0.0-20200422044937-080872f546ba
 	github.com/xiam/to v0.0.0-20191116183551-8328998fc0ed
-	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4 // indirect
 	golang.org/x/image v0.0.0-20190802002840-cff245a6509b
 	golang.org/x/net v0.0.0-20190724013045-ca1201d0de80
 	golang.org/x/time v0.0.0-20201208040808-7e3f01d25324

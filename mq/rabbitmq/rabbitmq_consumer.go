@@ -37,7 +37,7 @@ func NewQueueConsumer(
 }
 
 func (m *QueueConsumer) Start() {
-	// run wokers
+	// run workers
 	for i := uint32(0); i < m.workerCount; i++ {
 		go func(workerOrder uint32) {
 			for msg := range m.msgC {

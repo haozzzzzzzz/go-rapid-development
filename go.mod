@@ -1,4 +1,4 @@
-module github.com/haozzzzzzzz/go-rapid-development
+module github.com/haozzzzzzzz/go-rapid-development/v2
 
 go 1.16
 

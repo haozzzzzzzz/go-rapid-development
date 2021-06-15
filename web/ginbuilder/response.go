@@ -4,7 +4,7 @@ import (
 	"github.com/haozzzzzzzz/go-rapid-development/api/code"
 )
 
-// 请求返回基类
+// Response 请求返回基类
 type Response struct {
 	ReturnCode uint32      `json:"ret"`
 	Message    string      `json:"msg"`

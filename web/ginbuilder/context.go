@@ -2,6 +2,7 @@ package ginbuilder
 
 import (
 	"fmt"
+	"github.com/haozzzzzzzz/go-rapid-development/web/wgin"
 	"net/http"
 
 	"context"
@@ -15,7 +16,7 @@ import (
 const TRACE_REQUEST_KEY = "trace_fields"
 const NO_ACCESS_LOG_PRINT = "no_access_log_print" // key for not print access log
 
-// context
+// Context context
 type Context struct {
 	GinContext   *gin.Context
 	RequestCtx   context.Context
@@ -43,13 +44,6 @@ func (m *Context) BindQueryData(queryData interface{}) (retCode *code.ApiCode, e
 	if err != nil {
 		retCode = code.CodeErrorQueryParams.Clone()
 		retCode.Message = fmt.Sprintf("%s. %s", retCode.Message, err.Error())
-		//validateErrors, ok := err.(validator.ValidationErrors)
-		//if ok {
-		//	for _, fieldError := range validateErrors {
-		//		retCode.Message = fmt.Sprintf("%s. %q:%s", retCode.Message, fieldError.Name, fieldError.Tag)
-		//		break
-		//	}
-		//}
 	}
 	return
 }
@@ -59,13 +53,6 @@ func (m *Context) BindPostData(postData interface{}) (retCode *code.ApiCode, err
 	if err != nil {
 		retCode = code.CodeErrorPostParams.Clone()
 		retCode.Message = fmt.Sprintf("%s. %s", retCode.Message, err.Error())
-		//validateErrors, ok := err.(validator.ValidationErrors)
-		//if ok {
-		//	for _, fieldError := range validateErrors {
-		//		retCode.Message = fmt.Sprintf("%s. %q:%s", retCode.Message, fieldError.Name, fieldError.Tag)
-		//		break
-		//	}
-		//}
 	}
 	return
 }
@@ -79,7 +66,7 @@ func (m *Context) BindBodyData(bodyData interface{}) (retCode *code.ApiCode, err
 	return
 }
 
-// read body, and reuse it in request
+// BindCacheBodyData read body, and reuse it in request
 func (m *Context) BindCacheBodyData(bodyData interface{}) (retCode *code.ApiCode, err error) {
 	err = m.GinContext.ShouldBindBodyWith(bodyData, binding.JSON) // json only
 	if err != nil {
@@ -98,7 +85,7 @@ func (m *Context) GetCachedBody() (body []byte, exists bool) {
 	return
 }
 
-// form-urlencoded
+// BindPostForm form-urlencoded
 func (m *Context) BindPostForm(postData interface{}) (err error) {
 	err = m.GinContext.ShouldBindWith(postData, binding.FormPost)
 	if nil != err {
@@ -114,13 +101,6 @@ func (m *Context) BindPathData(pathData interface{}) (retCode *code.ApiCode, err
 		if err != nil {
 			retCode = code.CodeErrorUriParams.Clone()
 			retCode.Message = fmt.Sprintf("%s. %s", retCode.Message, err.Error())
-			//validateErrors, ok := err.(validator.ValidationErrors)
-			//if ok {
-			//	for _, fieldError := range validateErrors {
-			//		retCode.Message = fmt.Sprintf("%s. %q:%s", retCode.Message, fieldError.Name, fieldError.Tag)
-			//		break
-			//	}
-			//}
 		}
 	}()
 
@@ -139,20 +119,12 @@ func (m *Context) BindPathData(pathData interface{}) (retCode *code.ApiCode, err
 	return
 }
 
-// use form tag `uri`
+// BindUriData use form tag `uri`
 func (m *Context) BindUriData(uriData interface{}) (retCode *code.ApiCode, err error) {
 	err = m.GinContext.ShouldBindUri(uriData)
 	if nil != err {
 		retCode = code.CodeErrorUriParams.Clone()
 		retCode.Message = fmt.Sprintf("%s. %s", retCode.Message, err.Error())
-		//validateErrors, ok := err.(validator.ValidationErrors)
-		//if ok {
-		//	for _, fieldError := range validateErrors {
-		//		retCode.Message = fmt.Sprintf("%s. %q:%s", retCode.Message, fieldError.Name, fieldError.Tag)
-		//		break
-		//	}
-		//}
-		//return
 	}
 	return
 }
@@ -164,14 +136,6 @@ func (m *Context) BindHeaderData(
 	if nil != err {
 		retCode = code.CodeErrorHeaderParams.Clone()
 		retCode.Message = fmt.Sprintf("%s. %s", retCode.Message, err.Error())
-		//validateErrors, ok := err.(validator.ValidationErrors)
-		//if ok {
-		//	for _, fieldError := range validateErrors {
-		//		retCode.Message = fmt.Sprintf("%s. %q:%s", retCode.Message, fieldError.Name, fieldError.Tag)
-		//		break
-		//	}
-		//}
-		//return
 	}
 	return
 }
@@ -179,6 +143,7 @@ func (m *Context) BindHeaderData(
 func (m *Context) Send(code *code.ApiCode, obj interface{}) {
 	m.ResponseData = NewResponse(code, obj)
 	m.GinContext.JSON(http.StatusOK, m.ResponseData)
+	wgin.SetResponseRetCode(m.GinContext, int(code.Code))
 	return
 }
 
@@ -220,20 +185,20 @@ func (m *Context) WarnfReturn(code *code.ApiCode, obj interface{}, logFormat str
 	m.Logger.Warnf(logFormat, logArgs...)
 }
 
-// 301
-// 永久性定向。该状态码表示请求的资源已被分配了新的URI，以后应使用资源现在所指的URI
+// TemporaryRedirect 永久性定向. 301
+// 该状态码表示请求的资源已被分配了新的URI，以后应使用资源现在所指的URI
 func (m *Context) TemporaryRedirect(location string) {
 	m.GinContext.Redirect(http.StatusTemporaryRedirect, location)
 }
 
-// 307
-// 临时重定向。该状态码与302有相同的含义。307会遵照浏览器标准，不会从post变为get。但是对于处理响应时的行为，各种浏览器有可能出现不同的情况。
+// PermanentRedirect 临时重定向.307
+// 该状态码与302有相同的含义。307会遵照浏览器标准，不会从post变为get。但是对于处理响应时的行为，各种浏览器有可能出现不同的情况。
 func (m *Context) PermanentRedirect(location string) {
 	m.GinContext.Redirect(http.StatusPermanentRedirect, location)
 }
 
-// 302
-// 临时性重定向。该状态码表示请求的资源已被分配了新的URI，希望用户（本次）能使用新的URI访问。
+// StatusFoundRedirect 临时性重定向. 302
+// 该状态码表示请求的资源已被分配了新的URI，希望用户（本次）能使用新的URI访问。
 func (m *Context) StatusFoundRedirect(location string) {
 	m.GinContext.Redirect(http.StatusFound, location)
 }

@@ -5,7 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/haozzzzzzzz/go-rapid-development/aws/types"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/aws/types"
 	"github.com/sirupsen/logrus"
 )
 

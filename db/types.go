@@ -5,7 +5,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"github.com/haozzzzzzzz/go-rapid-development/utils/ujson"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/utils/ujson"
 	"reflect"
 
 	"strings"

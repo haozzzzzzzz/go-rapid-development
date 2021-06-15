@@ -3,11 +3,11 @@ package dingding
 import (
 	"context"
 	"fmt"
-	"github.com/haozzzzzzzz/go-rapid-development/aws/xray"
-	"github.com/haozzzzzzzz/go-rapid-development/http"
-	"github.com/haozzzzzzzz/go-rapid-development/limiting/current_limiting"
-	"github.com/haozzzzzzzz/go-rapid-development/limiting/store"
-	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/http"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/limiting/current_limiting"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/limiting/store"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/task"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/utils/uerrors"
 	"github.com/sirupsen/logrus"
 	http2 "net/http"
 	"reflect"
@@ -87,7 +87,7 @@ func (m *LimitingDingdingAlert) send(datas ...interface{}) (err error) {
 	}
 
 	logrus.Infof("dingding send : %#v", contents)
-	ctx, _, cancel := xray.NewBackgroundContext("dingding_send")
+	ctx, cancel := task.NewBackgroundContext("dingding_send")
 	defer func() {
 		cancel(err)
 	}()

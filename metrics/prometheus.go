@@ -2,7 +2,7 @@ package metrics
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/haozzzzzzzz/go-rapid-development/web/ginbuilder"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/web/ginbuilder"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"

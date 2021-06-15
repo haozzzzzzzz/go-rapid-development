@@ -9,7 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/haozzzzzzzz/go-rapid-development/utils/ujson"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/utils/ujson"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context/ctxhttp"
 )

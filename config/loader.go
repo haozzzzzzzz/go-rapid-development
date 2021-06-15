@@ -1,9 +1,9 @@
 package config
 
 import (
-	"github.com/haozzzzzzzz/go-rapid-development/consul"
-	"github.com/haozzzzzzzz/go-rapid-development/utils/ujson"
-	"github.com/haozzzzzzzz/go-rapid-development/utils/yaml"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/consul"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/utils/ujson"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/utils/yaml"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/go-playground/validator.v9"
 )

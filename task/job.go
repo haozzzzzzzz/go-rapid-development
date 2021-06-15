@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/utils/uerrors"
 	"github.com/robfig/cron/v3"
 	"github.com/sirupsen/logrus"
 )

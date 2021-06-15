@@ -2,8 +2,8 @@ package api_metrics
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/haozzzzzzzz/go-rapid-development/metrics"
-	"github.com/haozzzzzzzz/go-rapid-development/web/wgin"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/metrics"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/web/wgin"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 	"github.com/xiam/to"

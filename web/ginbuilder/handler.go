@@ -2,8 +2,8 @@ package ginbuilder
 
 import (
 	"fmt"
-	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
-	"github.com/haozzzzzzzz/go-rapid-development/utils/uruntime"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/utils/uerrors"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/utils/uruntime"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"strings"

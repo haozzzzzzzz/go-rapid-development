@@ -4,7 +4,7 @@ package wkhtmltoimage
 
 import (
 	"context"
-	"github.com/haozzzzzzzz/go-rapid-development/cmd"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/cmd"
 	"github.com/sirupsen/logrus"
 	"github.com/xiam/to"
 )

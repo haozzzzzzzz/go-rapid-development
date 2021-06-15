@@ -3,10 +3,7 @@ module github.com/haozzzzzzzz/go-rapid-development/v2
 go 1.16
 
 require (
-	github.com/DATA-DOG/go-sqlmock v1.3.3 // indirect
 	github.com/aws/aws-sdk-go v1.21.7
-	github.com/aws/aws-xray-sdk-go v0.9.4
-	github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575 // indirect
 	github.com/elastic/go-elasticsearch/v6 v6.8.6-0.20191210132626-f0c66f50f9e7
 	github.com/elastic/go-elasticsearch/v7 v7.1.1
 	github.com/fatih/structs v1.1.0
@@ -29,15 +26,12 @@ require (
 	github.com/satori/go.uuid v1.2.1-0.20181028125025-b2ce2384e17b
 	github.com/sirupsen/logrus v1.4.2
 	github.com/streadway/amqp v0.0.0-20190404075320-75d898a42a94
-	github.com/wangjia184/sortedset v0.0.0-20200422044937-080872f546ba
 	github.com/xiam/to v0.0.0-20191116183551-8328998fc0ed
 	golang.org/x/image v0.0.0-20190802002840-cff245a6509b
 	golang.org/x/net v0.0.0-20190724013045-ca1201d0de80
-	golang.org/x/time v0.0.0-20201208040808-7e3f01d25324
 	google.golang.org/appengine v1.6.1 // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
-	gopkg.in/go-playground/validator.v8 v8.18.2
 	gopkg.in/go-playground/validator.v9 v9.31.0
 	gopkg.in/yaml.v2 v2.2.8
 )

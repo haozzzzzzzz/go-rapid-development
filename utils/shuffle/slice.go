@@ -1,7 +1,7 @@
 package shuffle
 
 import (
-	"github.com/haozzzzzzzz/go-rapid-development/utils/num"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/utils/num"
 )
 
 // 打乱切片元素

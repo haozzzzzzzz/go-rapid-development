@@ -2,7 +2,7 @@ package utime
 
 import (
 	"errors"
-	"github.com/haozzzzzzzz/go-rapid-development/utils/num"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/utils/num"
 	"github.com/sirupsen/logrus"
 )
 

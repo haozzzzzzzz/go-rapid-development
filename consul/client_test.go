@@ -2,7 +2,7 @@ package consul
 
 import (
 	"fmt"
-	"github.com/haozzzzzzzz/go-rapid-development/utils/yaml"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/utils/yaml"
 	"github.com/sirupsen/logrus"
 	"testing"
 

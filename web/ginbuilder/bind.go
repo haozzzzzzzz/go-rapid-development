@@ -2,7 +2,7 @@ package ginbuilder
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/haozzzzzzzz/go-rapid-development/api/request"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/api/request"
 )
 
 // Deprecated: new gin has full support of bind

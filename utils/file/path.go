@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/haozzzzzzzz/go-rapid-development/utils/str"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/utils/str"
 )
 
 func PathExists(path string) (exists bool) {

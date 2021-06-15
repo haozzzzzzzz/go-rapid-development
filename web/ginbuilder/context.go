@@ -2,14 +2,14 @@ package ginbuilder
 
 import (
 	"fmt"
-	"github.com/haozzzzzzzz/go-rapid-development/web/wgin"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/web/wgin"
 	"net/http"
 
 	"context"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	"github.com/haozzzzzzzz/go-rapid-development/api/code"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/api/code"
 	"github.com/sirupsen/logrus"
 )
 

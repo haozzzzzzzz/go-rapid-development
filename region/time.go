@@ -1,7 +1,7 @@
 package region
 
 import (
-	"github.com/haozzzzzzzz/go-rapid-development/utils/utime"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/utils/utime"
 	"github.com/sirupsen/logrus"
 	"time"
 )

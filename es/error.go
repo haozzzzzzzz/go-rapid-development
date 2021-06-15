@@ -3,7 +3,7 @@ package es
 import (
 	"errors"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
-	"github.com/haozzzzzzzz/go-rapid-development/utils/uio"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/utils/uio"
 	"github.com/sirupsen/logrus"
 )
 

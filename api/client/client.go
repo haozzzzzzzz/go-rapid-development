@@ -7,10 +7,10 @@ import (
 
 	http2 "net/http"
 
-	"github.com/haozzzzzzzz/go-rapid-development/api/code"
-	"github.com/haozzzzzzzz/go-rapid-development/api/request"
-	"github.com/haozzzzzzzz/go-rapid-development/http"
-	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/api/code"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/api/request"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/http"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/utils/uerrors"
 	"github.com/sirupsen/logrus"
 )
 

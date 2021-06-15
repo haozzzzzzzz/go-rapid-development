@@ -1,7 +1,7 @@
 package ginbuilder
 
 import (
-	"github.com/haozzzzzzzz/go-rapid-development/api/code"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/api/code"
 )
 
 // Response 请求返回基类

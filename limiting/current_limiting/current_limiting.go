@@ -5,7 +5,7 @@ limit execution times
 package current_limiting
 
 import (
-	"github.com/haozzzzzzzz/go-rapid-development/limiting/store"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/limiting/store"
 	"time"
 
 	"github.com/sirupsen/logrus"

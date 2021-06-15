@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/fatih/structs"
-	"github.com/haozzzzzzzz/go-rapid-development/api/client"
-	"github.com/haozzzzzzzz/go-rapid-development/utils/str"
-	"github.com/haozzzzzzzz/go-rapid-development/utils/uerrors"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/api/client"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/utils/str"
+	"github.com/haozzzzzzzz/go-rapid-development/v2/utils/uerrors"
 	"github.com/sirupsen/logrus"
 )
 

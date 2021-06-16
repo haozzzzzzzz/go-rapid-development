@@ -10,10 +10,44 @@ import (
 )
 
 var (
+	InstanceId          string
 	ExecTimesCounterVec *prometheus.CounterVec // 执行语句统计次数
-	SlowSqlCounterVec   *prometheus.CounterVec // 慢查询日志统计次数
 	SpentTimeSummaryVec *prometheus.SummaryVec // 耗时
 )
+
+// InitMetrics 初始化metrics对象
+func InitMetrics(
+	namespace string,
+	instanceId string,
+) (err error) {
+	InstanceId = instanceId
+
+	ExecTimesCounterVec, err = metrics.NewCounterVec(
+		namespace,
+		"gorm",
+		"exec_times",
+		"执行次数",
+		[]string{"instance", "type"},
+	)
+	if err != nil {
+		logrus.Errorf("new metrics counter vec failed. error: %s", err)
+		return
+	}
+
+	SpentTimeSummaryVec, err = metrics.NewSummaryVec(
+		namespace,
+		"gorm",
+		"spent_time",
+		"耗时统计",
+		[]string{"instance"},
+	)
+	if err != nil {
+		logrus.Errorf("new metrics summary vec failed. error: %s", err)
+		return
+	}
+
+	return
+}
 
 type DbMetrics struct {
 	Statement *gorm.Statement
@@ -32,6 +66,8 @@ func DbMetricsBefore(db *gorm.DB) {
 		StartTime: time.Now(),
 		Statement: db.Statement,
 	})
+
+	ExecTimesCounterVec.WithLabelValues(InstanceId, "total").Inc()
 }
 
 func DbMetricsAfter(db *gorm.DB) {
@@ -64,40 +100,19 @@ func DbMetricsAfter(db *gorm.DB) {
 		return
 	}
 
+	dbErr := db.Error
+	if dbErr != nil && dbErr != gorm.ErrRecordNotFound {
+		ExecTimesCounterVec.WithLabelValues(InstanceId, "total").Inc()
+	}
+
 	dbMetrics.EndTime = time.Now()
+	duration := dbMetrics.EndTime.Sub(dbMetrics.StartTime)
+	milSeconds := duration.Milliseconds()
+	SpentTimeSummaryVec.WithLabelValues(InstanceId).Observe(float64(milSeconds))
 
-}
-
-// InitMetrics 初始化metrics对象
-func InitMetrics(
-	namespace string,
-	instanceId string,
-) (err error) {
-	ExecTimesCounterVec, err = metrics.NewCounterVec(
-		namespace,
-		"gorm",
-		"exec_times",
-		"执行次数",
-		[]string{"instance", "type"},
-	)
-	if err != nil {
-		logrus.Errorf("new metrics counter vec failed. error: %s", err)
-		return
+	if milSeconds > 1000 {
+		ExecTimesCounterVec.WithLabelValues(InstanceId, "slow").Inc()
 	}
-
-	SpentTimeSummaryVec, err = metrics.NewSummaryVec(
-		namespace,
-		"gorm",
-		"spent_time",
-		"耗时统计",
-		[]string{"instance"},
-	)
-	if err != nil {
-		logrus.Errorf("new metrics summary vec failed. error: %s", err)
-		return
-	}
-
-	return
 }
 
 func SetDbMetrics(

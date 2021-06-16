@@ -1,4 +1,4 @@
-package db
+package db_sqlx
 
 import (
 	"github.com/go-sql-driver/mysql"

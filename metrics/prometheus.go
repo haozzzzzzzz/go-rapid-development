@@ -154,6 +154,29 @@ func NewSummaryVec(
 	return
 }
 
+func NewHistogramVec(
+	namespace string,
+	subsystem string,
+	name string,
+	help string,
+	labels []string,
+	buckets []float64,
+) (histogramVec *prometheus.HistogramVec, err error) {
+	histogramVec = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+		Namespace: namespace,
+		Subsystem: subsystem,
+		Name:      name,
+		Help:      help,
+		Buckets:   buckets,
+	}, labels)
+	err = prometheus.Register(histogramVec)
+	if err != nil {
+		logrus.Errorf("register prometheus histogram vec failed. error: %s", err)
+		return
+	}
+	return
+}
+
 func PrometheusGinMetrics(routes gin.IRoutes, metricsPath string) {
 	routes.GET(metricsPath, func(context *gin.Context) {
 		defer func() {

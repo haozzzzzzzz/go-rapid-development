@@ -23,7 +23,7 @@ require (
 	github.com/prometheus/client_golang v1.11.0
 	github.com/robfig/cron/v3 v3.0.0
 	github.com/satori/go.uuid v1.2.1-0.20181028125025-b2ce2384e17b
-	github.com/sirupsen/logrus v1.6.0
+	github.com/sirupsen/logrus v1.8.1
 	github.com/streadway/amqp v0.0.0-20190404075320-75d898a42a94
 	github.com/xiam/to v0.0.0-20191116183551-8328998fc0ed
 	golang.org/x/image v0.0.0-20190802002840-cff245a6509b

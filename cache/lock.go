@@ -85,7 +85,7 @@ func (m *RedisLock) LockNotWaitLock(key string, expire time.Duration) (success b
 	return
 }
 
-func (m *RedisLock) UnlockNotWaitLock(key string) (success bool) {
+func (m *RedisLock) UnlockNotWaitLock(key string) {
 	_, err := m.Client.Del(key)
 	if nil != err {
 		logrus.Errorf("unlock not wait lock failed. error: %s.", err)

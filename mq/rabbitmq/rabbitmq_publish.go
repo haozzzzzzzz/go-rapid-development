@@ -11,9 +11,10 @@ import (
 
 // TODO 加监控
 type PublishMsg struct {
-	Exchange string      `json:"exchange"`
-	Key      string      `json:"key"`
-	Body     interface{} `json:"body"`
+	Exchange   string      `json:"exchange"`
+	Key        string      `json:"key"`
+	Body       interface{} `json:"body"`
+	CreateTime int64       `json:"create_time"` // 创建时间
 }
 
 type ExchangePublisher struct {
@@ -142,8 +143,9 @@ func (m *ExchangePublisher) connect() (err error) {
 
 func (m *ExchangePublisher) Publish(key string, obj interface{}) {
 	m.msgC <- &PublishMsg{
-		Exchange: m.exchange,
-		Key:      key,
-		Body:     obj,
+		Exchange:   m.exchange,
+		Key:        key,
+		Body:       obj,
+		CreateTime: time.Now().Unix(),
 	}
 }
